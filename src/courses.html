@@ -8,6 +8,114 @@
     <link rel="stylesheet" href="styles/courses.css">
     <!-- Estilos específicos para las partículas -->
     <link rel="stylesheet" href="styles/particles-background.css" />
+    
+    <!-- Estilos para carga dinámica -->
+    <style>
+        .loading-courses {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--course-text-muted);
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--course-accent);
+        }
+        
+        .loading-courses p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .no-courses-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--course-text-muted);
+        }
+        
+        .no-courses-message i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--course-accent);
+        }
+        
+        .no-courses-message h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--course-title);
+        }
+        
+        .no-courses-message p {
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        /* Estilo para símbolos Unicode en botones */
+        .btn-course-primary {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .btn-course-primary:not(:has(i)) {
+            font-size: 14px;
+        }
+        
+        /* Estilos para indicadores de sincronización */
+        .sync-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .sync-indicator.syncing {
+            background: rgba(68, 229, 255, 0.1);
+            color: #44e5ff;
+            border: 1px solid rgba(68, 229, 255, 0.3);
+        }
+        
+        .sync-indicator.synced {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .sync-indicator.offline {
+            background: rgba(156, 163, 175, 0.1);
+            color: #9ca3af;
+            border: 1px solid rgba(156, 163, 175, 0.3);
+        }
+        
+        .sync-indicator.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .sync-indicator i {
+            font-size: 0.9rem;
+        }
+        
+        .sync-indicator.syncing i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
@@ -201,61 +309,14 @@
                         </div>
                     </div>
 
-                    <!-- Lista de talleres -->
-                    <div class="courses-grid">
-                        <div class="course-card" id="course-main">
-                            <div class="course-image">
-                                <img src="assets/images/brain-icon.jpg" alt="Taller de IA">
-                                <div class="course-menu">
-                                    <button class="menu-btn">
-                                        <i class='bx bx-dots-vertical-rounded'></i>
-                                    </button>
-                                </div>
+                    <!-- Lista de talleres - Se renderiza dinámicamente -->
+                    <div class="courses-grid" id="courses-grid">
+                        <!-- Los cursos se cargarán dinámicamente aquí -->
+                        <div class="loading-courses">
+                            <div class="loading-spinner">
+                                <i class='bx bx-loader-alt bx-spin'></i>
                             </div>
-                            <div class="course-info">
-                                <h3>Dominando ChatGPT y Gemini para la Productividad</h3>
-o a                                 <p class="course-instructor">Instructor: Ernesto Hernandez</p>
-                                <div class="course-progress">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 0%"></div>
-                                    </div>
-                                    <span class="progress-text">0% completado</span>
-                                </div>
-                                <div class="course-actions">
-                                    <button class="btn-course-primary" onclick="window.location.href='Chat-Online/chat-online.html'">
-                                        <i class='bx bx-play-circle'></i>
-                                        Continuar taller
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Taller de ejemplo adicional -->
-                        <div class="course-card disabled" id="course-upcoming">
-                            <div class="course-image">
-                                <img src="assets/images/brain-icon.jpg" alt="Fundamentos de Machine Learning">
-                                <div class="course-menu">
-                                    <button class="menu-btn">
-                                        <i class='bx bx-dots-vertical-rounded'></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="course-info">
-                                <h3>Próximamente</h3>
-                                <p class="course-instructor">Disponible pronto</p>
-                                <div class="course-progress">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 0%"></div>
-                                    </div>
-                                    <span class="progress-text">Anuncio en breve</span>
-                                </div>
-                                <div class="course-actions">
-                                    <button class="btn-course-primary" disabled>
-                                        <i class='bx bx-time-five'></i>
-                                        Próximamente
-                                    </button>
-                                </div>
-                            </div>
+                            <p>Cargando cursos...</p>
                         </div>
                     </div>
                 </div>
@@ -326,11 +387,628 @@ o a                                 <p class="course-instructor">Instructor: Ern
     </div> <!-- Cierre del auth-container -->
 
     <script src="scripts/main.js"></script>
+    <script src="scripts/hybrid-progress-manager.js?v=2.0"></script>
+    <script src="scripts/dynamic-course-loader.js"></script>
     <script src="scripts/courses.js"></script>
     <script src="scripts/profile-avatar-manager.js"></script>
     <script src="scripts/courses-particles-direct.js"></script>
     <script src="scripts/force-theme-init.js"></script>
     <script src="scripts/theme-manager.js"></script>
     <script src="scripts/theme-toggle.js"></script>
+
+    <!-- Script para cargar progreso con sistema híbrido -->
+    <script>
+        // =====================================================
+        // SISTEMA DE SINCRONIZACIÓN DE PROGRESO HÍBRIDO
+        // Carga desde localStorage y sincroniza con BD
+        // =====================================================
+
+        class CoursesProgressSync {
+            constructor() {
+                this.courseId = 'intro-to-ai';
+                this.hybridManager = null;
+                this.initializeHybridManager();
+            }
+
+            initializeHybridManager() {
+                if (window.HybridProgressManager) {
+                    this.hybridManager = new window.HybridProgressManager(this.courseId);
+                    
+                    // Configurar listeners para eventos del sistema híbrido
+                    this.hybridManager.on('progressLoaded', (data) => {
+                        console.log('📡 Progreso cargado desde sistema híbrido:', data);
+                        this.updateUIFromData(data.progress);
+                    });
+                    
+                    this.hybridManager.on('syncCompleted', (data) => {
+                        console.log('✅ Sincronización completada:', data);
+                        this.showSyncIndicator('synced', 'Sincronizado correctamente');
+                    });
+                    
+                    this.hybridManager.on('syncError', (data) => {
+                        console.log('❌ Error de sincronización:', data);
+                        this.showSyncIndicator('error', 'Error de sincronización');
+                    });
+                    
+                    this.hybridManager.on('syncStarted', (data) => {
+                        console.log('🔄 Sincronización iniciada:', data);
+                        this.showSyncIndicator('syncing', 'Sincronizando...');
+                    });
+                    
+                    console.log('✅ HybridProgressManager inicializado en courses.html');
+                } else {
+                    console.warn('⚠️ HybridProgressManager no está disponible, usando sistema legacy');
+                }
+            }
+
+            loadFromLocalStorage() {
+                try {
+                    // Buscar en múltiples claves posibles
+                    const possibleKeys = [
+                        this.storagePrefix + this.courseId, // courseProgress_intro-to-ai
+                        'courseProgress_intro-to-ai',    // Clave usada en chat-online
+                        'courseProgress_intro-to-ai', // Variante
+                        'lessonProgress'                    // Clave usada en module1-videos-loader
+                    ];
+
+                    let stored = null;
+                    let usedKey = null;
+
+                    // Buscar en todas las claves posibles
+                    for (const key of possibleKeys) {
+                        stored = localStorage.getItem(key);
+                        if (stored) {
+                            usedKey = key;
+                            console.log(`✅ Progreso encontrado en key: "${key}"`);
+                            break;
+                        }
+                    }
+
+                    if (!stored) {
+                        console.warn('⚠️ No hay progreso guardado en localStorage');
+
+                        // Verificar otras keys posibles
+                        console.log('📋 Keys disponibles en localStorage:');
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const k = localStorage.key(i);
+                            if (k.includes('progress') || k.includes('course') || k.includes('lesson')) {
+                                console.log(`  - ${k}: ${localStorage.getItem(k).substring(0, 100)}...`);
+                            }
+                        }
+
+                        return null;
+                    }
+
+                    const parsed = JSON.parse(stored);
+                    console.log('✅ Progreso encontrado en localStorage:', parsed);
+
+                    // Soportar ambos formatos (nuevo con version y viejo sin version)
+                    if (parsed.version) {
+                        console.log(`📦 Formato nuevo (v${parsed.version})`);
+                        return parsed.data;
+                    }
+
+                    // Formato viejo (compatibilidad)
+                    console.log('📦 Formato legacy');
+                    return parsed;
+
+                } catch (error) {
+                    console.error('❌ Error cargando progreso local:', error);
+                    return null;
+                }
+            }
+
+            calculateOverallProgress(progressData) {
+                if (!progressData) return 0;
+
+                console.log('📊 Calculando progreso desde:', progressData);
+
+                // Formato de chat-online.html (courseProgress_intro-to-ai)
+                if (progressData.percentage !== undefined) {
+                    console.log(`📊 Progreso directo: ${progressData.percentage}%`);
+                    return progressData.percentage;
+                }
+
+                // Si ya tiene overall_progress_percentage, usarlo
+                if (progressData.overall_progress_percentage !== undefined) {
+                    console.log(`📊 Progreso overall: ${progressData.overall_progress_percentage}%`);
+                    return progressData.overall_progress_percentage;
+                }
+
+                // Si tiene modules, calcular promedio
+                if (progressData.modules && Array.isArray(progressData.modules)) {
+                    const totalModules = progressData.modules.length;
+                    if (totalModules === 0) return 0;
+
+                    const totalProgress = progressData.modules.reduce((sum, module) => {
+                        return sum + (module.video_progress_percentage || 0);
+                    }, 0);
+
+                    const average = Math.round(totalProgress / totalModules);
+                    console.log(`📊 Progreso promedio de módulos: ${average}%`);
+                    return average;
+                }
+
+                // Formato de lessonProgress (module1-videos-loader)
+                if (typeof progressData === 'object' && !Array.isArray(progressData)) {
+                    const lessons = Object.values(progressData);
+                    if (lessons.length > 0) {
+                        const completedLessons = lessons.filter(lesson => lesson.completed).length;
+                        const percentage = Math.round((completedLessons / lessons.length) * 100);
+                        console.log(`📊 Progreso de lecciones: ${percentage}% (${completedLessons}/${lessons.length})`);
+                        return percentage;
+                    }
+                }
+
+                console.log('📊 No se pudo calcular progreso, retornando 0%');
+                return 0;
+            }
+
+            updateUI(progressData) {
+                try {
+                    // Buscar tarjeta del curso (puede tener diferentes IDs)
+                    let courseCard = document.getElementById('course-intro-to-ai');
+                    
+                    // Si no encuentra con ese ID, buscar por otros IDs posibles
+                    if (!courseCard) {
+                        const possibleIds = [
+                            'course-chatgpt-gemini-productividad',
+                            'course-intro-to-ai',
+                            'course-550e8400-e29b-41d4-a716-446655440001'
+                        ];
+                        
+                        for (const id of possibleIds) {
+                            courseCard = document.getElementById(id);
+                            if (courseCard) {
+                                console.log(`✅ Tarjeta encontrada con ID: ${id}`);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Si aún no encuentra, buscar la primera tarjeta de curso
+                    if (!courseCard) {
+                        courseCard = document.querySelector('.course-card');
+                        if (courseCard) {
+                            console.log('✅ Usando primera tarjeta de curso encontrada');
+                        }
+                    }
+                    
+                    if (!courseCard) {
+                        console.log('⏳ Esperando a que se renderice la tarjeta del curso...');
+                        return;
+                    }
+
+                    const progressBar = courseCard.querySelector('.progress-fill');
+                    const progressText = courseCard.querySelector('.progress-text');
+
+                    const percentage = this.calculateOverallProgress(progressData);
+
+                    console.log(`📊 Actualizando UI: ${percentage}% completado`);
+
+                    if (progressBar) {
+                        progressBar.style.transition = 'width 0.6s ease-in-out';
+                        progressBar.style.width = percentage + '%';
+                    }
+
+                    if (progressText) {
+                        setTimeout(() => {
+                            progressText.textContent = percentage + '% completado';
+                        }, 100);
+                    }
+
+                    // Actualizar indicador de sincronización
+                    this.updateSyncIndicator(courseCard, 'synced');
+
+                } catch (error) {
+                    console.error('❌ Error actualizando UI:', error);
+                }
+            }
+
+            // Función para actualizar el indicador de sincronización
+            updateSyncIndicator(courseCard, state, message = null) {
+                try {
+                    const syncIndicator = courseCard.querySelector('.sync-indicator');
+                    const syncText = courseCard.querySelector('.sync-text');
+                    
+                    if (!syncIndicator) return;
+
+                    // Remover todas las clases de estado
+                    syncIndicator.classList.remove('syncing', 'synced', 'offline', 'error');
+                    
+                    // Agregar la nueva clase de estado
+                    syncIndicator.classList.add(state);
+                    
+                    // Actualizar ícono y texto según el estado
+                    const icon = syncIndicator.querySelector('i');
+                    let iconClass, text;
+                    
+                    switch (state) {
+                        case 'syncing':
+                            iconClass = 'bx-loader-alt';
+                            text = message || 'Sincronizando...';
+                            break;
+                        case 'synced':
+                            iconClass = 'bx-check-circle';
+                            text = message || 'Actualizado';
+                            break;
+                        case 'offline':
+                            iconClass = 'bx-wifi-off';
+                            text = message || 'Sin conexión';
+                            break;
+                        case 'error':
+                            iconClass = 'bx-error-circle';
+                            text = message || 'Error de sincronización';
+                            break;
+                        default:
+                            iconClass = 'bx-check-circle';
+                            text = 'Actualizado';
+                    }
+                    
+                    if (icon) {
+                        icon.className = `bx ${iconClass}`;
+                    }
+                    
+                    if (syncText) {
+                        syncText.textContent = text;
+                    }
+                    
+                    console.log(`🔄 Indicador de sincronización actualizado: ${state}`);
+                    
+                } catch (error) {
+                    console.error('❌ Error actualizando indicador de sincronización:', error);
+                }
+            }
+
+            async syncWithDatabase() {
+                if (this.syncInProgress || !this.isOnline) return;
+
+                this.syncInProgress = true;
+                console.log('🔄 Iniciando sincronización con BD...');
+
+                // Mostrar indicador de sincronización
+                this.showSyncIndicator('syncing', 'Conectando con servidor...');
+
+                try {
+                    const userId = this.getUserId();
+                    if (!userId) {
+                        console.log('⚠️ No se pudo obtener userId, saltando sincronización');
+                        this.showSyncIndicator('error', 'Usuario no identificado');
+                        return;
+                    }
+
+                    console.log(`👤 Sincronizando para usuario: ${userId}`);
+                    this.showSyncIndicator('syncing', 'Sincronizando progreso...');
+                    
+                    const response = await fetch(`/api/progress/sync?courseId=${this.courseId}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-User-Id': userId
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('📡 Respuesta de BD recibida:', data);
+
+                        if (data.success && data.progress) {
+                            console.log('✅ Datos de BD válidos, actualizando localStorage...');
+                            
+                            // Actualizar localStorage con datos de BD
+                            const storageData = {
+                                version: '2.0',
+                                data: data.progress,
+                                timestamp: Date.now(),
+                                synced: true,
+                                lastSyncTime: Date.now()
+                            };
+
+                            localStorage.setItem(this.storagePrefix + this.courseId, JSON.stringify(storageData));
+                            console.log('💾 localStorage actualizado con datos de BD');
+
+                            // Actualizar UI solo si los datos de BD son diferentes
+                            const currentProgress = this.calculateOverallProgress(data.progress);
+                            console.log(`📊 Progreso desde BD: ${currentProgress}%`);
+                            
+                            this.updateUI(data.progress);
+                            console.log('🎨 UI actualizada con datos de BD');
+
+                            // Mostrar indicador de éxito
+                            this.showSyncIndicator('synced', 'Sincronizado correctamente');
+                            this.lastSyncTime = Date.now();
+                            console.log('✅ Sincronización completada exitosamente');
+                        } else {
+                            console.log('⚠️ BD no devolvió datos válidos');
+                            this.showSyncIndicator('error', 'Datos no válidos');
+                        }
+                    } else {
+                        console.log(`❌ Error en respuesta de BD: ${response.status} ${response.statusText}`);
+                        this.showSyncIndicator('error', `Error del servidor: ${response.status}`);
+                    }
+
+                } catch (error) {
+                    console.log('❌ Error en sincronización con BD:', error.message);
+                    this.showSyncIndicator('error', 'Error de conexión');
+                } finally {
+                    this.syncInProgress = false;
+                    console.log('🏁 Sincronización finalizada');
+                }
+            }
+
+            // Función para mostrar indicador de sincronización
+            showSyncIndicator(state, message = null) {
+                try {
+                    const courseCard = document.querySelector('.course-card');
+                    if (courseCard) {
+                        this.updateSyncIndicator(courseCard, state, message);
+                    }
+                } catch (error) {
+                    console.error('❌ Error mostrando indicador de sincronización:', error);
+                }
+            }
+
+            getUserId() {
+                try {
+                    // 1. Del localStorage
+                    const userData = localStorage.getItem('userData');
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        return user.id;
+                    }
+
+                    // 2. UserId directo
+                    const directUserId = localStorage.getItem('userId');
+                    if (directUserId) {
+                        return directUserId;
+                    }
+
+                    // 3. Del sessionStorage
+                    const sessionData = sessionStorage.getItem('userData');
+                    if (sessionData) {
+                        const user = JSON.parse(sessionData);
+                        return user.id;
+                    }
+
+                    return null;
+
+                } catch (error) {
+                    console.error('Error obteniendo usuario:', error);
+                    return null;
+                }
+            }
+
+            load() {
+                console.log('🚀 Iniciando carga de progreso...');
+
+                if (this.hybridManager) {
+                    // Usar sistema híbrido
+                    console.log('🔄 Usando HybridProgressManager...');
+                    this.hybridManager.load();
+                } else {
+                    // Fallback al sistema legacy
+                    console.log('⚠️ Usando sistema legacy...');
+                    this.loadLegacy();
+                }
+            }
+
+            loadLegacy() {
+                // 1. SIEMPRE cargar desde localStorage primero (para velocidad)
+                console.log('📱 === FASE 1: CARGANDO LOCALSTORAGE ===');
+                const localProgress = this.loadFromLocalStorage();
+
+                if (localProgress) {
+                    console.log('✅ Progreso encontrado en localStorage, actualizando UI...');
+                    this.updateUI(localProgress);
+                    console.log('📊 UI actualizada con datos locales');
+                } else {
+                    console.log('⚠️ No hay progreso en localStorage');
+                }
+            }
+
+            updateUIFromData(progressData) {
+                // Wrapper para compatibilidad con el sistema híbrido
+                this.updateUI(progressData);
+            }
+        }
+
+        // Inicializar el sistema de sincronización
+        let progressSync;
+
+        function loadCourseProgress() {
+            if (!progressSync) {
+                progressSync = new CoursesProgressSync();
+            }
+
+            progressSync.load();
+        }
+
+        // Esperar a que los cursos se rendericen antes de cargar el progreso
+        window.addEventListener('coursesRendered', (event) => {
+            console.log('📚 Cursos renderizados:', event.detail.count);
+            loadCourseProgress();
+        });
+
+        // Fallback: ejecutar después de 2 segundos si el evento no se dispara
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (!progressSync) {
+                    console.log('⚠️ Fallback: cargando progreso sin evento');
+                    loadCourseProgress();
+                }
+            }, 2000);
+        });
+
+        // Actualizar cada 10 minutos (sincronización periódica)
+        setInterval(loadCourseProgress, 10 * 60 * 1000); // 10 minutos
+
+        // Escuchar evento de sincronización desde chat-online
+        window.addEventListener('progressSynced', (event) => {
+            console.log('🔄 Evento de sincronización recibido:', event.detail);
+            loadCourseProgress();
+        });
+
+        // Escuchar evento de actualización de progreso desde chat-online
+        window.addEventListener('courseProgressUpdated', (event) => {
+            console.log('📡 Evento de progreso actualizado recibido:', event.detail);
+            
+            // Actualizar inmediatamente la UI con los nuevos datos
+            if (progressSync && event.detail.progress) {
+                const percentage = progressSync.calculateOverallProgress(event.detail.progress);
+                progressSync.updateUI(event.detail.progress);
+                console.log(`✅ Progreso actualizado inmediatamente: ${percentage}%`);
+            }
+        });
+
+        // ===== FUNCIONES DE DEBUG =====
+        // Función para simular progreso (solo para testing)
+        window.simulateProgress = function(percentage = 50) {
+            const progressData = {
+                courseId: 'intro-to-ai',
+                completedVideos: Math.floor(percentage / 5),
+                totalVideos: 20,
+                percentage: percentage,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem('courseProgress_intro-to-ai', JSON.stringify(progressData));
+            
+            // Emitir evento
+            window.dispatchEvent(new CustomEvent('courseProgressUpdated', {
+                detail: {
+                    courseId: 'intro-to-ai',
+                    progress: progressData,
+                    source: 'debug'
+                }
+            }));
+            
+            console.log(`🧪 Progreso simulado: ${percentage}%`);
+        };
+
+        // Función para ver el progreso actual
+        window.showCurrentProgress = function() {
+            const keys = ['courseProgress_intro-to-ai', 'lessonProgress'];
+            console.log('📊 === PROGRESO ACTUAL ===');
+            
+            keys.forEach(key => {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    console.log(`${key}:`, JSON.parse(data));
+                } else {
+                    console.log(`${key}: No encontrado`);
+                }
+            });
+        };
+
+        // Función para probar escenario sin conexión
+        window.testOfflineMode = function() {
+            console.log('📴 === PROBANDO MODO SIN CONEXIÓN ===');
+            
+            // Simular que no hay conexión
+            const originalOnline = navigator.onLine;
+            Object.defineProperty(navigator, 'onLine', {
+                writable: true,
+                value: false
+            });
+            
+            // Simular progreso en localStorage
+            const progressData = {
+                courseId: 'intro-to-ai',
+                completedVideos: 8,
+                totalVideos: 20,
+                percentage: 40,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem('courseProgress_intro-to-ai', JSON.stringify(progressData));
+            console.log('💾 Progreso simulado guardado en localStorage');
+            
+            // Recargar progreso (debería usar solo localStorage)
+            if (progressSync) {
+                progressSync.isOnline = false;
+                progressSync.load();
+            }
+            
+            // Restaurar estado de conexión después de 3 segundos
+            setTimeout(() => {
+                Object.defineProperty(navigator, 'onLine', {
+                    writable: true,
+                    value: originalOnline
+                });
+                console.log('🌐 Conexión restaurada');
+            }, 3000);
+        };
+
+        // Función para limpiar localStorage y probar desde cero
+        window.clearProgressAndTest = function() {
+            console.log('🧹 === LIMPIANDO Y PROBANDO DESDE CERO ===');
+            
+            // Limpiar localStorage
+            const keys = ['courseProgress_intro-to-ai', 'lessonProgress'];
+            keys.forEach(key => localStorage.removeItem(key));
+            console.log('🗑️ localStorage limpiado');
+            
+            // Recargar progreso
+            if (progressSync) {
+                progressSync.load();
+            }
+        };
+
+        // Función para probar indicadores de sincronización
+        window.testSyncIndicators = function() {
+            console.log('🧪 === PROBANDO INDICADORES DE SINCRONIZACIÓN ===');
+            
+            if (!progressSync) {
+                console.log('❌ progressSync no está disponible');
+                return;
+            }
+            
+            const states = [
+                { state: 'syncing', message: 'Conectando con servidor...' },
+                { state: 'syncing', message: 'Sincronizando progreso...' },
+                { state: 'synced', message: 'Sincronizado correctamente' },
+                { state: 'error', message: 'Error de conexión' },
+                { state: 'offline', message: 'Sin conexión' }
+            ];
+            
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index >= states.length) {
+                    clearInterval(interval);
+                    console.log('✅ Prueba de indicadores completada');
+                    return;
+                }
+                
+                const currentState = states[index];
+                console.log(`🔄 Mostrando estado: ${currentState.state} - ${currentState.message}`);
+                progressSync.showSyncIndicator(currentState.state, currentState.message);
+                index++;
+            }, 2000);
+        };
+
+        // Función para ver el estado de sincronización
+        window.getSyncStatus = function() {
+            if (!progressSync) {
+                console.log('❌ progressSync no está disponible');
+                return;
+            }
+            
+            const now = Date.now();
+            const lastSync = progressSync.lastSyncTime;
+            const nextSync = lastSync ? lastSync + progressSync.syncInterval : null;
+            
+            console.log('📊 === ESTADO DE SINCRONIZACIÓN ===');
+            console.log(`🕐 Última sincronización: ${lastSync ? new Date(lastSync).toLocaleTimeString() : 'Nunca'}`);
+            console.log(`⏰ Próxima sincronización: ${nextSync ? new Date(nextSync).toLocaleTimeString() : 'Inmediata'}`);
+            console.log(`🌐 Estado de conexión: ${progressSync.isOnline ? 'Online' : 'Offline'}`);
+            console.log(`🔄 Sincronización en progreso: ${progressSync.syncInProgress ? 'Sí' : 'No'}`);
+            console.log(`⏱️ Intervalo de sincronización: ${progressSync.syncInterval / 60000} minutos`);
+            
+            if (lastSync) {
+                const timeSinceLastSync = now - lastSync;
+                const minutesSince = Math.floor(timeSinceLastSync / 60000);
+                console.log(`⏳ Tiempo desde última sincronización: ${minutesSince} minutos`);
+            }
+        };
+    </script>
 </body>
 </html>

@@ -1144,6 +1144,61 @@
         }
 
         /* FIN ESTILOS SISTEMA DE CONTENIDO INTERACTIVO */
+
+        /* Estilos para botón de comentario con carga */
+        .comment-btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .comment-btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .comment-btn-loading .btn-text {
+            opacity: 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para el botón de envío en modal */
+        .modal-send-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .modal-send-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .modal-send-loading .btn-text {
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="bg-glow-global">
@@ -4222,8 +4277,21 @@
                 // comentar desde modal
                 document.getElementById('modalSendComment').onclick = async ()=>{
                     const input = document.getElementById('modalCommentInput');
+                    const sendBtn = document.getElementById('modalSendComment');
                     const txt = (input.value||'').trim();
                     if(!txt) return;
+
+                    // Prevenir múltiples envíos y mostrar indicador de carga
+                    if (sendBtn.classList.contains('modal-send-loading')) {
+                        console.log('⚠️ Comentario ya siendo enviado, ignorando click duplicado');
+                        return;
+                    }
+
+                    // Agregar clase de carga y deshabilitar botón
+                    sendBtn.classList.add('modal-send-loading');
+                    sendBtn.disabled = true;
+                    const originalText = sendBtn.textContent;
+                    sendBtn.innerHTML = '<span class="btn-text">Publicando...</span>';
 
                     try {
                         console.log('💬 [MODAL] Creando comentario en BD...');
@@ -4350,6 +4418,11 @@
                     } catch (error) {
                         console.error('❌ [MODAL] Error inesperado:', error);
                         notifications.error('Error inesperado al crear comentario');
+                    } finally {
+                        // Restaurar botón en todos los casos
+                        sendBtn.classList.remove('modal-send-loading');
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = originalText;
                     }
                 };
                 document.getElementById('closePostModal').onclick = ()=> modal.classList.remove('show');
@@ -6560,6 +6633,20 @@
 
             async createComment(postId, content) {
                 console.log('💬 Creando nuevo comentario...');
+                
+                // Validación para prevenir comentarios duplicados
+                const existingComments = this.comments[postId] || [];
+                const recentComment = existingComments.find(c => 
+                    c.content === content && 
+                    (Date.now() - new Date(c.created_at).getTime()) < 5000 // 5 segundos
+                );
+                
+                if (recentComment) {
+                    console.log('⚠️ Comentario duplicado detectado, ignorando');
+                    this.showNotification('Comentario duplicado detectado', 'warning');
+                    return null;
+                }
+                
                 const comment = await this.db.createComment(postId, content);
                 
                 if (comment) {
@@ -6873,8 +6960,35 @@
                 const content = commentInput.value.trim();
                 if (!content) return;
                 
-                await this.createComment(postId, content);
-                commentInput.value = '';
+                // Buscar el botón de comentario correspondiente
+                const commentBtn = document.querySelector(`[onclick="communitySystem.submitComment('${postId}')"]`);
+                if (commentBtn) {
+                    // Prevenir múltiples envíos
+                    if (commentBtn.classList.contains('comment-btn-loading')) {
+                        console.log('⚠️ Comentario ya siendo enviado, ignorando click duplicado');
+                        return;
+                    }
+                    
+                    // Agregar clase de carga y deshabilitar botón
+                    commentBtn.classList.add('comment-btn-loading');
+                    commentBtn.disabled = true;
+                    const originalText = commentBtn.textContent;
+                    commentBtn.innerHTML = '<span class="btn-text">Comentando...</span>';
+                    
+                    try {
+                        await this.createComment(postId, content);
+                        commentInput.value = '';
+                    } finally {
+                        // Restaurar botón en todos los casos
+                        commentBtn.classList.remove('comment-btn-loading');
+                        commentBtn.disabled = false;
+                        commentBtn.textContent = originalText;
+                    }
+                } else {
+                    // Fallback si no se encuentra el botón
+                    await this.createComment(postId, content);
+                    commentInput.value = '';
+                }
             }
 
             showPostMenu(postId) {

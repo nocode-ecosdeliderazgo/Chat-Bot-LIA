@@ -11,6 +11,13 @@
   directory = "netlify/functions"
 
 # Specific API redirects (higher priority than wildcards)
+
+# === UNIFIED PROGRESS SYNC API ===
+[[redirects]]
+  from = "/api/progress/sync"
+  to   = "/.netlify/functions/progress-sync"
+  status = 200
+
 [[redirects]]
   from = "/api/user/session"
   to   = "/.netlify/functions/get-user-session"

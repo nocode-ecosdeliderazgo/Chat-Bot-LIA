@@ -3958,6 +3958,7 @@
             color: rgba(255, 255, 255, 0.9);
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -5525,7 +5526,10 @@ Cargando información...
     
     <!-- Supabase Client -->
     <script src="/scripts/supabase-client.js"></script>
-    
+
+    <!-- Hybrid Progress Manager -->
+    <script src="/scripts/hybrid-progress-manager.js?v=2.0"></script>
+
     <!-- Community Database -->
     <script src="/scripts/community-database.js"></script>
     
@@ -9198,7 +9202,39 @@ Generado desde Coach LIA IA - ${currentDate}
                 }, 500);
             }
 
-            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentageRounded}%)`);
+            // ===== GUARDAR USANDO SISTEMA HÍBRIDO =====
+            try {
+                const progressData = {
+                    courseId: 'intro-to-ai',
+                    completedVideos: completedVideos,
+                    totalVideos: totalVideos,
+                    percentage: percentageRounded,
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                // Usar HybridProgressManager si está disponible
+                if (window.hybridProgressManager) {
+                    window.hybridProgressManager.saveProgress(progressData);
+                    console.log('📡 Progreso guardado usando HybridProgressManager');
+                    
+                    // Forzar sincronización inmediata si hay cambio significativo
+                    const lastProgress = JSON.parse(localStorage.getItem('courseProgress_intro-to-ai') || '{}');
+                    const lastCompleted = lastProgress.completedVideos || 0;
+                    
+                    if (completedVideos > lastCompleted) {
+                        console.log('🚀 Progreso aumentó, forzando sincronización inmediata...');
+                        setTimeout(() => {
+                            window.hybridProgressManager.forceSync(progressData);
+                        }, 1000); // Esperar 1 segundo para que se guarde primero
+                    }
+                } else {
+                    // Fallback al método anterior
+                    localStorage.setItem('courseProgress_intro-to-ai', JSON.stringify(progressData));
+                    console.log('📡 Progreso guardado usando localStorage (fallback)');
+                }
+            } catch (error) {
+                console.warn('⚠️ Error guardando progreso:', error);
+            }
         }
 
         // ===== FUNCIÓN PARA CONTAR VIDEOS COMPLETADOS =====
@@ -9236,12 +9272,20 @@ Generado desde Coach LIA IA - ${currentDate}
 
         // ===== ACTUALIZAR PROGRESO AL CARGAR LA PÁGINA =====
         document.addEventListener('DOMContentLoaded', function() {
-            // Actualizar progreso inicial
+            // Inicializar HybridProgressManager de manera simple
+            if (window.HybridProgressManager) {
+                window.hybridProgressManager = new window.HybridProgressManager('intro-to-ai');
+                console.log('✅ HybridProgressManager inicializado en chat-online');
+            } else {
+                console.warn('⚠️ HybridProgressManager no está disponible');
+            }
+
+            // Actualizar progreso inicial desde DOM
             setTimeout(() => {
                 const videoCounts = countCompletedVideos();
                 updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
             }, 1000);
-            
+
             // Actualizar progreso cada 5 segundos
             setInterval(() => {
                 const videoCounts = countCompletedVideos();
@@ -9265,6 +9309,76 @@ Generado desde Coach LIA IA - ${currentDate}
                 updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
             }, 500);
         });
+
+        // ===== FUNCIÓN SIMPLE PARA PROBAR SISTEMA HÍBRIDO =====
+        window.testHybrid = function() {
+            console.log('🧪 === PROBANDO SISTEMA HÍBRIDO ===');
+            
+            if (!window.hybridProgressManager) {
+                console.log('❌ HybridProgressManager no está disponible');
+                return;
+            }
+            
+            // Simular progreso
+            const testProgress = {
+                courseId: 'intro-to-ai',
+                completedVideos: 5,
+                totalVideos: 20,
+                percentage: 25,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            console.log('📊 Guardando progreso de prueba:', testProgress);
+            window.hybridProgressManager.saveProgress(testProgress);
+            
+            // Ver estado
+            const status = window.hybridProgressManager.getSyncStatus();
+            console.log('📈 Estado:', status);
+        };
+
+        // ===== FUNCIÓN PARA FORZAR SINCRONIZACIÓN =====
+        window.forceSync = function() {
+            console.log('🚀 === FORZANDO SINCRONIZACIÓN ===');
+            
+            if (!window.hybridProgressManager) {
+                console.log('❌ HybridProgressManager no está disponible');
+                return;
+            }
+            
+            // Obtener progreso actual
+            const currentProgress = JSON.parse(localStorage.getItem('courseProgress_intro-to-ai') || 'null');
+            console.log('📊 Progreso actual:', currentProgress);
+            
+            // Forzar sincronización
+            window.hybridProgressManager.forceSync(currentProgress);
+        };
+
+        // ===== FUNCIÓN PARA PROBAR PROGRESO ESPECÍFICO =====
+        window.testProgress = function(percentage = 50) {
+            console.log(`🧪 === PROBANDO PROGRESO ${percentage}% ===`);
+            
+            if (!window.hybridProgressManager) {
+                console.log('❌ HybridProgressManager no está disponible');
+                return;
+            }
+            
+            // Simular progreso específico
+            const testProgress = {
+                courseId: 'intro-to-ai',
+                completedVideos: Math.round((percentage / 100) * 18),
+                totalVideos: 18,
+                percentage: percentage,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            console.log('📊 Progreso de prueba:', testProgress);
+            window.hybridProgressManager.saveProgress(testProgress);
+            
+            // Forzar sincronización inmediata
+            setTimeout(() => {
+                window.hybridProgressManager.forceSync(testProgress);
+            }, 1000);
+        };
 
         // ===== EXPONER FUNCIONES GLOBALMENTE =====
         window.updateHeaderProgressBar = updateHeaderProgressBar;

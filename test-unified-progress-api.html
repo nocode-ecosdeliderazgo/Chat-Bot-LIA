@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - API Unificada de Progreso</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .log-section {
+            background: #1e1e1e;
+            color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.success {
+            color: #22c55e;
+        }
+
+        .log-entry.error {
+            color: #ef4444;
+        }
+
+        .log-entry.warning {
+            color: #f59e0b;
+        }
+
+        .log-entry.info {
+            color: #3b82f6;
+        }
+
+        .response-viewer {
+            background: #2d2d2d;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+
+        .json-key {
+            color: #9cdcfe;
+        }
+
+        .json-string {
+            color: #ce9178;
+        }
+
+        .json-number {
+            color: #b5cea8;
+        }
+
+        .json-boolean {
+            color: #569cd6;
+        }
+
+        .json-null {
+            color: #808080;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test - API Unificada de Progreso</h1>
+        <p class="subtitle">Endpoint: /api/progress/sync - Validación, Transacciones y Logging</p>
+
+        <!-- Configuración -->
+        <div class="test-section">
+            <h2>⚙️ Configuración</h2>
+            <div class="input-group">
+                <label>User ID (UUID format):</label>
+                <input type="text" id="userId" value="8365d552-f342-4cd7-ae6b-dff8063a1377" />
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Usuario: FerSG (fernando.suarez@ecosdeliderazgo.com)</small>
+            </div>
+            <div class="input-group">
+                <label>Course ID:</label>
+                <select id="courseId">
+                    <option value="intro-to-ai">intro-to-ai</option>
+                    <option value="chatgpt-gemini">chatgpt-gemini</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tests GET -->
+        <div class="test-section">
+            <h2>📥 Tests GET (Obtener Progreso)</h2>
+            <div class="button-group">
+                <button class="btn-primary" onclick="apiTest.getProgress()">
+                    Obtener Progreso
+                </button>
+                <button class="btn-info" onclick="apiTest.getProgressWithCache()">
+                    GET con Cache
+                </button>
+            </div>
+        </div>
+
+        <!-- Tests POST -->
+        <div class="test-section">
+            <h2>📤 Tests POST (Sincronizar Progreso)</h2>
+            <div class="button-group">
+                <button class="btn-success" onclick="apiTest.syncProgress(25)">
+                    Sync 25%
+                </button>
+                <button class="btn-success" onclick="apiTest.syncProgress(50)">
+                    Sync 50%
+                </button>
+                <button class="btn-success" onclick="apiTest.syncProgress(75)">
+                    Sync 75%
+                </button>
+                <button class="btn-success" onclick="apiTest.syncProgress(100)">
+                    Sync 100%
+                </button>
+            </div>
+        </div>
+
+        <!-- Tests de Validación -->
+        <div class="test-section">
+            <h2>🛡️ Tests de Validación</h2>
+            <div class="button-group">
+                <button class="btn-warning" onclick="apiTest.testMissingUserId()">
+                    ❌ Sin User ID
+                </button>
+                <button class="btn-warning" onclick="apiTest.testInvalidCourseId()">
+                    ❌ Course ID Inválido
+                </button>
+                <button class="btn-warning" onclick="apiTest.testInvalidProgress()">
+                    ❌ Progreso Inválido
+                </button>
+                <button class="btn-warning" onclick="apiTest.testInvalidModuleNumber()">
+                    ❌ Módulo Inválido
+                </button>
+            </div>
+        </div>
+
+        <!-- Tests de Performance -->
+        <div class="test-section">
+            <h2>⚡ Tests de Performance</h2>
+            <div class="button-group">
+                <button class="btn-info" onclick="apiTest.runPerformanceTest()">
+                    Performance Test (10 requests)
+                </button>
+                <button class="btn-info" onclick="apiTest.runConcurrentTest()">
+                    Concurrent Test (5 simultáneos)
+                </button>
+            </div>
+
+            <div class="stats-grid" id="perfStats" style="display: none;">
+                <div class="stat-card">
+                    <div class="label">Promedio</div>
+                    <div class="value" id="avgTime">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Mínimo</div>
+                    <div class="value" id="minTime">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Máximo</div>
+                    <div class="value" id="maxTime">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total</div>
+                    <div class="value" id="totalTime">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Última Respuesta -->
+        <div class="test-section">
+            <h2>📋 Última Respuesta</h2>
+            <div class="response-viewer" id="responseViewer">
+                {
+                  "message": "Ejecuta un test para ver la respuesta aquí..."
+                }
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h2>📝 Console Log</h2>
+            <div class="log-section" id="logSection">
+                <div class="log-entry info">Sistema iniciado - Esperando pruebas...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class UnifiedProgressAPITest {
+            constructor() {
+                this.baseUrl = '/api/progress/sync';
+                this.init();
+            }
+
+            init() {
+                this.log('🚀 Sistema de pruebas inicializado', 'info');
+            }
+
+            log(message, type = 'info') {
+                const logSection = document.getElementById('logSection');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+                logSection.appendChild(entry);
+                logSection.scrollTop = logSection.scrollHeight;
+
+                if (logSection.children.length > 100) {
+                    logSection.removeChild(logSection.firstChild);
+                }
+            }
+
+            getUserId() {
+                return document.getElementById('userId').value;
+            }
+
+            getCourseId() {
+                return document.getElementById('courseId').value;
+            }
+
+            displayResponse(data) {
+                const viewer = document.getElementById('responseViewer');
+                viewer.textContent = JSON.stringify(data, null, 2);
+            }
+
+            async makeRequest(method, params = {}, body = null) {
+                const userId = params.userId || this.getUserId();
+                const courseId = params.courseId || this.getCourseId();
+
+                const url = `${this.baseUrl}?courseId=${courseId}`;
+
+                const startTime = performance.now();
+
+                try {
+                    const options = {
+                        method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-User-Id': userId
+                        }
+                    };
+
+                    if (body) {
+                        options.body = JSON.stringify(body);
+                    }
+
+                    const response = await fetch(url, options);
+                    const data = await response.json();
+
+                    const duration = (performance.now() - startTime).toFixed(2);
+
+                    return { data, duration, status: response.status };
+
+                } catch (error) {
+                    const duration = (performance.now() - startTime).toFixed(2);
+                    return {
+                        data: { error: error.message },
+                        duration,
+                        status: 0
+                    };
+                }
+            }
+
+            async getProgress() {
+                this.log('📥 GET /api/progress/sync', 'info');
+
+                const result = await this.makeRequest('GET');
+
+                if (result.status === 200 && result.data.success) {
+                    this.log(`✅ Progreso obtenido en ${result.duration}ms`, 'success');
+                    this.displayResponse(result.data);
+                } else {
+                    this.log(`❌ Error: ${result.data.error}`, 'error');
+                    this.displayResponse(result.data);
+                }
+            }
+
+            async syncProgress(percentage) {
+                this.log(`📤 POST /api/progress/sync - ${percentage}%`, 'info');
+
+                const body = {
+                    modules: [
+                        {
+                            module_number: 1,
+                            video_progress_percentage: percentage,
+                            last_video_position: Math.round(percentage * 1.87),
+                            video_completed: percentage === 100,
+                            status: percentage === 100 ? 'completed' : 'in_progress'
+                        }
+                    ]
+                };
+
+                const result = await this.makeRequest('POST', {}, body);
+
+                if (result.status === 200 && result.data.success) {
+                    this.log(`✅ Sincronización exitosa en ${result.duration}ms`, 'success');
+                    this.displayResponse(result.data);
+                } else {
+                    this.log(`❌ Error: ${result.data.error}`, 'error');
+                    this.displayResponse(result.data);
+                }
+            }
+
+            async testMissingUserId() {
+                this.log('🛡️ Test: Sin User ID', 'warning');
+
+                const result = await this.makeRequest('GET', { userId: '' });
+
+                if (result.status === 400) {
+                    this.log('✅ Validación correcta: User ID requerido', 'success');
+                } else {
+                    this.log('❌ Validación falló: Debería rechazar sin User ID', 'error');
+                }
+
+                this.displayResponse(result.data);
+            }
+
+            async testInvalidCourseId() {
+                this.log('🛡️ Test: Course ID Inválido', 'warning');
+
+                const result = await this.makeRequest('GET', { courseId: 'invalid-course' });
+
+                if (result.status === 400) {
+                    this.log('✅ Validación correcta: Course ID inválido rechazado', 'success');
+                } else {
+                    this.log('❌ Validación falló: Debería rechazar Course ID inválido', 'error');
+                }
+
+                this.displayResponse(result.data);
+            }
+
+            async testInvalidProgress() {
+                this.log('🛡️ Test: Progreso Inválido (>100%)', 'warning');
+
+                const body = {
+                    modules: [
+                        {
+                            module_number: 1,
+                            video_progress_percentage: 150 // Inválido!
+                        }
+                    ]
+                };
+
+                const result = await this.makeRequest('POST', {}, body);
+
+                if (result.status === 400) {
+                    this.log('✅ Validación correcta: Progreso >100% rechazado', 'success');
+                } else {
+                    this.log('❌ Validación falló: Debería rechazar progreso >100%', 'error');
+                }
+
+                this.displayResponse(result.data);
+            }
+
+            async testInvalidModuleNumber() {
+                this.log('🛡️ Test: Número de Módulo Inválido', 'warning');
+
+                const body = {
+                    modules: [
+                        {
+                            module_number: 99, // Inválido!
+                            video_progress_percentage: 50
+                        }
+                    ]
+                };
+
+                const result = await this.makeRequest('POST', {}, body);
+
+                if (result.status === 400) {
+                    this.log('✅ Validación correcta: Módulo >10 rechazado', 'success');
+                } else {
+                    this.log('❌ Validación falló: Debería rechazar módulo >10', 'error');
+                }
+
+                this.displayResponse(result.data);
+            }
+
+            async runPerformanceTest() {
+                this.log('⚡ Ejecutando Performance Test (10 requests)...', 'info');
+
+                const times = [];
+
+                for (let i = 0; i < 10; i++) {
+                    const result = await this.makeRequest('GET');
+                    times.push(parseFloat(result.duration));
+                    this.log(`Request ${i + 1}/10: ${result.duration}ms`, 'info');
+                }
+
+                const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2);
+                const min = Math.min(...times).toFixed(2);
+                const max = Math.max(...times).toFixed(2);
+                const total = times.reduce((a, b) => a + b, 0).toFixed(2);
+
+                document.getElementById('perfStats').style.display = 'grid';
+                document.getElementById('avgTime').textContent = avg + 'ms';
+                document.getElementById('minTime').textContent = min + 'ms';
+                document.getElementById('maxTime').textContent = max + 'ms';
+                document.getElementById('totalTime').textContent = total + 'ms';
+
+                this.log(`✅ Performance Test completado`, 'success');
+                this.log(`Promedio: ${avg}ms | Min: ${min}ms | Max: ${max}ms`, 'success');
+            }
+
+            async runConcurrentTest() {
+                this.log('⚡ Ejecutando Concurrent Test (5 simultáneos)...', 'info');
+
+                const startTime = performance.now();
+
+                const promises = Array(5).fill(0).map((_, i) =>
+                    this.makeRequest('GET')
+                );
+
+                const results = await Promise.all(promises);
+
+                const totalDuration = (performance.now() - startTime).toFixed(2);
+
+                results.forEach((result, i) => {
+                    this.log(`Request ${i + 1}/5: ${result.duration}ms`, 'info');
+                });
+
+                this.log(`✅ Concurrent Test completado en ${totalDuration}ms`, 'success');
+            }
+
+            async getProgressWithCache() {
+                this.log('📥 GET con verificación de cache', 'info');
+
+                const start1 = performance.now();
+                const result1 = await this.makeRequest('GET');
+                const time1 = (performance.now() - start1).toFixed(2);
+
+                this.log(`Primera request: ${time1}ms`, 'info');
+
+                const start2 = performance.now();
+                const result2 = await this.makeRequest('GET');
+                const time2 = (performance.now() - start2).toFixed(2);
+
+                this.log(`Segunda request (debería ser más rápida): ${time2}ms`, 'info');
+
+                if (parseFloat(time2) < parseFloat(time1)) {
+                    this.log(`✅ Cache funcionando: ${time1}ms → ${time2}ms`, 'success');
+                } else {
+                    this.log(`⚠️ Cache no detectado o sin diferencia notable`, 'warning');
+                }
+
+                this.displayResponse(result2.data);
+            }
+        }
+
+        // Inicializar sistema de pruebas
+        let apiTest;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            apiTest = new UnifiedProgressAPITest();
+        });
+    </script>
+</body>
+</html>

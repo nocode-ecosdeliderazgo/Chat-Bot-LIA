@@ -1,7 +1,49 @@
-// Catálogo de cursos: data mínima simulada (podrás reemplazar por API)
-const CATALOG = [
-  {id: 'chatgpt_gemini', title: 'Introducción a la IA', instructor:'Ernesto Hernandez', rating: 4.9, price: 2990, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
-];
+// Catálogo de cursos: ahora se carga dinámicamente desde la BD
+let CATALOG = [];
+
+// Función para cargar catálogo dinámicamente
+async function loadDynamicCatalog() {
+    try {
+        console.log('🔄 Cargando catálogo dinámicamente...');
+        
+        if (window.dynamicCourseLoader) {
+            const courses = await window.dynamicCourseLoader.loadCourses();
+            
+            // Mapear cursos al formato del catálogo
+            CATALOG = courses.map(course => ({
+                id: course.id,
+                title: course.title,
+                instructor: course.instructor,
+                rating: course.rating,
+                price: course.price === 'Gratis' ? 0 : parseInt(course.price) || 0,
+                cat: course.category.toLowerCase().replace(/\s+/g, '_'),
+                level: course.difficulty,
+                img: course.image,
+                description: course.description,
+                estimatedTime: course.estimatedTime,
+                totalLessons: course.totalLessons,
+                isActive: course.isActive
+            }));
+            
+            console.log(`✅ ${CATALOG.length} cursos cargados en catálogo dinámico`);
+            return true;
+        } else {
+            console.warn('⚠️ Dynamic Course Loader no disponible, usando datos por defecto');
+            // Fallback a datos por defecto
+            CATALOG = [
+                {id: 'intro-to-ai', title: 'Introducción a la IA', instructor:'Ernesto Hernandez', rating: 4.9, price: 0, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
+            ];
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error cargando catálogo dinámicamente:', error);
+        // Fallback a datos por defecto
+        CATALOG = [
+            {id: 'intro-to-ai', title: 'Introducción a la IA', instructor:'Ernesto Hernandez', rating: 4.9, price: 0, cat:'ia', level:'Intermedio', img:'assets/images/brain-icon.jpg'}
+        ];
+        return false;
+    }
+}
 
 // Ocultar todos los cursos (toggle)
 const HIDE_ALL_COURSES = false;
@@ -276,8 +318,14 @@ async function toggleFavorite(courseId, buttonElement) {
 // Exponer función globalmente
 window.toggleFavorite = toggleFavorite;
 
-// Init con carga de favoritos
+// Init con carga de favoritos y catálogo dinámico
 async function initCursos() {
+  // Cargar catálogo dinámicamente primero
+  const catalogLoaded = await loadDynamicCatalog();
+  if (!catalogLoaded) {
+    console.warn('[CURSOS] Usando catálogo por defecto');
+  }
+  
   await loadUserFavorites();
   filter('todos');
 }

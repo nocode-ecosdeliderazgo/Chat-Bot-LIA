@@ -9,7 +9,7 @@
 const SIF_ICAP_COURSE_CONTENT = {
     // Información General del Curso
     courseInfo: {
-        title: "Experto en IA para Profesionales: Dominando ChatGPT y Gemini para la Productividad",
+        title: "Introducción a la IA",
         subtitle: "Programa de Capacitación Integral en Inteligencia Artificial Generativa",
         description: "Programa transformador que enseña a integrar ChatGPT y Gemini para maximizar la productividad profesional y transformar radicalmente el perfil profesional.",
         target: "Profesionales que buscan transformar su forma de trabajar con IA generativa",
@@ -318,7 +318,7 @@ const SIF_ICAP_COURSE_CONTENT = {
 
 const COURSE_DATA = {
     info: {
-        title: "Aprende y Aplica IA",
+        title: "Introducción a la IA",
         description: "Curso completo de Inteligencia Artificial desde fundamentos hasta aplicaciones prácticas",
         duration: "8 sesiones",
         level: "Principiante a Intermedio",

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Progreso de Cursos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        button {
+            background: #44e5ff;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #33d4ee;
+        }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: #4ade80; }
+        .error { color: #ef4444; }
+        .info { color: #44e5ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test - Sistema de Progreso</h1>
+        <p>Herramienta para probar el sistema de progreso de cursos en localStorage</p>
+
+        <div>
+            <button onclick="showCurrentProgress()">📊 Ver Progreso Actual</button>
+            <button onclick="createTestProgress()">✨ Crear Progreso de Prueba (50%)</button>
+            <button onclick="clearProgress()">🗑️ Limpiar Progreso</button>
+            <button onclick="openCoursesPage()">🚀 Abrir Página de Cursos</button>
+        </div>
+
+        <div class="output" id="output">Esperando acción...</div>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+
+        function showCurrentProgress() {
+            clearOutput();
+            log('🔍 Buscando progreso en localStorage...', 'info');
+
+            // Listar todas las keys relacionadas con progreso
+            let foundKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('progress') || key.includes('course') || key.includes('Progress')) {
+                    foundKeys.push(key);
+                }
+            }
+
+            if (foundKeys.length === 0) {
+                log('⚠️ No se encontró ningún progreso guardado', 'error');
+                return;
+            }
+
+            log(`✅ Encontradas ${foundKeys.length} keys relacionadas:`, 'success');
+
+            foundKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                try {
+                    const parsed = JSON.parse(value);
+                    log(`\n📦 Key: ${key}`, 'info');
+                    log(JSON.stringify(parsed, null, 2), 'info');
+                } catch (e) {
+                    log(`\n📦 Key: ${key}`, 'info');
+                    log(`Valor (no JSON): ${value.substring(0, 100)}...`, 'info');
+                }
+            });
+        }
+
+        function createTestProgress() {
+            clearOutput();
+            log('✨ Creando progreso de prueba...', 'info');
+
+            const testProgress = {
+                version: '2.0',
+                data: {
+                    overall_progress_percentage: 50,
+                    modules: [
+                        {
+                            module_number: 1,
+                            video_progress_percentage: 100,
+                            video_completed: true,
+                            status: 'completed',
+                            last_accessed_at: new Date().toISOString()
+                        },
+                        {
+                            module_number: 2,
+                            video_progress_percentage: 75,
+                            video_completed: false,
+                            status: 'in_progress',
+                            last_accessed_at: new Date().toISOString()
+                        },
+                        {
+                            module_number: 3,
+                            video_progress_percentage: 0,
+                            video_completed: false,
+                            status: 'not_started',
+                            last_accessed_at: null
+                        }
+                    ],
+                    last_accessed_at: new Date().toISOString()
+                },
+                timestamp: Date.now(),
+                synced: false
+            };
+
+            // Guardar con la key correcta
+            localStorage.setItem('courseProgress_intro-to-ai', JSON.stringify(testProgress));
+
+            log('✅ Progreso de prueba creado exitosamente:', 'success');
+            log(`   - Progreso general: 50%`, 'success');
+            log(`   - Módulo 1: 100% (completado)`, 'success');
+            log(`   - Módulo 2: 75% (en progreso)`, 'success');
+            log(`   - Módulo 3: 0% (no iniciado)`, 'success');
+            log(`\n📦 Key: courseProgress_intro-to-ai`, 'info');
+            log(JSON.stringify(testProgress, null, 2), 'info');
+        }
+
+        function clearProgress() {
+            clearOutput();
+            log('🗑️ Limpiando progreso...', 'info');
+
+            let removed = 0;
+            const keysToRemove = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('progress') || key.includes('course') || key.includes('Progress')) {
+                    keysToRemove.push(key);
+                }
+            }
+
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                removed++;
+                log(`   ✓ Removida key: ${key}`, 'info');
+            });
+
+            if (removed > 0) {
+                log(`\n✅ ${removed} items removidos exitosamente`, 'success');
+            } else {
+                log('⚠️ No había progreso para limpiar', 'error');
+            }
+        }
+
+        function openCoursesPage() {
+            log('🚀 Abriendo página de cursos...', 'info');
+            window.open('src/courses.html', '_blank');
+        }
+
+        // Mostrar progreso actual al cargar
+        window.addEventListener('load', () => {
+            showCurrentProgress();
+        });
+    </script>
+</body>
+</html>
