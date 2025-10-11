@@ -484,6 +484,24 @@ class CommunityDatabase {
             }
 
             console.log('âœ… Publicaciones obtenidas:', data);
+
+            // LOG DETALLADO DE ENCUESTAS
+            console.log('🔍 [GET_POSTS DEBUG] Verificando encuestas en posts obtenidos:');
+            if (data && data.length > 0) {
+                data.forEach((post, index) => {
+                    if (post.attachment_type === 'poll') {
+                        console.log(`📊 Post ${index + 1} (ID: ${post.id}) es una encuesta:`);
+                        console.log(`  - attachment_type: ${post.attachment_type}`);
+                        console.log(`  - attachment_url: ${post.attachment_url}`);
+                        console.log(`  - attachment_data:`, post.attachment_data);
+                        console.log(`  - attachment_data type:`, typeof post.attachment_data);
+                        console.log(`  - attachment_data stringified:`, JSON.stringify(post.attachment_data, null, 2));
+                    }
+                });
+            } else {
+                console.log('⚠️ [GET_POSTS DEBUG] No hay posts obtenidos');
+            }
+
             return data;
         } catch (error) {
             console.error('âŒ Error en getPosts:', error);

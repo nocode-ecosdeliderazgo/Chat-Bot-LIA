@@ -1868,10 +1868,22 @@
 
                         // Construir attachments si existen
                         let attachments = [];
+
+                        console.log('🔍 [ATTACHMENT DEBUG] Post ID:', post.id);
+                        console.log('  - attachment_type:', post.attachment_type);
+                        console.log('  - attachment_url:', post.attachment_url);
+                        console.log('  - attachment_data:', post.attachment_data);
+
                         if (post.attachment_type) {
                             // CASO ESPECIAL: Encuestas (usan attachment_data en lugar de attachment_url)
                             if (post.attachment_type === 'poll' && post.attachment_data) {
+                                console.log('📊 [POLL DEBUG] Procesando encuesta para post', post.id);
                                 const pollData = post.attachment_data;
+                                console.log('  - pollData completo:', JSON.stringify(pollData, null, 2));
+                                console.log('  - question:', pollData.question);
+                                console.log('  - options:', pollData.options);
+                                console.log('  - votes:', pollData.votes);
+
                                 const attachment = {
                                     type: 'poll',
                                     question: pollData.question,
@@ -1880,7 +1892,9 @@
                                     postId: post.id // Necesario para el sistema de votación
                                 };
                                 attachments.push(attachment);
-                                console.log('📊 Encuesta cargada:', attachment);
+                                console.log('✅ [POLL DEBUG] Encuesta agregada a attachments:', attachment);
+                            } else if (post.attachment_type === 'poll' && !post.attachment_data) {
+                                console.warn('⚠️ [POLL DEBUG] Post tiene tipo poll pero no tiene attachment_data');
                             }
                             // CASO NORMAL: Adjuntos con URL
                             else if (post.attachment_url) {
@@ -1929,6 +1943,14 @@
                             community_id: post.community_id,
                             created_at: post.created_at
                         };
+
+                        console.log('📦 [POST OBJECT] Post construido:', {
+                            id: postObject.id,
+                            hasAttachments: attachments.length > 0,
+                            attachmentsCount: attachments.length,
+                            attachmentTypes: attachments.map(a => a.type),
+                            attachments: attachments
+                        });
 
                         // Calcular total de reacciones
                         const totalReactions = Object.values(postObject.reactions).reduce((sum, count) => sum + count, 0);
@@ -2826,15 +2848,31 @@
             }
 
             function renderAttachmentsCentered(att){
-                if(!att || att.length===0) return '';
-                return att.map(a=>{
+                console.log('🎨 [RENDER] renderAttachmentsCentered llamado con:', att);
+
+                if(!att || att.length===0) {
+                    console.log('⚠️ [RENDER] No hay attachments para renderizar');
+                    return '';
+                }
+
+                console.log(`📎 [RENDER] Renderizando ${att.length} attachment(s)`);
+
+                return att.map((a, index) => {
+                    console.log(`  ${index + 1}. Tipo: ${a.type}`, a);
+
                      if(a.type==='image') return `<div class="post-media-container"><img src='${a.src || a.url}' class='post-image' loading='lazy' alt='Imagen adjunta'></div>`;
                      if(a.type==='video' && a.isYoutube) return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
                      if(a.type==='video') return `<div class="post-media-container"><video src='${a.src || a.url}' class='post-video' controls loading='lazy'></video></div>`;
                     if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
                     if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
-                    if(a.type==='poll') return renderPollInteractive(a);
+                    if(a.type==='poll') {
+                        console.log('📊 [RENDER] Renderizando encuesta:', a);
+                        const pollHtml = renderPollInteractive(a);
+                        console.log('  - HTML generado:', pollHtml.substring(0, 100) + '...');
+                        return pollHtml;
+                    }
+                    console.warn('⚠️ [RENDER] Tipo de attachment desconocido:', a.type);
                     return '';
                 }).join('');
             }
