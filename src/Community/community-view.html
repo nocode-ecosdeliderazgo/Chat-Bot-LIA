@@ -752,6 +752,127 @@
         .post-action:hover {
             background: var(--surface-hover);
         }
+
+        /* Estilos para encuestas interactivas */
+        .post-poll-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .poll-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .poll-header i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .poll-question {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .poll-options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .poll-option-interactive {
+            background: var(--surface);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .poll-option-interactive:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
+        }
+
+        .poll-option-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .poll-option-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .poll-option-votes {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .poll-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--surface-hover);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
+
+        .poll-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), rgba(68, 229, 255, 0.6));
+            transition: width 0.5s ease;
+        }
+
+        .poll-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .poll-total-votes {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Responsive para encuestas */
+        @media (max-width: 768px) {
+            .poll-question {
+                font-size: 16px;
+            }
+
+            .poll-option-text {
+                font-size: 14px;
+            }
+
+            .poll-option-votes {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body class="bg-glow-global">
@@ -1747,28 +1868,58 @@
 
                         // Construir attachments si existen
                         let attachments = [];
-                        if (post.attachment_url && post.attachment_type) {
-                            // Extraer nombre de archivo de la URL para attachments que lo necesiten
-                            const fileName = post.attachment_url.split('/').pop() || 'archivo';
 
-                            // Detectar si es un video de YouTube por la URL de embed
-                            const isYouTubeEmbed = post.attachment_type === 'video' && 
-                                                 post.attachment_url.includes('youtube.com/embed');
+                        console.log('🔍 [ATTACHMENT DEBUG] Post ID:', post.id);
+                        console.log('  - attachment_type:', post.attachment_type);
+                        console.log('  - attachment_url:', post.attachment_url);
+                        console.log('  - attachment_data:', post.attachment_data);
 
-                            const attachment = {
-                                type: post.attachment_type,
-                                src: post.attachment_url,
-                                url: post.attachment_url,
-                                name: fileName
-                            };
+                        if (post.attachment_type) {
+                            // CASO ESPECIAL: Encuestas (usan attachment_data en lugar de attachment_url)
+                            if (post.attachment_type === 'poll' && post.attachment_data) {
+                                console.log('📊 [POLL DEBUG] Procesando encuesta para post', post.id);
+                                const pollData = post.attachment_data;
+                                console.log('  - pollData completo:', JSON.stringify(pollData, null, 2));
+                                console.log('  - question:', pollData.question);
+                                console.log('  - options:', pollData.options);
+                                console.log('  - votes:', pollData.votes);
 
-                            // Si es YouTube, agregar propiedades especiales
-                            if (isYouTubeEmbed) {
-                                attachment.isYoutube = true;
-                                attachment.embed = post.attachment_url;
+                                const attachment = {
+                                    type: 'poll',
+                                    question: pollData.question,
+                                    options: pollData.options || [],
+                                    votes: pollData.votes || {},
+                                    postId: post.id // Necesario para el sistema de votación
+                                };
+                                attachments.push(attachment);
+                                console.log('✅ [POLL DEBUG] Encuesta agregada a attachments:', attachment);
+                            } else if (post.attachment_type === 'poll' && !post.attachment_data) {
+                                console.warn('⚠️ [POLL DEBUG] Post tiene tipo poll pero no tiene attachment_data');
                             }
+                            // CASO NORMAL: Adjuntos con URL
+                            else if (post.attachment_url) {
+                                // Extraer nombre de archivo de la URL para attachments que lo necesiten
+                                const fileName = post.attachment_url.split('/').pop() || 'archivo';
 
-                            attachments.push(attachment);
+                                // Detectar si es un video de YouTube por la URL de embed
+                                const isYouTubeEmbed = post.attachment_type === 'video' &&
+                                                     post.attachment_url.includes('youtube.com/embed');
+
+                                const attachment = {
+                                    type: post.attachment_type,
+                                    src: post.attachment_url,
+                                    url: post.attachment_url,
+                                    name: fileName
+                                };
+
+                                // Si es YouTube, agregar propiedades especiales
+                                if (isYouTubeEmbed) {
+                                    attachment.isYoutube = true;
+                                    attachment.embed = post.attachment_url;
+                                }
+
+                                attachments.push(attachment);
+                            }
                         }
 
 
@@ -1792,6 +1943,14 @@
                             community_id: post.community_id,
                             created_at: post.created_at
                         };
+
+                        console.log('📦 [POST OBJECT] Post construido:', {
+                            id: postObject.id,
+                            hasAttachments: attachments.length > 0,
+                            attachmentsCount: attachments.length,
+                            attachmentTypes: attachments.map(a => a.type),
+                            attachments: attachments
+                        });
 
                         // Calcular total de reacciones
                         const totalReactions = Object.values(postObject.reactions).reduce((sum, count) => sum + count, 0);
@@ -2174,6 +2333,18 @@
                         openPostModal(id);
                     });
                 });
+                // Votación en encuestas
+                list.querySelectorAll('.poll-option-interactive').forEach(optionEl => {
+                    optionEl.addEventListener('click', async () => {
+                        const postId = optionEl.getAttribute('data-poll-id');
+                        const option = optionEl.getAttribute('data-option');
+
+                        console.log('🗳️ Votando en encuesta:', { postId, option });
+
+                        await voteInPoll(postId, option);
+                    });
+                });
+
                 // compartir
                 list.querySelectorAll('[data-share]').forEach(el=>{
                     el.addEventListener('click', async ()=>{
@@ -2677,17 +2848,140 @@
             }
 
             function renderAttachmentsCentered(att){
-                if(!att || att.length===0) return '';
-                return att.map(a=>{
+                console.log('🎨 [RENDER] renderAttachmentsCentered llamado con:', att);
+
+                if(!att || att.length===0) {
+                    console.log('⚠️ [RENDER] No hay attachments para renderizar');
+                    return '';
+                }
+
+                console.log(`📎 [RENDER] Renderizando ${att.length} attachment(s)`);
+
+                return att.map((a, index) => {
+                    console.log(`  ${index + 1}. Tipo: ${a.type}`, a);
+
                      if(a.type==='image') return `<div class="post-media-container"><img src='${a.src || a.url}' class='post-image' loading='lazy' alt='Imagen adjunta'></div>`;
                      if(a.type==='video' && a.isYoutube) return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
                      if(a.type==='video') return `<div class="post-media-container"><video src='${a.src || a.url}' class='post-video' controls loading='lazy'></video></div>`;
                     if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
                     if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
-                    if(a.type==='poll') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div></div>`;
+                    if(a.type==='poll') {
+                        console.log('📊 [RENDER] Renderizando encuesta:', a);
+                        const pollHtml = renderPollInteractive(a);
+                        console.log('  - HTML generado:', pollHtml.substring(0, 100) + '...');
+                        return pollHtml;
+                    }
+                    console.warn('⚠️ [RENDER] Tipo de attachment desconocido:', a.type);
                     return '';
                 }).join('');
+            }
+
+            // Función para renderizar encuesta interactiva
+            function renderPollInteractive(poll) {
+                // Calcular votos totales
+                const votes = poll.votes || {};
+                const totalVotes = Object.values(votes).reduce((sum, count) => sum + (parseInt(count) || 0), 0);
+
+                // Generar HTML de opciones con barras de progreso
+                const optionsHtml = poll.options.map((option, index) => {
+                    const voteCount = votes[option] || 0;
+                    const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+
+                    return `
+                        <div class="poll-option-interactive" data-poll-id="${poll.postId}" data-option="${option}">
+                            <div class="poll-option-content">
+                                <span class="poll-option-text">${option}</span>
+                                <span class="poll-option-votes">${voteCount} votos (${percentage}%)</span>
+                            </div>
+                            <div class="poll-progress-bar">
+                                <div class="poll-progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="post-poll-container">
+                        <div class="poll-header">
+                            <i class="fas fa-poll"></i>
+                            <h4 class="poll-question">${poll.question}</h4>
+                        </div>
+                        <div class="poll-options-list">
+                            ${optionsHtml}
+                        </div>
+                        <div class="poll-footer">
+                            <span class="poll-total-votes">${totalVotes} votos totales</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Función para votar en encuestas
+            async function voteInPoll(postId, option) {
+                try {
+                    console.log('🗳️ [POLL] Iniciando votación en encuesta:', { postId, option });
+
+                    // Verificar autenticación
+                    const userResult = await getCurrentUserForCommunity();
+                    if (!userResult.id) {
+                        notifications.error('Debes iniciar sesión para votar');
+                        return;
+                    }
+
+                    // Verificar que el post existe localmente
+                    const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                    if (!post) {
+                        notifications.error('No se encontró la encuesta');
+                        return;
+                    }
+
+                    // Obtener datos actuales de la encuesta desde la base de datos
+                    const { data: currentPost, error: fetchError } = await window.supabase
+                        .from('community_posts')
+                        .select('attachment_data')
+                        .eq('id', postId)
+                        .single();
+
+                    if (fetchError) {
+                        console.error('❌ Error obteniendo datos de encuesta:', fetchError);
+                        notifications.error('Error al cargar la encuesta');
+                        return;
+                    }
+
+                    const pollData = currentPost.attachment_data || { votes: {} };
+                    const votes = pollData.votes || {};
+
+                    // Incrementar el contador de votos para la opción seleccionada
+                    votes[option] = (parseInt(votes[option]) || 0) + 1;
+
+                    // Actualizar attachment_data en la base de datos
+                    const updatedPollData = {
+                        ...pollData,
+                        votes: votes
+                    };
+
+                    const { error: updateError } = await window.supabase
+                        .from('community_posts')
+                        .update({ attachment_data: updatedPollData })
+                        .eq('id', postId);
+
+                    if (updateError) {
+                        console.error('❌ Error actualizando voto:', updateError);
+                        notifications.error('Error al registrar voto');
+                        return;
+                    }
+
+                    console.log('✅ Voto registrado exitosamente');
+                    notifications.success(`Votaste por: ${option}`);
+
+                    // Recargar posts para mostrar resultados actualizados
+                    await loadPostsFromDatabase();
+
+                } catch (error) {
+                    console.error('❌ Error en voteInPoll:', error);
+                    notifications.error('Error al votar. Inténtalo de nuevo.');
+                }
             }
 
             // resumen de reacciones
@@ -3351,16 +3645,31 @@
                         // Preparar datos para adjuntos
                         let attachmentUrl = null;
                         let attachmentType = null;
+                        let attachmentData = null;
 
                         if (pendingAttachments.length > 0) {
                             const firstAttachment = pendingAttachments[0];
+
+                            // Para encuestas, preparar los datos especiales
+                            if (firstAttachment.type === 'poll') {
+                                attachmentType = 'poll';
+                                attachmentUrl = null; // Las encuestas no usan URL
+                                // Crear estructura de datos para la encuesta
+                                attachmentData = {
+                                    question: firstAttachment.question,
+                                    options: firstAttachment.options,
+                                    votes: {} // Inicializar objeto vacío de votos
+                                };
+                                console.log('📊 Preparando datos de encuesta:', attachmentData);
+                            }
                             // Para videos de YouTube, usar el embed URL
-                            if (firstAttachment.isYoutube && firstAttachment.embed) {
+                            else if (firstAttachment.isYoutube && firstAttachment.embed) {
                                 attachmentUrl = firstAttachment.embed;
+                                attachmentType = firstAttachment.type;
                             } else {
                                 attachmentUrl = firstAttachment.url || firstAttachment.src;
+                                attachmentType = firstAttachment.type;
                             }
-                            attachmentType = firstAttachment.type;
                         }
 
                         // Crear publicación en la base de datos
@@ -3373,7 +3682,8 @@
                                 txt,
                                 null, // title - no estamos usando títulos por ahora
                                 attachmentUrl,
-                                attachmentType
+                                attachmentType,
+                                attachmentData // Agregar datos de encuesta
                             );
                         } catch (createError) {
                             console.warn('⚠️ Error con db.createPost, intentando método directo:', createError);
@@ -3387,7 +3697,8 @@
                                     content: txt,
                                     title: null,
                                     attachment_url: attachmentUrl,
-                                    attachment_type: attachmentType
+                                    attachment_type: attachmentType,
+                                    attachment_data: attachmentData // Agregar datos de encuesta
                                 };
 
                                 const { data, error } = await window.supabase
