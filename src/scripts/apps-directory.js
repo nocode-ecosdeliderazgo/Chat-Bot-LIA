@@ -1,13 +1,13 @@
 // Apps Directory JavaScript - Nuevo diseño
-console.log('🚀 [SCRIPT] apps-directory.js cargándose...');
+// console.log('🚀 [SCRIPT] apps-directory.js cargándose...');
 
 // Función para obtener todas las apps
 function getAllApps() {
-    console.log('📋 [APPS] Obteniendo todas las apps...');
+    // console.log('📋 [APPS] Obteniendo todas las apps...');
     try {
         // Verificar si appsData está disponible
         if (typeof appsData !== 'undefined') {
-            console.log('✅ [APPS] appsData encontrado:', appsData.length, 'apps');
+            // console.log('✅ [APPS] appsData encontrado:', appsData.length, 'apps');
             return appsData;
         } else {
             console.error('❌ [APPS] appsData no está definido');
@@ -21,31 +21,31 @@ function getAllApps() {
 
 // Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 [DOM] DOM completamente cargado');
+    // console.log('📄 [DOM] DOM completamente cargado');
     
     // Esperar un poco más para asegurar que apps-data.js se haya cargado
     setTimeout(() => {
-        console.log('⏰ [TIMEOUT] Iniciando AppsDirectory después del timeout');
+        // console.log('⏰ [TIMEOUT] Iniciando AppsDirectory después del timeout');
         window.appsDirectory = new AppsDirectory();
     }, 100);
 });
 
 // Función de test simple para verificar que el script funciona
 window.testAppsScript = function() {
-    console.log('🧪 [TEST] Script de apps funcionando correctamente');
+    // console.log('🧪 [TEST] Script de apps funcionando correctamente');
     const btn = document.querySelector('.header-profile');
     const menu = document.getElementById('profileMenu');
-    console.log('🧪 [TEST] Botón perfil:', !!btn);
-    console.log('🧪 [TEST] Menú perfil:', !!menu);
+    // console.log('🧪 [TEST] Botón perfil:', !!btn);
+    // console.log('🧪 [TEST] Menú perfil:', !!menu);
     return { button: !!btn, menu: !!menu };
 };
 
 class AppsDirectory {
     constructor() {
-        console.log('🏗️ [APPS] Inicializando AppsDirectory...');
+        // console.log('🏗️ [APPS] Inicializando AppsDirectory...');
         this.apps = getAllApps();
         this.filteredApps = [...this.apps];
-        console.log('📋 [APPS] Apps cargadas:', this.apps.length);
+        // console.log('📋 [APPS] Apps cargadas:', this.apps.length);
         this.currentFilters = {
             search: '',
             category: '',
@@ -57,23 +57,23 @@ class AppsDirectory {
     }
 
     init() {
-        console.log('🚀 [APPS] Inicializando directorio...');
+        // console.log('🚀 [APPS] Inicializando directorio...');
         this.renderApps();
         this.setupEventListeners();
         this.setupFilterSidebar();
         this.setupModalClose();
         this.hideLoading();
-        console.log('✅ [APPS] Inicialización completa');
+        // console.log('✅ [APPS] Inicialización completa');
     }
 
     setupEventListeners() {
-        console.log('🔗 [APPS] Configurando event listeners...');
+        // console.log('🔗 [APPS] Configurando event listeners...');
         
         // Usar setTimeout para asegurar que el DOM esté completamente cargado
         setTimeout(() => {
             // Search input
             const searchInput = document.getElementById('searchInput');
-            console.log('🔍 [APPS] Search input encontrado:', !!searchInput);
+            // console.log('🔍 [APPS] Search input encontrado:', !!searchInput);
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
                     this.currentFilters.search = e.target.value;
@@ -83,7 +83,7 @@ class AppsDirectory {
 
             // Category tabs
             const categoryTabs = document.querySelectorAll('.cat-tab');
-            console.log('🏷️ [APPS] Category tabs encontrados:', categoryTabs.length);
+            // console.log('🏷️ [APPS] Category tabs encontrados:', categoryTabs.length);
             categoryTabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     // Remove active class from all tabs
@@ -160,7 +160,7 @@ class AppsDirectory {
                     this.currentFilters.pricing = this.currentFilters.pricing.filter(p => p !== value);
                 }
                 
-                console.log('💰 [FILTERS] Precios:', this.currentFilters.pricing);
+                // console.log('💰 [FILTERS] Precios:', this.currentFilters.pricing);
                 this.applyFilters();
             });
         });
@@ -170,56 +170,56 @@ class AppsDirectory {
         if (tutorialFilter) {
             tutorialFilter.addEventListener('change', (e) => {
                 this.currentFilters.tutorial = e.target.checked ? true : null;
-                console.log('📚 [FILTERS] Tutorial:', this.currentFilters.tutorial);
+                // console.log('📚 [FILTERS] Tutorial:', this.currentFilters.tutorial);
                 this.applyFilters();
             });
         }
     }
 
     applyFilters() {
-        console.log('🔍 [FILTERS] Aplicando filtros:', this.currentFilters);
+        // console.log('🔍 [FILTERS] Aplicando filtros:', this.currentFilters);
         let filtered = [...this.apps];
-        console.log('📱 [FILTERS] Apps totales:', this.apps.length);
+        // console.log('📱 [FILTERS] Apps totales:', this.apps.length);
 
         // Apply search filter
         if (this.currentFilters.search) {
             const searchTerm = this.currentFilters.search.toLowerCase();
-            console.log('🔍 [FILTERS] Buscando:', searchTerm);
+            // console.log('🔍 [FILTERS] Buscando:', searchTerm);
             filtered = filtered.filter(app => 
                 app.name.toLowerCase().includes(searchTerm) ||
                 app.description.toLowerCase().includes(searchTerm) ||
                 app.tags.some(tag => tag.toLowerCase().includes(searchTerm))
             );
-            console.log('🔍 [FILTERS] Después de búsqueda:', filtered.length);
+            // console.log('🔍 [FILTERS] Después de búsqueda:', filtered.length);
         }
 
         // Apply category filter
         if (this.currentFilters.category) {
-            console.log('🏷️ [FILTERS] Filtrando categoría:', this.currentFilters.category);
+            // console.log('🏷️ [FILTERS] Filtrando categoría:', this.currentFilters.category);
             filtered = filtered.filter(app => 
                 app.category === this.currentFilters.category
             );
-            console.log('🏷️ [FILTERS] Después de categoría:', filtered.length);
+            // console.log('🏷️ [FILTERS] Después de categoría:', filtered.length);
         }
 
         // Apply pricing filters
         if (this.currentFilters.pricing.length > 0) {
-            console.log('💰 [FILTERS] Filtrando precios:', this.currentFilters.pricing);
+            // console.log('💰 [FILTERS] Filtrando precios:', this.currentFilters.pricing);
             filtered = filtered.filter(app => 
                 this.currentFilters.pricing.includes(app.pricing)
             );
-            console.log('💰 [FILTERS] Después de precios:', filtered.length);
+            // console.log('💰 [FILTERS] Después de precios:', filtered.length);
         }
 
         // Apply tutorial filter
         if (this.currentFilters.tutorial !== null) {
-            console.log('📚 [FILTERS] Filtrando tutorial:', this.currentFilters.tutorial);
+            // console.log('📚 [FILTERS] Filtrando tutorial:', this.currentFilters.tutorial);
             filtered = filtered.filter(app => app.hasTutorial === this.currentFilters.tutorial);
-            console.log('📚 [FILTERS] Después de tutorial:', filtered.length);
+            // console.log('📚 [FILTERS] Después de tutorial:', filtered.length);
         }
 
         this.filteredApps = filtered;
-        console.log('✅ [FILTERS] Resultado final:', this.filteredApps.length, 'apps');
+        // console.log('✅ [FILTERS] Resultado final:', this.filteredApps.length, 'apps');
         this.renderApps();
     }
 
@@ -278,35 +278,35 @@ class AppsDirectory {
 
     setupAppCardListeners() {
         const appCards = document.querySelectorAll('.app-card');
-        console.log('🔗 [MODAL] Configurando listeners para', appCards.length, 'tarjetas');
+        // console.log('🔗 [MODAL] Configurando listeners para', appCards.length, 'tarjetas');
         
         appCards.forEach((card, index) => {
             const appId = card.dataset.appId;
-            console.log(`🔗 [MODAL] Tarjeta ${index + 1} - ID:`, appId);
+            // console.log(`🔗 [MODAL] Tarjeta ${index + 1} - ID:`, appId);
             
             // Click on the card itself (excluding the discover button)
             card.addEventListener('click', (e) => {
-                console.log('🖱️ [MODAL] Click en tarjeta, target:', e.target);
+                // console.log('🖱️ [MODAL] Click en tarjeta, target:', e.target);
                 // Don't trigger if clicking on the discover button
                 if (e.target.closest('.discover-btn')) {
-                    console.log('🖱️ [MODAL] Click en botón descubrir, ignorando click de tarjeta');
+                    // console.log('🖱️ [MODAL] Click en botón descubrir, ignorando click de tarjeta');
                     return;
                 }
                 
-                console.log('🖱️ [MODAL] Ejecutando showAppDetails desde tarjeta');
+                // console.log('🖱️ [MODAL] Ejecutando showAppDetails desde tarjeta');
                 this.showAppDetails(appId);
             });
             
             // Click specifically on the discover button
             const discoverBtn = card.querySelector('.discover-btn');
             if (discoverBtn) {
-                console.log(`🔗 [MODAL] Botón descubrir encontrado en tarjeta ${index + 1}`);
+                // console.log(`🔗 [MODAL] Botón descubrir encontrado en tarjeta ${index + 1}`);
                 discoverBtn.addEventListener('click', (e) => {
-                    console.log('🖱️ [MODAL] Click en botón descubrir');
+                    // console.log('🖱️ [MODAL] Click en botón descubrir');
                     e.preventDefault(); // Prevent default link behavior
                     e.stopPropagation(); // Prevent card click
                     
-                    console.log('🖱️ [MODAL] Ejecutando showAppDetails desde botón');
+                    // console.log('🖱️ [MODAL] Ejecutando showAppDetails desde botón');
                     this.showAppDetails(appId);
                 });
             } else {
@@ -316,34 +316,34 @@ class AppsDirectory {
     }
 
     showAppDetails(appId) {
-        console.log('🔍 [MODAL] showAppDetails llamado con ID:', appId, 'tipo:', typeof appId);
+        // console.log('🔍 [MODAL] showAppDetails llamado con ID:', appId, 'tipo:', typeof appId);
         // Convertir appId a número para la comparación
         const numericId = parseInt(appId);
-        console.log('🔍 [MODAL] ID convertido a número:', numericId);
+        // console.log('🔍 [MODAL] ID convertido a número:', numericId);
         
         const app = this.apps.find(app => app.id === numericId);
         if (!app) {
             console.error('❌ [MODAL] App no encontrada con ID:', numericId);
-            console.log('🔍 [MODAL] Apps disponibles:', this.apps.map(a => ({ id: a.id, name: a.name, tipo: typeof a.id })));
+            // console.log('🔍 [MODAL] Apps disponibles:', this.apps.map(a => ({ id: a.id, name: a.name, tipo: typeof a.id })));
             return;
         }
 
-        console.log('🔍 [MODAL] Mostrando detalles de:', app.name);
+        // console.log('🔍 [MODAL] Mostrando detalles de:', app.name);
         
         // Show the modal
         const modal = document.getElementById('appModal');
-        console.log('🔍 [MODAL] Modal encontrado:', !!modal);
+        // console.log('🔍 [MODAL] Modal encontrado:', !!modal);
         if (modal) {
             this.populateModal(app);
             modal.classList.add('active');
-            console.log('✅ [MODAL] Modal activado, clases:', modal.className);
+            // console.log('✅ [MODAL] Modal activado, clases:', modal.className);
         } else {
             console.error('❌ [MODAL] Modal no encontrado en el DOM');
         }
     }
 
     populateModal(app) {
-        console.log('📝 [MODAL] Poblando modal con datos de:', app.name);
+        // console.log('📝 [MODAL] Poblando modal con datos de:', app.name);
         
         // Update title
         const titleEl = document.getElementById('modalAppTitle');
@@ -752,7 +752,7 @@ const modalStyles = `
 
 // Initialize the apps directory when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[APPS-DIRECTORY] Inicializando directorio de aplicaciones...');
+    // console.log('[APPS-DIRECTORY] Inicializando directorio de aplicaciones...');
     
     // Inject modal styles
     document.head.insertAdjacentHTML('beforeend', modalStyles);
@@ -762,15 +762,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Test function to manually open modal
     window.testModal = function() {
-        console.log('🧪 [TEST] Función testModal llamada');
+        // console.log('🧪 [TEST] Función testModal llamada');
         const modal = document.getElementById('appModal');
         if (modal) {
             modal.classList.add('active');
-            console.log('✅ [TEST] Modal abierto manualmente');
-            console.log('🧪 [TEST] Clases del modal:', modal.className);
-            console.log('🧪 [TEST] Display computed:', window.getComputedStyle(modal).display);
-            console.log('🧪 [TEST] Opacity computed:', window.getComputedStyle(modal).opacity);
-            console.log('🧪 [TEST] Visibility computed:', window.getComputedStyle(modal).visibility);
+            // console.log('✅ [TEST] Modal abierto manualmente');
+            // console.log('🧪 [TEST] Clases del modal:', modal.className);
+            // console.log('🧪 [TEST] Display computed:', window.getComputedStyle(modal).display);
+            // console.log('🧪 [TEST] Opacity computed:', window.getComputedStyle(modal).opacity);
+            // console.log('🧪 [TEST] Visibility computed:', window.getComputedStyle(modal).visibility);
         } else {
             console.error('❌ [TEST] Modal no encontrado');
         }
@@ -780,25 +780,25 @@ document.addEventListener('DOMContentLoaded', () => {
     window.checkModal = function() {
         const modal = document.getElementById('appModal');
         if (modal) {
-            console.log('🔍 [DEBUG] Modal encontrado');
-            console.log('🔍 [DEBUG] Clases:', modal.className);
-            console.log('🔍 [DEBUG] Display:', window.getComputedStyle(modal).display);
-            console.log('🔍 [DEBUG] Opacity:', window.getComputedStyle(modal).opacity);
-            console.log('🔍 [DEBUG] Visibility:', window.getComputedStyle(modal).visibility);
-            console.log('🔍 [DEBUG] Z-index:', window.getComputedStyle(modal).zIndex);
-            console.log('🔍 [DEBUG] Position:', window.getComputedStyle(modal).position);
+            // console.log('🔍 [DEBUG] Modal encontrado');
+            // console.log('🔍 [DEBUG] Clases:', modal.className);
+            // console.log('🔍 [DEBUG] Display:', window.getComputedStyle(modal).display);
+            // console.log('🔍 [DEBUG] Opacity:', window.getComputedStyle(modal).opacity);
+            // console.log('🔍 [DEBUG] Visibility:', window.getComputedStyle(modal).visibility);
+            // console.log('🔍 [DEBUG] Z-index:', window.getComputedStyle(modal).zIndex);
+            // console.log('🔍 [DEBUG] Position:', window.getComputedStyle(modal).position);
         } else {
             console.error('❌ [DEBUG] Modal no encontrado');
         }
     };
     
-    console.log('[APPS-DIRECTORY] ✅ Inicialización completa');
-    console.log('[APPS-DIRECTORY] 🧪 Función testModal disponible: window.testModal()');
+    // console.log('[APPS-DIRECTORY] ✅ Inicialización completa');
+    // console.log('[APPS-DIRECTORY] 🧪 Función testModal disponible: window.testModal()');
 });
 
 // Theme toggle functionality - función global
 window.toggleTheme = function() {
-    console.log('[THEME] Toggle de tema ejecutado');
+    // console.log('[THEME] Toggle de tema ejecutado');
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     
@@ -813,7 +813,7 @@ window.toggleTheme = function() {
             icon.className = newTheme === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
         }
     }
-    console.log('[THEME] Tema cambiado a:', newTheme);
+    // console.log('[THEME] Tema cambiado a:', newTheme);
 }
 
 // Close app modal functionality - función global
@@ -826,7 +826,7 @@ window.closeAppModal = function() {
 
 // Función global de test para el menú de perfil
 window.testProfileMenu = function() {
-    console.log('[MANUAL-TEST] Iniciando test manual del menú de perfil...');
+    // console.log('[MANUAL-TEST] Iniciando test manual del menú de perfil...');
     const btn = document.querySelector('.header-profile');
     const menu = document.getElementById('profileMenu');
     
@@ -835,14 +835,14 @@ window.testProfileMenu = function() {
         return false;
     }
     
-    console.log('[MANUAL-TEST] Simulando clic en botón de perfil...');
+    // console.log('[MANUAL-TEST] Simulando clic en botón de perfil...');
     btn.click();
     
     setTimeout(() => {
         const isVisible = menu.classList.contains('show');
-        console.log('[MANUAL-TEST] Menú visible después del clic:', isVisible);
-        console.log('[MANUAL-TEST] Clases del menú:', Array.from(menu.classList));
-        console.log('[MANUAL-TEST] Display computed:', window.getComputedStyle(menu).display);
+        // console.log('[MANUAL-TEST] Menú visible después del clic:', isVisible);
+        // console.log('[MANUAL-TEST] Clases del menú:', Array.from(menu.classList));
+        // console.log('[MANUAL-TEST] Display computed:', window.getComputedStyle(menu).display);
     }, 100);
     
     return true;
@@ -856,7 +856,7 @@ function setupProfileMenu() {
         console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
         return;
     }
-    console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+    // console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
     
     // Rellenar datos del usuario
     try {
@@ -879,7 +879,7 @@ function setupProfileMenu() {
     avatarBtn.addEventListener('click', (e) => {
         e.preventDefault();
         menu.classList.toggle('show');
-        console.log('[PROFILE] 🎯 Menú de perfil', menu.classList.contains('show') ? 'abierto' : 'cerrado');
+        // console.log('[PROFILE] 🎯 Menú de perfil', menu.classList.contains('show') ? 'abierto' : 'cerrado');
     });
     
     document.addEventListener('click', (e) => {

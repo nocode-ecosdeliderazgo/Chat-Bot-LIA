@@ -5,7 +5,7 @@
   let perfil = decodeURIComponent(params.get('perfil') || '').trim();
   let area = decodeURIComponent(params.get('area') || '').trim();
   
-  console.log('🔍 [DEBUG] Parámetros URL:', { perfil, area });
+  // console.log('🔍 [DEBUG] Parámetros URL:', { perfil, area });
   
   // Fallback desde localStorage si no vienen parámetros
   if (!perfil || !area) {
@@ -15,7 +15,7 @@
         const t = JSON.parse(raw);
         if (!perfil && t.perfilFinal) perfil = String(t.perfilFinal).trim();
         if (!area && t.respuestasSeccion1?.area) area = t.respuestasSeccion1.area;
-        console.log('🔍 [DEBUG] Datos de localStorage profileQuestionnaireData:', t);
+        // console.log('🔍 [DEBUG] Datos de localStorage profileQuestionnaireData:', t);
       }
     } catch (_) {}
   }
@@ -26,14 +26,14 @@
       if (rawUser) {
         const u = JSON.parse(rawUser);
         perfil = String(u.type_rol || u.typeRol || '').trim();
-        console.log('🔍 [DEBUG] Datos de localStorage currentUser:', u);
+        // console.log('🔍 [DEBUG] Datos de localStorage currentUser:', u);
       }
     } catch (_) {}
   }
   if (!area) area = 'Otra';
   
-  console.log('🔍 [DEBUG] Perfil final usado:', perfil);
-  console.log('🔍 [DEBUG] Área final usada:', area);
+  // console.log('🔍 [DEBUG] Perfil final usado:', perfil);
+  // console.log('🔍 [DEBUG] Área final usada:', area);
 
   // Función para mapear perfiles a los valores correctos de la BD
   function mapProfileToDatabase(profile) {
@@ -139,14 +139,14 @@
     const normalizedProfile = String(profile).toLowerCase().trim();
     const mappedProfile = profileMap[normalizedProfile];
     
-    console.log('🔍 [DEBUG] Mapeo de perfil:', { original: profile, normalized: normalizedProfile, mapped: mappedProfile });
+    // console.log('🔍 [DEBUG] Mapeo de perfil:', { original: profile, normalized: normalizedProfile, mapped: mappedProfile });
     
     return mappedProfile || profile; // Si no hay mapeo, usar el original
   }
 
   // Aplicar mapeo al perfil
   perfil = mapProfileToDatabase(perfil);
-  console.log('🔍 [DEBUG] Perfil después del mapeo:', perfil);
+  // console.log('🔍 [DEBUG] Perfil después del mapeo:', perfil);
 
   // Ocultar subtítulo de perfil/área (solicitado)
   try {
@@ -255,8 +255,8 @@
   async function fetchQuestions(){
     if(!window.supabase){ console.warn('[Quiz] Supabase no está disponible'); return []; }
     
-    console.log('🔍 [DEBUG] Buscando preguntas para perfil:', perfil);
-    console.log('🔍 [DEBUG] Buscando preguntas para área:', area);
+    // console.log('🔍 [DEBUG] Buscando preguntas para perfil:', perfil);
+    // console.log('🔍 [DEBUG] Buscando preguntas para área:', area);
     
     // Primero, verificar qué perfiles están disponibles en la BD
     try {
@@ -268,7 +268,7 @@
       
       if (!profileError && availableProfiles) {
         const uniqueProfiles = [...new Set(availableProfiles.map(p => p.perfil))];
-        console.log('🔍 [DEBUG] Perfiles disponibles en BD:', uniqueProfiles);
+        // console.log('🔍 [DEBUG] Perfiles disponibles en BD:', uniqueProfiles);
       }
     } catch (e) {
       console.warn('🔍 [DEBUG] No se pudieron obtener perfiles disponibles:', e);
@@ -287,12 +287,12 @@
       return []; 
     }
     
-    console.log('🔍 [DEBUG] Preguntas encontradas:', data?.length || 0);
-    console.log('🔍 [DEBUG] Primeras 3 preguntas:', data?.slice(0, 3).map(q => ({ id: q.id, content: q.content, perfil: q.perfil, dimension: q.dimension })));
+    // console.log('🔍 [DEBUG] Preguntas encontradas:', data?.length || 0);
+    // console.log('🔍 [DEBUG] Primeras 3 preguntas:', data?.slice(0, 3).map(q => ({ id: q.id, content: q.content, perfil: q.perfil, dimension: q.dimension })));
     
     // Si no se encontraron preguntas, intentar con una búsqueda más flexible
     if (!data || data.length === 0) {
-      console.log('🔍 [DEBUG] No se encontraron preguntas, intentando búsqueda flexible...');
+      // console.log('🔍 [DEBUG] No se encontraron preguntas, intentando búsqueda flexible...');
       
       const { data: flexibleData, error: flexibleError } = await supabase
         .from('questions_catalog')
@@ -302,8 +302,8 @@
         .order('order_num', { ascending: true });
         
       if (!flexibleError && flexibleData && flexibleData.length > 0) {
-        console.log('🔍 [DEBUG] Preguntas encontradas con búsqueda flexible:', flexibleData.length);
-        console.log('🔍 [DEBUG] Perfil encontrado en búsqueda flexible:', flexibleData[0].perfil);
+        // console.log('🔍 [DEBUG] Preguntas encontradas con búsqueda flexible:', flexibleData.length);
+        // console.log('🔍 [DEBUG] Perfil encontrado en búsqueda flexible:', flexibleData[0].perfil);
         return flexibleData;
       }
     }
@@ -795,7 +795,7 @@
   // Función para iniciar sesión automáticamente después del cuestionario
   async function initiateAutoLogin() {
     try {
-      console.log('[AutoLogin] Iniciando proceso de login automático...');
+      // console.log('[AutoLogin] Iniciando proceso de login automático...');
       
       // Verificar si hay datos de usuario en localStorage
       const currentUserRaw = localStorage.getItem('currentUser') || localStorage.getItem('userData');
@@ -806,19 +806,19 @@
       }
 
       const currentUser = JSON.parse(currentUserRaw);
-      console.log('[AutoLogin] Usuario encontrado:', currentUser);
+      // console.log('[AutoLogin] Usuario encontrado:', currentUser);
 
       // Si ya tiene token válido, ir directamente a cursos.html
       const token = localStorage.getItem('userToken') || localStorage.getItem('authToken');
       if (token) {
-        console.log('[AutoLogin] Usuario ya autenticado, redirigiendo a cursos.html');
+        // console.log('[AutoLogin] Usuario ya autenticado, redirigiendo a cursos.html');
         location.href = '../estadisticas.html';
         return;
       }
 
       // Si no tiene token o rol, mostrar mensaje y redirigir a login
       if (!token) {
-        console.log('[AutoLogin] No hay token, redirigiendo a login');
+        // console.log('[AutoLogin] No hay token, redirigiendo a login');
         showAutoLoginMessage('Completaste el cuestionario. Ahora inicia sesión para acceder a la plataforma.');
         setTimeout(() => {
           location.href = '../login/new-auth.html';
@@ -827,7 +827,7 @@
       }
 
       // Si tiene token pero no rol, ir a cursos por defecto
-      console.log('[AutoLogin] Token disponible pero sin rol específico, yendo a cursos');
+      // console.log('[AutoLogin] Token disponible pero sin rol específico, yendo a cursos');
       location.href = '../cursos.html';
 
     } catch (error) {

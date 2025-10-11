@@ -13,9 +13,9 @@ class DynamicVideoLoader {
         this.courseData = null;
         this.apiBaseUrl = this.getApiBaseUrl();
         
-        console.log('🎬 Dynamic Video Loader inicializado');
-        console.log('📚 Course ID:', this.courseId);
-        console.log('🌐 API Base URL:', this.apiBaseUrl);
+        // console.log('🎬 Dynamic Video Loader inicializado');
+        // console.log('📚 Course ID:', this.courseId);
+        // console.log('🌐 API Base URL:', this.apiBaseUrl);
     }
 
     // =====================================================
@@ -24,11 +24,11 @@ class DynamicVideoLoader {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Dynamic Video Loader...');
+            // console.log('🚀 Inicializando Dynamic Video Loader...');
 
             // 1. Obtener usuario actual
             this.userId = this.getCurrentUserId();
-            console.log('👤 Usuario actual:', this.userId);
+            // console.log('👤 Usuario actual:', this.userId);
 
             // 2. Cargar estructura completa del curso
             await this.loadCourseStructure();
@@ -42,7 +42,7 @@ class DynamicVideoLoader {
             // 5. Configurar eventos
             this.setupEventListeners();
 
-            console.log('✅ Dynamic Video Loader inicializado exitosamente');
+            // console.log('✅ Dynamic Video Loader inicializado exitosamente');
 
         } catch (error) {
             console.error('💥 Error inicializando Dynamic Video Loader:', error);
@@ -56,8 +56,8 @@ class DynamicVideoLoader {
 
     async loadCourseStructure() {
         try {
-            console.log('📚 Cargando estructura del curso...');
-            console.log('🔗 URL de API:', `${this.apiBaseUrl}/courses/${this.courseId}/full-structure?userId=${this.userId}`);
+            // console.log('📚 Cargando estructura del curso...');
+            // console.log('🔗 URL de API:', `${this.apiBaseUrl}/courses/${this.courseId}/full-structure?userId=${this.userId}`);
 
             const response = await fetch(`${this.apiBaseUrl}/courses/${this.courseId}/full-structure?userId=${this.userId}`, {
                 method: 'GET',
@@ -66,7 +66,7 @@ class DynamicVideoLoader {
                 }
             });
 
-            console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+            // console.log('📡 Respuesta del servidor:', response.status, response.statusText);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -75,14 +75,14 @@ class DynamicVideoLoader {
             }
 
             const data = await response.json();
-            console.log('📦 Datos recibidos:', data);
+            // console.log('📦 Datos recibidos:', data);
             
             if (!data.success) {
                 throw new Error(data.error || 'Error obteniendo estructura del curso');
             }
 
             this.courseData = data;
-            console.log('✅ Estructura del curso cargada:', data.summary);
+            // console.log('✅ Estructura del curso cargada:', data.summary);
 
         } catch (error) {
             console.error('❌ Error cargando estructura del curso:', error);
@@ -92,7 +92,7 @@ class DynamicVideoLoader {
 
     async loadCurrentModule() {
         try {
-            console.log('📍 Cargando módulo actual del usuario...');
+            // console.log('📍 Cargando módulo actual del usuario...');
 
             const response = await fetch(`${this.apiBaseUrl}/courses/${this.courseId}/current-module/${this.userId}`, {
                 method: 'GET',
@@ -114,8 +114,8 @@ class DynamicVideoLoader {
             this.currentModule = data.current_module;
             this.currentVideo = data.current_video;
 
-            console.log('✅ Módulo actual cargado:', this.currentModule?.title);
-            console.log('🎥 Video actual:', this.currentVideo?.video_title);
+            // console.log('✅ Módulo actual cargado:', this.currentModule?.title);
+            // console.log('🎥 Video actual:', this.currentVideo?.video_title);
 
         } catch (error) {
             console.error('❌ Error cargando módulo actual:', error);
@@ -125,7 +125,7 @@ class DynamicVideoLoader {
 
     async switchToModule(moduleId) {
         try {
-            console.log(`🔄 Cambiando a módulo: ${moduleId}`);
+            // console.log(`🔄 Cambiando a módulo: ${moduleId}`);
 
             const response = await fetch(`${this.apiBaseUrl}/users/${this.userId}/switch-module`, {
                 method: 'POST',
@@ -158,7 +158,7 @@ class DynamicVideoLoader {
             await this.renderVideo();
             await this.updateProgressIndicators();
 
-            console.log('✅ Módulo cambiado exitosamente');
+            // console.log('✅ Módulo cambiado exitosamente');
 
         } catch (error) {
             console.error('❌ Error cambiando módulo:', error);
@@ -171,7 +171,7 @@ class DynamicVideoLoader {
     // =====================================================
 
     async renderInterface() {
-        console.log('🎨 Renderizando interfaz...');
+        // console.log('🎨 Renderizando interfaz...');
 
         // Renderizar información del curso
         this.renderCourseInfo();
@@ -185,7 +185,7 @@ class DynamicVideoLoader {
         // Renderizar progreso
         this.renderProgressIndicators();
 
-        console.log('✅ Interfaz renderizada');
+        // console.log('✅ Interfaz renderizada');
     }
 
     renderCourseInfo() {
@@ -205,7 +205,7 @@ class DynamicVideoLoader {
                 categoryElement.textContent = this.courseData.course.category.toUpperCase();
             }
 
-            console.log('✅ Información del curso actualizada');
+            // console.log('✅ Información del curso actualizada');
 
         } catch (error) {
             console.error('❌ Error renderizando info del curso:', error);
@@ -226,7 +226,7 @@ class DynamicVideoLoader {
                 modulesList.appendChild(moduleElement);
             });
 
-            console.log('✅ Lista de módulos renderizada');
+            // console.log('✅ Lista de módulos renderizada');
 
         } catch (error) {
             console.error('❌ Error renderizando lista de módulos:', error);
@@ -281,7 +281,7 @@ class DynamicVideoLoader {
                 return;
             }
 
-            console.log('🎥 Renderizando video:', this.currentVideo.video_title);
+            // console.log('🎥 Renderizando video:', this.currentVideo.video_title);
 
             // Actualizar iframe del video
             this.updateVideoPlayer();
@@ -292,7 +292,7 @@ class DynamicVideoLoader {
             // Actualizar progreso del video
             this.updateVideoProgress();
 
-            console.log('✅ Video renderizado exitosamente');
+            // console.log('✅ Video renderizado exitosamente');
 
         } catch (error) {
             console.error('❌ Error renderizando video:', error);
@@ -307,7 +307,7 @@ class DynamicVideoLoader {
         
         // Solo actualizar si la URL es diferente
         if (iframe.src !== embedUrl) {
-            console.log('🔄 Actualizando video player:', embedUrl);
+            // console.log('🔄 Actualizando video player:', embedUrl);
             
             // Configurar manejo de errores del iframe
             this.setupIframeErrorHandling(iframe);
@@ -320,7 +320,7 @@ class DynamicVideoLoader {
             iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
             iframe.referrerPolicy = "strict-origin-when-cross-origin";
             
-            console.log('✅ Video player actualizado exitosamente');
+            // console.log('✅ Video player actualizado exitosamente');
         }
     }
 
@@ -339,7 +339,7 @@ class DynamicVideoLoader {
         // Limpiar timeout si el iframe carga correctamente
         iframe.onload = () => {
             clearTimeout(loadTimeout);
-            console.log('✅ Iframe de YouTube cargado correctamente');
+            // console.log('✅ Iframe de YouTube cargado correctamente');
         };
     }
 
@@ -363,7 +363,7 @@ class DynamicVideoLoader {
         const videoId = this.extractVideoId(iframe.src);
         if (!videoId) return;
 
-        console.log('🔧 Implementando fallback para video:', videoId);
+        // console.log('🔧 Implementando fallback para video:', videoId);
         
         // Crear mensaje de error amigable
         const errorContainer = document.createElement('div');
@@ -412,7 +412,7 @@ class DynamicVideoLoader {
     }
 
     retryVideoLoad(videoId) {
-        console.log('🔄 Reintentando carga de video:', videoId);
+        // console.log('🔄 Reintentando carga de video:', videoId);
         
         // Buscar el contenedor de error y reemplazarlo con iframe
         const errorContainer = document.querySelector('.video-error-fallback');
@@ -440,7 +440,7 @@ class DynamicVideoLoader {
         // Reemplazar contenedor de error con iframe
         errorContainer.parentNode.replaceChild(iframe, errorContainer);
         
-        console.log('✅ Iframe recreado para retry');
+        // console.log('✅ Iframe recreado para retry');
     }
 
     updateVideoInfo() {
@@ -516,7 +516,7 @@ class DynamicVideoLoader {
             // Actualizar información del módulo actual
             this.updateCurrentModuleInfo();
 
-            console.log('✅ Indicadores de progreso actualizados');
+            // console.log('✅ Indicadores de progreso actualizados');
 
         } catch (error) {
             console.error('❌ Error actualizando indicadores:', error);
@@ -607,7 +607,7 @@ class DynamicVideoLoader {
             }
 
             // Usar el usuario real de la base de datos
-            console.log('🔧 Usando usuario real de la base de datos');
+            // console.log('🔧 Usando usuario real de la base de datos');
             return '9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
 
         } catch (error) {
@@ -627,7 +627,7 @@ class DynamicVideoLoader {
         const isNetlifyLocal = port === '8888' || hostname.includes('netlify.app') || hostname.includes('netlify.com');
         const isCustomDomain = !isLocalhost && !isNetlifyLocal && protocol === 'https:';
         
-        console.log('🌐 Environment detection:', {
+        // console.log('🌐 Environment detection:', {
             hostname,
             port,
             protocol,
@@ -638,22 +638,22 @@ class DynamicVideoLoader {
         
         // Lógica de URL base mejorada
         if (isLocalhost && (port === '3000' || window.location.href.includes(':3000'))) {
-            console.log('📍 Using localhost:3000 API');
+            // console.log('📍 Using localhost:3000 API');
             return '/api';
         } else if (isLocalhost && port === '8888') {
-            console.log('📍 Using Netlify local dev');
+            // console.log('📍 Using Netlify local dev');
             return '/.netlify/functions';
         } else if (isLocalhost) {
-            console.log('📍 Using localhost fallback API');
+            // console.log('📍 Using localhost fallback API');
             return '/api';
         } else {
-            console.log('📍 Using Netlify production functions');
+            // console.log('📍 Using Netlify production functions');
             return '/.netlify/functions';
         }
     }
 
     setupEventListeners() {
-        console.log('🔧 Configurando event listeners...');
+        // console.log('🔧 Configurando event listeners...');
 
         // Event listeners para navegación de módulos ya se configuran en createModuleElement
         
@@ -665,7 +665,7 @@ class DynamicVideoLoader {
             });
         }
 
-        console.log('✅ Event listeners configurados');
+        // console.log('✅ Event listeners configurados');
     }
 
     // =====================================================
@@ -703,7 +703,7 @@ class DynamicVideoLoader {
     }
 
     showSuccess(message) {
-        console.log('✅ Éxito mostrado al usuario:', message);
+        // console.log('✅ Éxito mostrado al usuario:', message);
         
         const successDiv = document.createElement('div');
         successDiv.className = 'success-message';

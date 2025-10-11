@@ -36,7 +36,7 @@ async function initializeRecordingsPage() {
         // Set up periodic refresh for real-time updates
         setInterval(refreshRecordingsData, 30000); // Refresh every 30 seconds
         
-        console.log('📹 Recordings page initialized successfully');
+        // console.log('📹 Recordings page initialized successfully');
     } catch (error) {
         console.error('Error initializing recordings page:', error);
         showError('Error al inicializar la página de grabaciones');
@@ -571,7 +571,7 @@ function playRecording(recordingId) {
     
     // Auto-play if user prefers (after short delay for modal animation)
     setTimeout(() => {
-        videoPlayer.play().catch(e => console.log('Auto-play prevented by browser'));
+        videoPlayer.play().catch(e => // console.log('Auto-play prevented by browser'));
     }, 600);
 }
 
@@ -629,7 +629,7 @@ function playEmbedded(recordingId) {
             
             // Auto-play if user prefers
             embeddedVideo.play().catch(e => {
-                console.log('Auto-play prevented by browser for embedded player');
+                // console.log('Auto-play prevented by browser for embedded player');
             });
         }
         
@@ -795,7 +795,7 @@ function toggleFullscreen() {
     
     if (!document.fullscreenElement) {
         videoPlayer.requestFullscreen().catch(err => {
-            console.log('Error attempting to enable fullscreen:', err);
+            // console.log('Error attempting to enable fullscreen:', err);
         });
     } else {
         document.exitFullscreen();
@@ -848,7 +848,7 @@ async function downloadRecording(recordingId) {
         link.click();
         document.body.removeChild(link);
         
-        console.log(`📥 Download initiated for recording: ${recordingId}`);
+        // console.log(`📥 Download initiated for recording: ${recordingId}`);
         
     } catch (error) {
         console.error('Error downloading recording:', error);
@@ -878,7 +878,7 @@ async function refreshRecordingsData() {
         if (loadingState.style.display !== 'none') return;
         
         await loadRecordings();
-        console.log('📹 Recordings data refreshed');
+        // console.log('📹 Recordings data refreshed');
     } catch (error) {
         console.error('Error refreshing recordings:', error);
     }
@@ -1306,7 +1306,7 @@ function setPlaybackSpeed(speed) {
 
 function toggleQualityMenu() {
     // Quality selection functionality - implement as needed
-    console.log('Quality menu toggled');
+    // console.log('Quality menu toggled');
 }
 
 function togglePictureInPicture() {
@@ -1316,7 +1316,7 @@ function togglePictureInPicture() {
         document.exitPictureInPicture();
     } else if (document.pictureInPictureEnabled) {
         videoPlayer.requestPictureInPicture().catch(error => {
-            console.log('Error entering Picture-in-Picture:', error);
+            // console.log('Error entering Picture-in-Picture:', error);
         });
     }
 }

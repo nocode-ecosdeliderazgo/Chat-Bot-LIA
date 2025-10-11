@@ -1,6 +1,6 @@
 // Quick fix para cargar videos en chat-online.html
-console.log('🚫 Quick Video Fix DESACTIVADO - usando Module1 Videos Loader');
-console.log('⚠️ Sistema desactivado para evitar conflictos con module1-videos-loader.js');
+// console.log('🚫 Quick Video Fix DESACTIVADO - usando Module1 Videos Loader');
+// console.log('⚠️ Sistema desactivado para evitar conflictos con module1-videos-loader.js');
 return; // Salir temprano para evitar conflictos
 
 // Función para cargar el primer video del curso con retry logic
@@ -12,7 +12,7 @@ async function loadFirstVideo() {
     }
 
     try {
-        console.log('📡 Iniciando carga de video con retry logic...');
+        // console.log('📡 Iniciando carga de video con retry logic...');
         await tryLoadVideoWithRetry(iframe);
         
     } catch (error) {
@@ -26,7 +26,7 @@ async function tryLoadVideoWithRetry(iframe, retryCount = 0) {
     const retryDelay = 1500 * Math.pow(2, retryCount); // 1.5s, 3s, 6s
     
     try {
-        console.log(`🔄 Intento ${retryCount + 1}/${maxRetries + 1} cargando video...`);
+        // console.log(`🔄 Intento ${retryCount + 1}/${maxRetries + 1} cargando video...`);
         
         const apiUrl = '/api/courses/introduccion-ia/current-module/9562a449-4ade-4d4b-a3e4-b66dddb7e6f0';
         const response = await fetch(apiUrl, {
@@ -36,14 +36,14 @@ async function tryLoadVideoWithRetry(iframe, retryCount = 0) {
             }
         });
         
-        console.log(`📡 Respuesta API: ${response.status} ${response.statusText}`);
+        // console.log(`📡 Respuesta API: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('📦 Datos recibidos:', data);
+        // console.log('📦 Datos recibidos:', data);
         
         if (!data.success) {
             throw new Error(data.error || 'Error en la respuesta de la API');
@@ -54,8 +54,8 @@ async function tryLoadVideoWithRetry(iframe, retryCount = 0) {
             throw new Error('No se encontró video actual');
         }
         
-        console.log('🎥 Video encontrado:', video.video_title);
-        console.log('🔗 URL de embed:', video.youtube_embed_url);
+        // console.log('🎥 Video encontrado:', video.video_title);
+        // console.log('🔗 URL de embed:', video.youtube_embed_url);
         
         // Cargar el video en el iframe
         iframe.src = video.youtube_embed_url;
@@ -73,14 +73,14 @@ async function tryLoadVideoWithRetry(iframe, retryCount = 0) {
             showTemporaryNotification('Usando datos temporales - algunos datos pueden no estar actualizados');
         }
         
-        console.log('✅ Video cargado exitosamente');
+        // console.log('✅ Video cargado exitosamente');
         return; // Éxito, salir
         
     } catch (error) {
         console.error(`❌ Error en intento ${retryCount + 1}:`, error);
         
         if (retryCount < maxRetries) {
-            console.log(`⏰ Reintentando en ${retryDelay}ms...`);
+            // console.log(`⏰ Reintentando en ${retryDelay}ms...`);
             showRetryNotification(retryCount + 1, maxRetries + 1);
             await delay(retryDelay);
             return await tryLoadVideoWithRetry(iframe, retryCount + 1);
@@ -159,7 +159,7 @@ function showTemporaryNotification(message) {
 }
 
 function showVideoErrorFallback(iframe, errorMessage) {
-    console.log('🔧 Mostrando fallback de error de video');
+    // console.log('🔧 Mostrando fallback de error de video');
     
     // Mostrar mensaje de error en el iframe
     iframe.srcdoc = `
@@ -208,7 +208,7 @@ function updateVideoInfo(video) {
             transcriptElement.textContent = video.transcript_text;
         }
         
-        console.log('✅ Información del video actualizada');
+        // console.log('✅ Información del video actualizada');
         
     } catch (error) {
         console.error('⚠️ Error actualizando información del video:', error);

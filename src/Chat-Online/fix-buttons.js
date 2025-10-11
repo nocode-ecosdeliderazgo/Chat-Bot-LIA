@@ -7,11 +7,11 @@
  * que no funcionan correctamente en chat-online.html
  */
 
-console.log('🔧 [FIX-BUTTONS] Iniciando script de corrección...');
+// console.log('🔧 [FIX-BUTTONS] Iniciando script de corrección...');
 
 // Función principal para arreglar todos los botones
 function fixRightPanelButtons() {
-    console.log('🔧 [FIX-BUTTONS] Arreglando botones del panel derecho...');
+    // console.log('🔧 [FIX-BUTTONS] Arreglando botones del panel derecho...');
 
     // ===== BOTONES DE LIA =====
     fixLiaButtons();
@@ -28,12 +28,12 @@ function fixRightPanelButtons() {
     // ===== BOTONES DE COMUNIDAD =====
     fixCommunityButtons();
 
-    console.log('✅ [FIX-BUTTONS] Corrección completada');
+    // console.log('✅ [FIX-BUTTONS] Corrección completada');
 }
 
 // Arreglar botones de LIA
 function fixLiaButtons() {
-    console.log('💬 [FIX-BUTTONS] Arreglando botones de LIA...');
+    // console.log('💬 [FIX-BUTTONS] Arreglando botones de LIA...');
 
     // Botón Nuevo Chat
     const newChatBtn = document.getElementById('newChatBtn');
@@ -45,10 +45,10 @@ function fixLiaButtons() {
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('🆕 [FIX-BUTTONS] Nuevo chat con LIA');
+            // console.log('🆕 [FIX-BUTTONS] Nuevo chat con LIA');
             startNewLiaChat();
         });
-        console.log('✅ [FIX-BUTTONS] newChatBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] newChatBtn arreglado');
     } else {
         console.warn('⚠️ [FIX-BUTTONS] newChatBtn no encontrado');
     }
@@ -63,10 +63,10 @@ function fixLiaButtons() {
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('📦 [FIX-BUTTONS] Colapsando LIA');
+            // console.log('📦 [FIX-BUTTONS] Colapsando LIA');
             toggleLiaSection();
         });
-        console.log('✅ [FIX-BUTTONS] collapseLiaBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] collapseLiaBtn arreglado');
     } else {
         console.warn('⚠️ [FIX-BUTTONS] collapseLiaBtn no encontrado');
     }
@@ -83,10 +83,10 @@ function fixLiaButtons() {
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('📤 [FIX-BUTTONS] Enviando mensaje a LIA');
+            // console.log('📤 [FIX-BUTTONS] Enviando mensaje a LIA');
             sendMessageToLia();
         });
-        console.log('✅ [FIX-BUTTONS] sendLiaMessage arreglado');
+        // console.log('✅ [FIX-BUTTONS] sendLiaMessage arreglado');
     }
 
     // Input de LIA - Enter para enviar
@@ -94,17 +94,17 @@ function fixLiaButtons() {
         liaMessageInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                console.log('⌨️ [FIX-BUTTONS] Enter en input de LIA');
+                // console.log('⌨️ [FIX-BUTTONS] Enter en input de LIA');
                 sendMessageToLia();
             }
         });
-        console.log('✅ [FIX-BUTTONS] liaMessageInput listener agregado');
+        // console.log('✅ [FIX-BUTTONS] liaMessageInput listener agregado');
     }
 }
 
 // Arreglar botones de notas
 function fixNotesButtons() {
-    console.log('📝 [FIX-BUTTONS] Arreglando botones de notas...');
+    // console.log('📝 [FIX-BUTTONS] Arreglando botones de notas...');
 
     // Botón Agregar Nota
     const addNoteBtn = document.getElementById('addNoteBtn');
@@ -116,10 +116,10 @@ function fixNotesButtons() {
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('➕ [FIX-BUTTONS] Agregar nueva nota');
+            // console.log('➕ [FIX-BUTTONS] Agregar nueva nota');
             openNotebookLMPanel();
         });
-        console.log('✅ [FIX-BUTTONS] addNoteBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] addNoteBtn arreglado');
     } else {
         console.warn('⚠️ [FIX-BUTTONS] addNoteBtn no encontrado');
     }
@@ -134,10 +134,10 @@ function fixNotesButtons() {
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('🔍 [FIX-BUTTONS] Buscar notas');
+            // console.log('🔍 [FIX-BUTTONS] Buscar notas');
             toggleNotesSearch();
         });
-        console.log('✅ [FIX-BUTTONS] searchNotesBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] searchNotesBtn arreglado');
     } else {
         console.warn('⚠️ [FIX-BUTTONS] searchNotesBtn no encontrado');
     }
@@ -152,10 +152,10 @@ function fixNotesButtons() {
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('📦 [FIX-BUTTONS] Colapsar sección de notas');
+            // console.log('📦 [FIX-BUTTONS] Colapsar sección de notas');
             toggleNotesSection();
         });
-        console.log('✅ [FIX-BUTTONS] collapseNotes arreglado');
+        // console.log('✅ [FIX-BUTTONS] collapseNotes arreglado');
     } else {
         console.warn('⚠️ [FIX-BUTTONS] collapseNotes no encontrado');
     }
@@ -166,7 +166,7 @@ function fixNotesButtons() {
 
 // Arreglar botones del editor de notas
 function fixNotesEditorButtons() {
-    console.log('✏️ [FIX-BUTTONS] Arreglando botones del editor...');
+    // console.log('✏️ [FIX-BUTTONS] Arreglando botones del editor...');
 
     // Botón Guardar Nota
     const saveNoteBtn = document.getElementById('saveNoteBtn');
@@ -176,10 +176,10 @@ function fixNotesEditorButtons() {
         
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('💾 [FIX-BUTTONS] Guardar nota');
+            // console.log('💾 [FIX-BUTTONS] Guardar nota');
             saveCurrentNote();
         });
-        console.log('✅ [FIX-BUTTONS] saveNoteBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] saveNoteBtn arreglado');
     }
 
     // Botón Exportar PDF
@@ -190,10 +190,10 @@ function fixNotesEditorButtons() {
         
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('📄 [FIX-BUTTONS] Exportar a PDF');
+            // console.log('📄 [FIX-BUTTONS] Exportar a PDF');
             exportNoteToPDF();
         });
-        console.log('✅ [FIX-BUTTONS] exportPdfBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] exportPdfBtn arreglado');
     }
 
     // Botón Cancelar
@@ -204,16 +204,16 @@ function fixNotesEditorButtons() {
         
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('❌ [FIX-BUTTONS] Cancelar edición');
+            // console.log('❌ [FIX-BUTTONS] Cancelar edición');
             hideNotesCreator();
         });
-        console.log('✅ [FIX-BUTTONS] cancelNoteBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] cancelNoteBtn arreglado');
     }
 }
 
 // Arreglar botones de colapso
 function fixCollapseButtons() {
-    console.log('📦 [FIX-BUTTONS] Arreglando botones de colapso...');
+    // console.log('📦 [FIX-BUTTONS] Arreglando botones de colapso...');
 
     // Botón Colapsar Materiales
     const collapseMaterialsBtn = document.getElementById('collapseMaterialsBtn');
@@ -223,16 +223,16 @@ function fixCollapseButtons() {
         
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('📚 [FIX-BUTTONS] Colapsar materiales');
+            // console.log('📚 [FIX-BUTTONS] Colapsar materiales');
             toggleMaterialsSection();
         });
-        console.log('✅ [FIX-BUTTONS] collapseMaterialsBtn arreglado');
+        // console.log('✅ [FIX-BUTTONS] collapseMaterialsBtn arreglado');
     }
 }
 
 // Arreglar otros botones
 function fixOtherButtons() {
-    console.log('🔧 [FIX-BUTTONS] Arreglando otros botones...');
+    // console.log('🔧 [FIX-BUTTONS] Arreglando otros botones...');
 
     // Cualquier otro botón que necesite arreglo...
 }
@@ -243,7 +243,7 @@ function fixOtherButtons() {
 
 // ===== ARREGLO DE BOTONES DE COMUNIDAD =====
 function fixCommunityButtons() {
-    console.log('🔧 Arreglando botones de comunidad...');
+    // console.log('🔧 Arreglando botones de comunidad...');
     
     // Arreglar botón "Hacer Pregunta"
     const askQuestionBtn = document.getElementById('askQuestionBtn');
@@ -253,11 +253,11 @@ function fixCommunityButtons() {
         newAskBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔘 Botón "Hacer Pregunta" clickeado - nuevo event listener');
+            // console.log('🔘 Botón "Hacer Pregunta" clickeado - nuevo event listener');
             showQuestionModal();
         });
         askQuestionBtn.parentNode.replaceChild(newAskBtn, askQuestionBtn);
-        console.log('✅ Botón "Hacer Pregunta" arreglado');
+        // console.log('✅ Botón "Hacer Pregunta" arreglado');
     }
 
     // Arreglar botón "Enviar Pregunta"
@@ -266,11 +266,11 @@ function fixCommunityButtons() {
         const newSubmitBtn = submitQuestionBtn.cloneNode(true);
         newSubmitBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('🔘 Botón "Enviar Pregunta" clickeado - nuevo event listener');
+            // console.log('🔘 Botón "Enviar Pregunta" clickeado - nuevo event listener');
             submitQuestion();
         });
         submitQuestionBtn.parentNode.replaceChild(newSubmitBtn, submitQuestionBtn);
-        console.log('✅ Botón "Enviar Pregunta" arreglado');
+        // console.log('✅ Botón "Enviar Pregunta" arreglado');
     }
 
     // Arreglar botón "Cerrar Modal"
@@ -280,11 +280,11 @@ function fixCommunityButtons() {
         newCloseBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔘 Botón "Cerrar Modal" clickeado - nuevo event listener');
+            // console.log('🔘 Botón "Cerrar Modal" clickeado - nuevo event listener');
             closeQuestionModalFunc();
         });
         closeQuestionModal.parentNode.replaceChild(newCloseBtn, closeQuestionModal);
-        console.log('✅ Botón "Cerrar Modal" arreglado');
+        // console.log('✅ Botón "Cerrar Modal" arreglado');
     }
 
     // Arreglar botón "Cancelar" en modal
@@ -294,17 +294,17 @@ function fixCommunityButtons() {
         newCancelBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔘 Botón "Cancelar" clickeado - nuevo event listener');
+            // console.log('🔘 Botón "Cancelar" clickeado - nuevo event listener');
             closeQuestionModalFunc();
         });
         cancelQuestionBtn.parentNode.replaceChild(newCancelBtn, cancelQuestionBtn);
-        console.log('✅ Botón "Cancelar" arreglado');
+        // console.log('✅ Botón "Cancelar" arreglado');
     }
 }
 
 // Función para mostrar modal de pregunta preservando la funcionalidad de BD
 function showQuestionModal() {
-    console.log('📝 Mostrando modal de pregunta...');
+    // console.log('📝 Mostrando modal de pregunta...');
     const modal = document.getElementById('questionModal');
     const overlay = document.querySelector('.modal-overlay');
     
@@ -325,7 +325,7 @@ function showQuestionModal() {
             if (titleInput) titleInput.focus();
         }, 100);
         
-        console.log('✅ Modal de pregunta mostrado');
+        // console.log('✅ Modal de pregunta mostrado');
     } else {
         console.error('❌ No se encontró el modal de pregunta');
     }
@@ -333,7 +333,7 @@ function showQuestionModal() {
 
 // Función para cerrar modal preservando la funcionalidad
 function closeQuestionModalFunc() {
-    console.log('❌ Cerrando modal de pregunta...');
+    // console.log('❌ Cerrando modal de pregunta...');
     const modal = document.getElementById('questionModal');
     const overlay = document.querySelector('.modal-overlay');
     
@@ -342,7 +342,7 @@ function closeQuestionModalFunc() {
         if (overlay) {
             overlay.style.display = 'none';
         }
-        console.log('✅ Modal cerrado');
+        // console.log('✅ Modal cerrado');
     }
 }
 
@@ -353,7 +353,7 @@ function obtenerUsuarioActual() {
         const userData = localStorage.getItem('userData');
         if (userData) {
             const parsed = JSON.parse(userData);
-            console.log('👤 Usuario desde userData:', parsed);
+            // console.log('👤 Usuario desde userData:', parsed);
             return parsed;
         }
         
@@ -361,7 +361,7 @@ function obtenerUsuarioActual() {
         const currentUser = localStorage.getItem('currentUser');
         if (currentUser) {
             const parsed = JSON.parse(currentUser);
-            console.log('👤 Usuario desde currentUser:', parsed);
+            // console.log('👤 Usuario desde currentUser:', parsed);
             return parsed;
         }
         
@@ -369,7 +369,7 @@ function obtenerUsuarioActual() {
         if (window.supabase && window.supabase.auth) {
             const session = window.supabase.auth.getSession();
             if (session?.data?.session?.user) {
-                console.log('👤 Usuario desde Supabase:', session.data.session.user);
+                // console.log('👤 Usuario desde Supabase:', session.data.session.user);
                 return session.data.session.user;
             }
         }
@@ -417,7 +417,7 @@ function getCurrentModuleId() {
 // Función para recargar preguntas directamente (patrón de transcripciones/resúmenes)
 async function refreshQuestionsDirectly() {
     try {
-        console.log('📋 Obteniendo preguntas directamente de la API...');
+        // console.log('📋 Obteniendo preguntas directamente de la API...');
 
         // Usar la misma API que usa loadCommunityQuestions
         if (!window.communityAPI) {
@@ -431,11 +431,11 @@ async function refreshQuestionsDirectly() {
             sort: 'recent'
         });
 
-        console.log('📋 Respuesta de la API:', response);
+        // console.log('📋 Respuesta de la API:', response);
 
         if (response && response.data && Array.isArray(response.data)) {
             const questions = response.data;
-            console.log(`✅ ${questions.length} preguntas obtenidas directamente`);
+            // console.log(`✅ ${questions.length} preguntas obtenidas directamente`);
 
             // Renderizar directamente en el DOM (patrón de transcripciones/resúmenes)
             renderQuestionsDirectly(questions);
@@ -446,7 +446,7 @@ async function refreshQuestionsDirectly() {
         } else if (response && Array.isArray(response)) {
             // Algunas APIs devuelven directamente el array
             const questions = response;
-            console.log(`✅ ${questions.length} preguntas obtenidas directamente (array directo)`);
+            // console.log(`✅ ${questions.length} preguntas obtenidas directamente (array directo)`);
             renderQuestionsDirectly(questions);
 
             // Mostrar feedback visual
@@ -457,7 +457,7 @@ async function refreshQuestionsDirectly() {
 
             // Fallback: intentar usar las funciones existentes
             if (window.chatOnline && typeof window.chatOnline.loadCommunityQuestions === 'function') {
-                console.log('🔄 Intentando fallback con loadCommunityQuestions...');
+                // console.log('🔄 Intentando fallback con loadCommunityQuestions...');
                 window.chatOnline.communityQuestionsLoaded = false;
                 window.chatOnline.loadingQuestions = false;
                 await window.chatOnline.loadCommunityQuestions('direct-refresh-fallback');
@@ -471,11 +471,11 @@ async function refreshQuestionsDirectly() {
         // Fallback final
         if (window.chatOnline && typeof window.chatOnline.loadCommunityQuestions === 'function') {
             try {
-                console.log('🔄 Usando fallback final...');
+                // console.log('🔄 Usando fallback final...');
                 window.chatOnline.communityQuestionsLoaded = false;
                 window.chatOnline.loadingQuestions = false;
                 await window.chatOnline.loadCommunityQuestions('direct-refresh-error-fallback');
-                console.log('✅ Fallback exitoso');
+                // console.log('✅ Fallback exitoso');
                 showNotification('🔄 Preguntas actualizadas', 'info');
             } catch (fallbackError) {
                 console.error('❌ Fallback también falló:', fallbackError);
@@ -487,7 +487,7 @@ async function refreshQuestionsDirectly() {
 
 // Función para renderizar preguntas directamente en el DOM
 function renderQuestionsDirectly(questions) {
-    console.log('🎨 Renderizando preguntas directamente en DOM...');
+    // console.log('🎨 Renderizando preguntas directamente en DOM...');
 
     const questionsList = document.getElementById('questionsList');
     if (!questionsList) {
@@ -527,10 +527,10 @@ function renderQuestionsDirectly(questions) {
 
     if (window.renderQuestionsFromAPI && typeof window.renderQuestionsFromAPI === 'function') {
         // Usar la función principal de renderizado
-        console.log('✅ Usando función principal renderQuestionsFromAPI');
+        // console.log('✅ Usando función principal renderQuestionsFromAPI');
         try {
             window.renderQuestionsFromAPI(questions);
-            console.log('✅ Preguntas renderizadas con función principal');
+            // console.log('✅ Preguntas renderizadas con función principal');
             return;
         } catch (error) {
             console.warn('⚠️ Error con renderQuestionsFromAPI, usando fallback:', error);
@@ -539,11 +539,11 @@ function renderQuestionsDirectly(questions) {
 
     if (window.chatOnline && typeof window.chatOnline.createQuestionHTML === 'function') {
         // Usar la función existente del sistema
-        console.log('✅ Usando función del sistema chatOnline.createQuestionHTML');
+        // console.log('✅ Usando función del sistema chatOnline.createQuestionHTML');
         questionsHTML = questions.map(question => window.chatOnline.createQuestionHTML(question)).join('');
     } else {
         // Fallback: generar HTML básico pero compatible
-        console.log('⚠️ Usando fallback createBasicQuestionHTML');
+        // console.log('⚠️ Usando fallback createBasicQuestionHTML');
         questionsHTML = questions.map(question => createBasicQuestionHTML(question)).join('');
     }
 
@@ -561,7 +561,7 @@ function renderQuestionsDirectly(questions) {
         window.chatOnline.setupQuestionEventListeners();
     }
 
-    console.log('✅ Preguntas renderizadas directamente en DOM');
+    // console.log('✅ Preguntas renderizadas directamente en DOM');
 }
 
 // Función básica para generar HTML de pregunta (fallback)
@@ -629,7 +629,7 @@ function getTimeAgo(dateString) {
 
 // Función para enviar pregunta preservando la conexión a BD
 async function submitQuestion() {
-    console.log('📤 Enviando pregunta...');
+    // console.log('📤 Enviando pregunta...');
     
     const titleInput = document.getElementById('questionTitle');
     const contentInput = document.getElementById('questionContent');
@@ -658,14 +658,14 @@ async function submitQuestion() {
     const currentCourseId = getCurrentCourseId();
     const currentModuleId = getCurrentModuleId();
     
-    console.log('👤 Usuario actual:', currentUser);
-    console.log('📚 Curso actual:', currentCourseId);
-    console.log('📖 Módulo actual:', currentModuleId);
+    // console.log('👤 Usuario actual:', currentUser);
+    // console.log('📚 Curso actual:', currentCourseId);
+    // console.log('📖 Módulo actual:', currentModuleId);
     
     try {
         // Usar la API de comunidad existente si está disponible
         if (window.communityAPI) {
-            console.log('🔗 Usando communityAPI para enviar pregunta...');
+            // console.log('🔗 Usando communityAPI para enviar pregunta...');
             
             // Asegurar que communityAPI tenga configurado el usuario
             window.communityAPI.setUserId(currentUser.id);
@@ -679,34 +679,34 @@ async function submitQuestion() {
                 tags: [] // Tags vacíos por defecto
             };
             
-            console.log('📝 Datos de la pregunta:', questionData);
+            // console.log('📝 Datos de la pregunta:', questionData);
             
             const response = await window.communityAPI.createQuestion(questionData);
             
             if (response && response.success !== false) {
-                console.log('✅ Pregunta enviada exitosamente');
+                // console.log('✅ Pregunta enviada exitosamente');
                 closeQuestionModalFunc();
 
                 // Mostrar mensaje de éxito
                 showNotification('✅ ¡Pregunta enviada exitosamente!', 'success');
 
                 // Recargar preguntas inmediatamente - Sin delay
-                console.log('🔄 Recargando preguntas después de envío exitoso...');
+                // console.log('🔄 Recargando preguntas después de envío exitoso...');
 
                 // ESTRATEGIA DE FUERZA BRUTA: Actualización agresiva e inmediata
-                console.log('🔄 Iniciando estrategia de fuerza bruta para actualización inmediata...');
+                // console.log('🔄 Iniciando estrategia de fuerza bruta para actualización inmediata...');
 
                 // 1. Forzar limpieza completa de cache y estado
                 if (window.chatOnline) {
                     window.chatOnline.communityQuestionsLoaded = false;
                     window.chatOnline.loadingQuestions = false;
-                    console.log('🧹 Estado de chatOnline limpiado');
+                    // console.log('🧹 Estado de chatOnline limpiado');
                 }
 
                 // 2. Limpiar cualquier cache de communityAPI
                 if (window.communityAPI && window.communityAPI.clearCache) {
                     window.communityAPI.clearCache();
-                    console.log('🧹 Cache de communityAPI limpiado');
+                    // console.log('🧹 Cache de communityAPI limpiado');
                 }
 
                 // 3. Ejecutar múltiples estrategias de forma secuencial para garantizar éxito
@@ -736,14 +736,14 @@ async function submitQuestion() {
                 // Ejecutar estrategias secuencialmente hasta que una funcione
                 for (const strategy of strategies) {
                     try {
-                        console.log(`🔄 Ejecutando estrategia: ${strategy.name}`);
+                        // console.log(`🔄 Ejecutando estrategia: ${strategy.name}`);
                         await strategy.fn();
-                        console.log(`✅ Estrategia exitosa: ${strategy.name}`);
+                        // console.log(`✅ Estrategia exitosa: ${strategy.name}`);
 
                         // Verificar si realmente se actualizó el DOM
                         await new Promise(resolve => setTimeout(resolve, 500));
                         if (await verifyQuestionWasAdded()) {
-                            console.log('✅ Pregunta confirmada en DOM - Deteniendo estrategias');
+                            // console.log('✅ Pregunta confirmada en DOM - Deteniendo estrategias');
                             break;
                         }
                     } catch (error) {
@@ -751,13 +751,13 @@ async function submitQuestion() {
                     }
                 }
 
-                console.log('✅ Proceso de actualización de preguntas completado');
+                // console.log('✅ Proceso de actualización de preguntas completado');
             } else {
                 throw new Error(response?.error || 'Error al enviar pregunta');
             }
         } else if (window.chatOnline && typeof window.chatOnline.submitQuestion === 'function') {
             // Fallback a la función original
-            console.log('🔗 Usando función original submitQuestion...');
+            // console.log('🔗 Usando función original submitQuestion...');
             await window.chatOnline.submitQuestion();
         } else {
             throw new Error('No se encontró método para enviar pregunta');
@@ -788,7 +788,7 @@ function startNewLiaChat() {
                 </div>
             </div>
         `;
-        console.log('✅ Nuevo chat iniciado');
+        // console.log('✅ Nuevo chat iniciado');
     }
     
     if (input) {
@@ -798,14 +798,14 @@ function startNewLiaChat() {
 }
 
 function toggleLiaSection() {
-    console.log('🔍 [FIX-BUTTONS] toggleLiaSection() iniciada');
+    // console.log('🔍 [FIX-BUTTONS] toggleLiaSection() iniciada');
     
     const liaChat = document.querySelector('.lia-chat');
     const liaSection = document.querySelector('.lia-assistant-section');
     const notesSection = document.querySelector('.notes-section');
     const collapseBtn = document.getElementById('collapseLiaBtn');
     
-    console.log('🔍 [FIX-BUTTONS] Elementos encontrados:', {
+    // console.log('🔍 [FIX-BUTTONS] Elementos encontrados:', {
         liaChat: !!liaChat,
         liaSection: !!liaSection,
         notesSection: !!notesSection,
@@ -818,18 +818,18 @@ function toggleLiaSection() {
     }
     
     const icon = collapseBtn.querySelector('svg');
-    console.log('🔍 [FIX-BUTTONS] Icono encontrado:', !!icon);
+    // console.log('🔍 [FIX-BUTTONS] Icono encontrado:', !!icon);
     
     // Verificar estado actual usando clases CSS
     const isCollapsed = liaSection.classList.contains('lia-collapsed');
-    console.log('🔍 [FIX-BUTTONS] Estado actual:', {
+    // console.log('🔍 [FIX-BUTTONS] Estado actual:', {
         isCollapsed: isCollapsed,
         liaSectionClasses: liaSection.className,
         notesSectionClasses: notesSection.className
     });
     
     if (isCollapsed) {
-        console.log('📤 [FIX-BUTTONS] Expandir LIA...');
+        // console.log('📤 [FIX-BUTTONS] Expandir LIA...');
         
         // Expandir - Transición suave
         liaChat.style.opacity = '1';
@@ -842,9 +842,9 @@ function toggleLiaSection() {
         
         icon.innerHTML = '<polyline points="6,9 12,15 18,9"/>';
         collapseBtn.title = 'Colapsar Chat';
-        console.log('✅ [FIX-BUTTONS] Chat de LIA expandido');
+        // console.log('✅ [FIX-BUTTONS] Chat de LIA expandido');
     } else {
-        console.log('📦 [FIX-BUTTONS] Colapsar LIA...');
+        // console.log('📦 [FIX-BUTTONS] Colapsar LIA...');
         
         // Colapsar - Transición suave
         // Aplicar clases de colapso
@@ -863,10 +863,10 @@ function toggleLiaSection() {
         
         icon.innerHTML = '<polyline points="6,15 12,9 18,15"/>';
         collapseBtn.title = 'Expandir Chat';
-        console.log('✅ [FIX-BUTTONS] Chat de LIA colapsado - Notas expandidas hacia arriba');
+        // console.log('✅ [FIX-BUTTONS] Chat de LIA colapsado - Notas expandidas hacia arriba');
     }
     
-    console.log('🔍 [FIX-BUTTONS] toggleLiaSection() completada');
+    // console.log('🔍 [FIX-BUTTONS] toggleLiaSection() completada');
 }
 
 function sendMessageToLia() {
@@ -884,7 +884,7 @@ function sendMessageToLia() {
         return;
     }
 
-    console.log('💬 Enviando mensaje a LIA:', mensaje);
+    // console.log('💬 Enviando mensaje a LIA:', mensaje);
 
     // Agregar mensaje del usuario
     // Obtener información del usuario actual
@@ -921,11 +921,11 @@ function sendMessageToLia() {
     
     // Usar el sistema OpenAI de LIA (handleChatWithLIA)
     if (typeof handleChatWithLIA === 'function') {
-        console.log('🤖 Usando sistema OpenAI de LIA (handleChatWithLIA)');
+        // console.log('🤖 Usando sistema OpenAI de LIA (handleChatWithLIA)');
         handleChatWithLIA(mensaje);
         return;
     } else if (typeof window.handleChatWithLIA === 'function') {
-        console.log('🤖 Usando sistema OpenAI de LIA (window.handleChatWithLIA)');
+        // console.log('🤖 Usando sistema OpenAI de LIA (window.handleChatWithLIA)');
         window.handleChatWithLIA(mensaje);
         return;
     } else {
@@ -953,11 +953,11 @@ function sendMessageToLia() {
 
 // Función para abrir el panel de notas estilo NotebookLM
 function openNotebookLMPanel() {
-    console.log('📝 [FIX-BUTTONS] Abriendo panel de notas NotebookLM...');
+    // console.log('📝 [FIX-BUTTONS] Abriendo panel de notas NotebookLM...');
     
     // Verificar si el sistema de notas NotebookLM está disponible
     if (typeof initializeNotebookLMNotes === 'function') {
-        console.log('✅ [FIX-BUTTONS] Sistema NotebookLM disponible, abriendo panel...');
+        // console.log('✅ [FIX-BUTTONS] Sistema NotebookLM disponible, abriendo panel...');
         
     // Buscar el panel de notas overlay
     const notePanelOverlay = document.getElementById('notePanelOverlay');
@@ -965,7 +965,7 @@ function openNotebookLMPanel() {
         // Verificar si el nuevo editor está activo
         const notesCreator = document.getElementById('notesCreatorSection');
         if (notesCreator && notesCreator.style.display !== 'none') {
-            console.log('⚠️ [FIX-BUTTONS] El nuevo editor ya está activo, no abriendo overlay');
+            // console.log('⚠️ [FIX-BUTTONS] El nuevo editor ya está activo, no abriendo overlay');
             return;
         }
         
@@ -991,7 +991,7 @@ function openNotebookLMPanel() {
                 }
             }, 300);
             
-            console.log('✅ [FIX-BUTTONS] Panel de notas NotebookLM abierto');
+            // console.log('✅ [FIX-BUTTONS] Panel de notas NotebookLM abierto');
         } else {
             console.error('❌ [FIX-BUTTONS] Panel de notas NotebookLM no encontrado');
             showNotification('❌ Panel de notas no disponible', 'error');
@@ -1004,12 +1004,12 @@ function openNotebookLMPanel() {
 
 // Función legacy para compatibilidad (ahora redirige al nuevo sistema)
 function showNotesCreator() {
-    console.log('📝 [FIX-BUTTONS] showNotesCreator() llamada - redirigiendo a NotebookLM...');
+    // console.log('📝 [FIX-BUTTONS] showNotesCreator() llamada - redirigiendo a NotebookLM...');
     openNotebookLMPanel();
 }
 
 function hideNotesCreator() {
-    console.log('❌ [FIX-BUTTONS] hideNotesCreator() llamada - cerrando panel NotebookLM...');
+    // console.log('❌ [FIX-BUTTONS] hideNotesCreator() llamada - cerrando panel NotebookLM...');
     
     // Buscar el panel de notas overlay
     const notePanelOverlay = document.getElementById('notePanelOverlay');
@@ -1020,7 +1020,7 @@ function hideNotesCreator() {
         // Esperar a que termine la animación y ocultar
         setTimeout(() => {
             notePanelOverlay.style.display = 'none';
-            console.log('✅ [FIX-BUTTONS] Panel de notas NotebookLM cerrado');
+            // console.log('✅ [FIX-BUTTONS] Panel de notas NotebookLM cerrado');
         }, 300);
     } else {
         console.warn('⚠️ [FIX-BUTTONS] Panel de notas NotebookLM no encontrado para cerrar');
@@ -1028,7 +1028,7 @@ function hideNotesCreator() {
 }
 
 function saveCurrentNote() {
-    console.log('💾 [FIX-BUTTONS] saveCurrentNote() llamada...');
+    // console.log('💾 [FIX-BUTTONS] saveCurrentNote() llamada...');
     
     // Buscar elementos del nuevo sistema
     const titleInput = document.getElementById('noteTitleInput');
@@ -1060,7 +1060,7 @@ function saveCurrentNote() {
     notes.push(note);
     localStorage.setItem('lia_notes', JSON.stringify(notes));
 
-    console.log('💾 [FIX-BUTTONS] Nota guardada:', note);
+    // console.log('💾 [FIX-BUTTONS] Nota guardada:', note);
     
     // Cerrar editor
     hideNotesCreator();
@@ -1155,21 +1155,21 @@ function exportNoteToPDF() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    console.log('📄 Nota exportada como HTML');
+    // console.log('📄 Nota exportada como HTML');
     showNotification('✅ Nota exportada correctamente', 'success');
 }
 
 function toggleNotesSearch() {
-    console.log('🔍 Toggle búsqueda de notas');
+    // console.log('🔍 Toggle búsqueda de notas');
     
     // Verificar si existe el objeto chatOnline con la función de búsqueda
     if (window.chatOnline && typeof window.chatOnline.searchNotes === 'function') {
-        console.log('✅ Usando función de búsqueda de chatOnline');
+        // console.log('✅ Usando función de búsqueda de chatOnline');
         window.chatOnline.searchNotes();
     } 
     // Fallback: verificar si existe la función global
     else if (typeof window.searchNotes === 'function') {
-        console.log('✅ Usando función global de búsqueda');
+        // console.log('✅ Usando función global de búsqueda');
         window.searchNotes();
     }
     else {
@@ -1179,11 +1179,11 @@ function toggleNotesSearch() {
 }
 
 function toggleNotesSection() {
-    console.log('🔧 Toggling notes section...');
+    // console.log('🔧 Toggling notes section...');
     
     // Verificar si existe chatOnline con la función de colapsar
     if (window.chatOnline && typeof window.chatOnline.toggleNotesCollapse === 'function') {
-        console.log('✅ Usando función de colapsar de chatOnline');
+        // console.log('✅ Usando función de colapsar de chatOnline');
         window.chatOnline.toggleNotesCollapse();
         return;
     }
@@ -1198,11 +1198,11 @@ function toggleNotesSection() {
         if (isCollapsed) {
             notesSection.classList.remove('collapsed');
             collapseBtn.title = 'Colapsar Notas';
-            console.log('📖 Sección de notas expandida');
+            // console.log('📖 Sección de notas expandida');
         } else {
             notesSection.classList.add('collapsed');
             collapseBtn.title = 'Expandir Notas';
-            console.log('📦 Sección de notas colapsada');
+            // console.log('📦 Sección de notas colapsada');
         }
         
         // El CSS se encarga de la animación del icono automáticamente
@@ -1223,19 +1223,19 @@ function toggleMaterialsSection() {
             materialsSection.classList.remove('collapsed');
             collapseBtn.classList.remove('collapsed');
             collapseBtn.title = 'Colapsar Materiales';
-            console.log('📖 Sección de materiales expandida');
+            // console.log('📖 Sección de materiales expandida');
         } else {
             materialsSection.classList.add('collapsed');
             collapseBtn.classList.add('collapsed');
             collapseBtn.title = 'Expandir Materiales';
-            console.log('📦 Sección de materiales colapsada');
+            // console.log('📦 Sección de materiales colapsada');
         }
     }
 }
 
 // Función para eliminar notas (global)
 function deleteNote(noteId) {
-    console.log('🗑️ Eliminando nota:', noteId);
+    // console.log('🗑️ Eliminando nota:', noteId);
     
     let notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
     notes = notes.filter(note => note.id !== noteId);
@@ -1317,7 +1317,7 @@ function showNotification(message, type = 'info') {
 
 // Función para forzar la recarga de la API sin importar cache o estado
 async function forceBruteAPIReload() {
-    console.log('🔨 Iniciando recarga de fuerza bruta de la API...');
+    // console.log('🔨 Iniciando recarga de fuerza bruta de la API...');
 
     if (!window.communityAPI) {
         console.error('❌ communityAPI no disponible para fuerza bruta');
@@ -1334,7 +1334,7 @@ async function forceBruteAPIReload() {
             _force: true
         });
 
-        console.log('🔨 Respuesta de fuerza bruta:', response);
+        // console.log('🔨 Respuesta de fuerza bruta:', response);
 
         // Procesar respuesta sin importar la estructura
         let questions = null;
@@ -1348,7 +1348,7 @@ async function forceBruteAPIReload() {
         }
 
         if (questions && questions.length > 0) {
-            console.log(`🔨 ${questions.length} preguntas obtenidas por fuerza bruta`);
+            // console.log(`🔨 ${questions.length} preguntas obtenidas por fuerza bruta`);
             await forceRenderQuestions(questions);
             return true;
         } else {
@@ -1364,7 +1364,7 @@ async function forceBruteAPIReload() {
 
 // Función para forzar el renderizado de preguntas directamente en el DOM
 async function forceRenderQuestions(questions) {
-    console.log('🔨 Forzando renderizado directo de preguntas...');
+    // console.log('🔨 Forzando renderizado directo de preguntas...');
 
     const questionsList = document.getElementById('questionsList');
     if (!questionsList) {
@@ -1458,12 +1458,12 @@ async function forceRenderQuestions(questions) {
         questionsContainer.scrollTop = 0;
     }
 
-    console.log('🔨 Preguntas renderizadas por fuerza bruta');
+    // console.log('🔨 Preguntas renderizadas por fuerza bruta');
 }
 
 // Función para actualizar manualmente el DOM agregando la pregunta sin recargar todo
 async function forceManualDOMUpdate() {
-    console.log('🔨 Intentando actualización manual del DOM...');
+    // console.log('🔨 Intentando actualización manual del DOM...');
 
     // Esta función intentará agregar manualmente la pregunta más reciente al DOM
     // sin depender de las funciones de recarga
@@ -1489,12 +1489,12 @@ async function forceManualDOMUpdate() {
         }
 
         if (latestQuestion) {
-            console.log('🔨 Pregunta más reciente encontrada:', latestQuestion);
+            // console.log('🔨 Pregunta más reciente encontrada:', latestQuestion);
 
             // Verificar si ya existe en el DOM
             const existingQuestion = document.querySelector(`[data-question-id="${latestQuestion.id}"]`);
             if (existingQuestion) {
-                console.log('🔨 La pregunta ya existe en DOM - actualizando posición');
+                // console.log('🔨 La pregunta ya existe en DOM - actualizando posición');
                 // Mover al principio
                 const questionsList = document.getElementById('questionsList');
                 if (questionsList) {
@@ -1520,7 +1520,7 @@ async function forceManualDOMUpdate() {
                     questionElement.style.backgroundColor = '';
                 }, 2000);
 
-                console.log('🔨 Nueva pregunta agregada manualmente al DOM');
+                // console.log('🔨 Nueva pregunta agregada manualmente al DOM');
                 showNotification('✅ Nueva pregunta agregada', 'success');
             }
         }
@@ -1603,7 +1603,7 @@ async function verifyQuestionWasAdded() {
     const previousCount = parseInt(localStorage.getItem('previousQuestionCount') || '0');
     const currentCount = questionItems.length;
 
-    console.log(`🔍 Verificando preguntas: Anterior: ${previousCount}, Actual: ${currentCount}`);
+    // console.log(`🔍 Verificando preguntas: Anterior: ${previousCount}, Actual: ${currentCount}`);
 
     if (currentCount > previousCount) {
         localStorage.setItem('previousQuestionCount', currentCount.toString());
@@ -1634,42 +1634,42 @@ window.openNotebookLMPanel = openNotebookLMPanel;
 
 // Exponer funciones de debugging para troubleshooting
 window.debugCommunitySystem = function() {
-    console.log('🔧 === DEBUG: SISTEMA DE COMUNIDAD ===');
-    console.log('🔧 communityAPI disponible:', !!window.communityAPI);
-    console.log('🔧 loadCommunityQuestions disponible:', typeof loadCommunityQuestions);
-    console.log('🔧 questionsList elemento:', !!document.getElementById('questionsList'));
+    // console.log('🔧 === DEBUG: SISTEMA DE COMUNIDAD ===');
+    // console.log('🔧 communityAPI disponible:', !!window.communityAPI);
+    // console.log('🔧 loadCommunityQuestions disponible:', typeof loadCommunityQuestions);
+    // console.log('🔧 questionsList elemento:', !!document.getElementById('questionsList'));
 
     if (window.communityAPI) {
-        console.log('🔧 communityAPI métodos:', Object.getOwnPropertyNames(window.communityAPI));
+        // console.log('🔧 communityAPI métodos:', Object.getOwnPropertyNames(window.communityAPI));
     }
 
     const questionsList = document.getElementById('questionsList');
     if (questionsList) {
         const currentQuestions = questionsList.querySelectorAll('.question-item');
-        console.log('🔧 Preguntas actuales en DOM:', currentQuestions.length);
+        // console.log('🔧 Preguntas actuales en DOM:', currentQuestions.length);
         currentQuestions.forEach((q, i) => {
-            console.log(`🔧 Pregunta ${i+1}:`, q.dataset.questionId, q.querySelector('.question-title')?.textContent);
+            // console.log(`🔧 Pregunta ${i+1}:`, q.dataset.questionId, q.querySelector('.question-title')?.textContent);
         });
     }
 
-    console.log('🔧 === FIN DEBUG ===');
+    // console.log('🔧 === FIN DEBUG ===');
 };
 
 window.testQuestionRefresh = async function() {
-    console.log('🧪 === TEST: ACTUALIZACIÓN DE PREGUNTAS ===');
+    // console.log('🧪 === TEST: ACTUALIZACIÓN DE PREGUNTAS ===');
 
     try {
-        console.log('🧪 Ejecutando refreshQuestionsDirectly...');
+        // console.log('🧪 Ejecutando refreshQuestionsDirectly...');
         await refreshQuestionsDirectly();
-        console.log('🧪 refreshQuestionsDirectly completado');
+        // console.log('🧪 refreshQuestionsDirectly completado');
 
-        console.log('🧪 Ejecutando forceBruteAPIReload...');
+        // console.log('🧪 Ejecutando forceBruteAPIReload...');
         await forceBruteAPIReload();
-        console.log('🧪 forceBruteAPIReload completado');
+        // console.log('🧪 forceBruteAPIReload completado');
 
-        console.log('🧪 Ejecutando forceManualDOMUpdate...');
+        // console.log('🧪 Ejecutando forceManualDOMUpdate...');
         await forceManualDOMUpdate();
-        console.log('🧪 forceManualDOMUpdate completado');
+        // console.log('🧪 forceManualDOMUpdate completado');
 
         showNotification('🧪 Test de actualización completado', 'info');
     } catch (error) {
@@ -1677,12 +1677,12 @@ window.testQuestionRefresh = async function() {
         showNotification('🧪 Error en test: ' + error.message, 'error');
     }
 
-    console.log('🧪 === FIN TEST ===');
+    // console.log('🧪 === FIN TEST ===');
 };
 
-console.log('🔧 Funciones de debugging disponibles:');
-console.log('🔧 - debugCommunitySystem() - Ver estado del sistema');
-console.log('🔧 - testQuestionRefresh() - Probar actualización de preguntas');
+// console.log('🔧 Funciones de debugging disponibles:');
+// console.log('🔧 - debugCommunitySystem() - Ver estado del sistema');
+// console.log('🔧 - testQuestionRefresh() - Probar actualización de preguntas');
 
 // Función para inicializar cuando el DOM esté listo
 function initializeFixButtons() {
@@ -1700,4 +1700,4 @@ initializeFixButtons();
 setTimeout(fixRightPanelButtons, 1000);
 setTimeout(fixRightPanelButtons, 3000);
 
-console.log('🔧 [FIX-BUTTONS] Script cargado y listo');
+// console.log('🔧 [FIX-BUTTONS] Script cargado y listo');

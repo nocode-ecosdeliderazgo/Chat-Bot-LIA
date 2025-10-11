@@ -1,19 +1,19 @@
 // Sistema de partículas específico para email-verification.html
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Inicializando sistema de partículas para email-verification.html');
+    // console.log('🚀 Inicializando sistema de partículas para email-verification.html');
     
     const canvas = document.getElementById('bgParticles');
     const particleContainer = document.querySelector('.particles-container');
     
     if (canvas) {
-        console.log('✅ Canvas encontrado, inicializando partículas de canvas');
+        // console.log('✅ Canvas encontrado, inicializando partículas de canvas');
         initCanvasParticles(canvas);
     } else {
         console.error('❌ Canvas no encontrado');
     }
     
     if (particleContainer) {
-        console.log('✅ Contenedor de partículas encontrado, inicializando partículas DOM');
+        // console.log('✅ Contenedor de partículas encontrado, inicializando partículas DOM');
         initDOMParticles(particleContainer);
     } else {
         console.error('❌ Contenedor de partículas no encontrado');

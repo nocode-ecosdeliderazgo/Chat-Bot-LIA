@@ -30,7 +30,7 @@ class CourseViewer {
         this.loadResources();
         this.loadNotes();
         
-        console.log('📚 Course Viewer inicializado');
+        // console.log('📚 Course Viewer inicializado');
     }
 
     /**
@@ -183,7 +183,7 @@ class CourseViewer {
         });
         document.dispatchEvent(event);
         
-        console.log(`Módulo ${moduleId} seleccionado`);
+        // console.log(`Módulo ${moduleId} seleccionado`);
     }
 
     /**
@@ -598,7 +598,7 @@ class CourseViewer {
      */
     openResource(resourceName) {
         // Simular descarga o apertura de recurso
-        console.log(`Abriendo recurso: ${resourceName}`);
+        // console.log(`Abriendo recurso: ${resourceName}`);
         
         // En producción, aquí se abriría/descargaría el recurso real
         this.showNotification(`Abriendo ${resourceName}...`, 'info');
@@ -802,7 +802,7 @@ class CourseViewer {
         if (window.chatOnline && typeof window.chatOnline.showNotification === 'function') {
             window.chatOnline.showNotification(message, type);
         } else {
-            console.log(`${type.toUpperCase()}: ${message}`);
+            // console.log(`${type.toUpperCase()}: ${message}`);
         }
     }
 
@@ -848,12 +848,12 @@ class CourseViewer {
 
 // Funciones globales para el HTML
 window.downloadResource = function(resourceName) {
-    console.log(`Descargando: ${resourceName}`);
+    // console.log(`Descargando: ${resourceName}`);
     // Implementar descarga real aquí
 };
 
 window.editNote = function(noteId) {
-    console.log(`Editando nota: ${noteId}`);
+    // console.log(`Editando nota: ${noteId}`);
     // Implementar edición de nota
 };
 

@@ -203,7 +203,7 @@ const userData = new UserLearningData();
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[COURSES] Inicializando página de cursos...');
+    // console.log('[COURSES] Inicializando página de cursos...');
     
     try {
         hydrateUserHeader();
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLearningStreak();
         setupThemeObserver();
         
-        console.log('[COURSES] Página de cursos inicializada correctamente');
+        // console.log('[COURSES] Página de cursos inicializada correctamente');
     } catch (error) {
         console.error('[COURSES] Error al inicializar:', error);
     }
@@ -228,7 +228,7 @@ function initializeCoursesPage() {
     renderCourses();
     updateProgressBars();
     
-    console.log('[COURSES] Configuración inicial completada');
+    // console.log('[COURSES] Configuración inicial completada');
 }
 
 // Mostrar mensaje de bienvenida con el display_name del usuario
@@ -292,7 +292,7 @@ function setupEventListeners() {
     setupCourseButtons();
     setupCourseMenus();
     
-    console.log('[COURSES] Event listeners configurados');
+    // console.log('[COURSES] Event listeners configurados');
 }
 
 // Menú de perfil en el header (avatar)
@@ -357,7 +357,7 @@ function switchTab(tabId) {
         animateTabContent(activeContent);
     }
     
-    console.log(`[COURSES] Cambiado a pestaña: ${tabId}`);
+    // console.log(`[COURSES] Cambiado a pestaña: ${tabId}`);
 }
 
 function animateTabContent(content) {
@@ -401,14 +401,14 @@ function setupCourseButtons() {
                 }
             }
             
-            console.log(`[COURSES] Iniciando taller: ${courseTitle} (${courseId})`);
+            // console.log(`[COURSES] Iniciando taller: ${courseTitle} (${courseId})`);
             continueCourse(courseId, this);
         });
     });
 }
 
 function continueCourse(courseId, buttonElement = null) {
-    console.log(`[COURSES] Continuando taller: ${courseId}`);
+    // console.log(`[COURSES] Continuando taller: ${courseId}`);
     
     if (!buttonElement) {
         buttonElement = document.querySelector(`[data-course-id="${courseId}"]`) || 
@@ -428,7 +428,7 @@ function continueCourse(courseId, buttonElement = null) {
                     timestamp: Date.now()
                 }));
                 
-                console.log(`[COURSES] Redirigiendo a la información del taller: ${courseId}`);
+                // console.log(`[COURSES] Redirigiendo a la información del taller: ${courseId}`);
                 // Iniciar tracking en background (contador por minuto)
                 try { await startMinuteTracking(courseId); } catch (e) { console.warn('Minute tracking init failed', e); }
                 window.location.href = `taller-info.html?taller=${courseId}`;
@@ -612,7 +612,7 @@ function updateStreakUI() {
 
 // ===== PROGRAMADOR DE APRENDIZAJE =====
 function openLearningScheduler() {
-    console.log('[COURSES] Abriendo programador de aprendizaje...');
+    // console.log('[COURSES] Abriendo programador de aprendizaje...');
     
     const modal = createSchedulerModal();
     document.body.appendChild(modal);
@@ -759,7 +759,7 @@ function setupSchedulerEventListeners(modal) {
         updateScheduleSummary();
     });
 
-    console.log('[COURSES] Event listeners del programador configurados');
+    // console.log('[COURSES] Event listeners del programador configurados');
 }
 
 function updateScheduleSummary() {
@@ -814,7 +814,7 @@ function dismissReminder() {
     }
     
     localStorage.setItem('reminderDismissed', 'true');
-    console.log('[COURSES] Recordatorio descartado');
+    // console.log('[COURSES] Recordatorio descartado');
 }
 
 // ===== RENDERIZADO DE CURSOS =====
@@ -832,7 +832,7 @@ function renderCourses() {
         card.style.animationDelay = `${index * 0.1}s`;
     });
     
-    console.log('[COURSES] Cursos renderizados');
+    // console.log('[COURSES] Cursos renderizados');
 }
 
 function enhanceCourseCard(card, courseData) {
@@ -918,7 +918,7 @@ window.closeScheduler = function() {
 };
 
 window.saveSchedule = function() {
-    console.log('[COURSES] Guardando horario de aprendizaje...');
+    // console.log('[COURSES] Guardando horario de aprendizaje...');
     
     const modal = document.querySelector('.scheduler-modal');
     if (!modal) return;
@@ -1019,19 +1019,19 @@ function createConfettiEffect(modal) {
 
 // Funciones del menú contextual
 window.addToWishlist = function() {
-    console.log('[COURSES] Agregando a lista de deseos...');
+    // console.log('[COURSES] Agregando a lista de deseos...');
 };
 
 window.addToList = function() {
-    console.log('[COURSES] Agregando a lista personalizada...');
+    // console.log('[COURSES] Agregando a lista personalizada...');
 };
 
 window.archiveCourse = function() {
-    console.log('[COURSES] Archivando curso...');
+    // console.log('[COURSES] Archivando curso...');
 };
 
 window.shareCourse = function() {
-    console.log('[COURSES] Compartiendo curso...');
+    // console.log('[COURSES] Compartiendo curso...');
 };
 
 // Clase de búsqueda
@@ -1277,7 +1277,7 @@ class CourseSearch {
     }
 
     selectCourse(course) {
-        console.log('[SEARCH] Curso seleccionado:', course);
+        // console.log('[SEARCH] Curso seleccionado:', course);
         
         this.hideResultsWithAnimation();
         this.searchInput.blur();
@@ -1343,4 +1343,4 @@ document.addEventListener('DOMContentLoaded', () => {
     new CourseSearch();
 });
 
-console.log('[COURSES] Script de cursos cargado correctamente');
+// console.log('[COURSES] Script de cursos cargado correctamente');

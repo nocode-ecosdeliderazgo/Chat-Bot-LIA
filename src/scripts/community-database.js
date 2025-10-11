@@ -15,16 +15,16 @@ class CommunityDatabase {
 
     // NUEVO método que usa AuthUtils y múltiples fuentes
     async getCurrentUserWithAuthUtils() {
-        console.log('🔍 Obteniendo usuario con AuthUtils...');
+        // console.log('🔍 Obteniendo usuario con AuthUtils...');
 
         try {
             // MÉTODO 1: Usar AuthUtils si está disponible
             if (window.AuthUtils) {
-                console.log('🔄 Intentando obtener usuario con AuthUtils...');
+                // console.log('🔄 Intentando obtener usuario con AuthUtils...');
                 const authUtilsUser = await window.AuthUtils.getCurrentAuthenticatedUser();
 
                 if (authUtilsUser) {
-                    console.log('✅ Usuario obtenido via AuthUtils:', authUtilsUser.email || authUtilsUser.id);
+                    // console.log('✅ Usuario obtenido via AuthUtils:', authUtilsUser.email || authUtilsUser.id);
 
                     // Sincronizar con todas las fuentes
                     window.AuthUtils.syncUserToAllSources(authUtilsUser);
@@ -37,7 +37,7 @@ class CommunityDatabase {
             }
 
             // MÉTODO 2: Verificar localStorage directamente (como funciona el menú)
-            console.log('🔄 Verificando localStorage directamente...');
+            // console.log('🔄 Verificando localStorage directamente...');
             const localStorageSources = ['currentUser', 'userData', 'user'];
 
             for (const source of localStorageSources) {
@@ -46,7 +46,7 @@ class CommunityDatabase {
                     if (data && data !== 'null' && data !== 'undefined') {
                         const user = JSON.parse(data);
                         if (user && (user.id || user.user_id || user.email)) {
-                            console.log(`✅ Usuario encontrado en localStorage.${source}:`, user.email || user.id);
+                            // console.log(`✅ Usuario encontrado en localStorage.${source}:`, user.email || user.id);
 
                             // Normalizar estructura
                             const normalizedUser = {
@@ -78,7 +78,7 @@ class CommunityDatabase {
             }
 
             // MÉTODO 3: Fallback al método original
-            console.log('🔄 Fallback al método getCurrentUser original...');
+            // console.log('🔄 Fallback al método getCurrentUser original...');
             return await this.getCurrentUserOriginal();
 
         } catch (error) {
@@ -90,31 +90,31 @@ class CommunityDatabase {
 
     // Método principal que usa el nuevo enfoque
     async getCurrentUser() {
-        console.log('🔍 NUEVO: getCurrentUser usando AuthUtils y múltiples fuentes...');
+        // console.log('🔍 NUEVO: getCurrentUser usando AuthUtils y múltiples fuentes...');
         return await this.getCurrentUserWithAuthUtils();
     }
 
     // Método original renombrado como backup
     async getCurrentUserOriginal() {
         try {
-            console.log('ðŸ” Obteniendo usuario actual...');
+            // console.log('ðŸ” Obteniendo usuario actual...');
             
             // Intentar obtener usuario autenticado de Supabase
             // DIAGNÓSTICO: Verificar que Supabase auth esté disponible
             if (!this.supabase || !this.supabase.auth) {
                 console.error('❌ DIAGNÓSTICO: Supabase auth no está disponible');
-                console.log('📊 this.supabase:', this.supabase);
+                // console.log('📊 this.supabase:', this.supabase);
                 return null;
             }
 
-            console.log('✅ DIAGNÓSTICO: Supabase auth disponible');
+            // console.log('✅ DIAGNÓSTICO: Supabase auth disponible');
 
             // USAR getSession() como otros archivos exitosos
-            console.log('🔍 ULTRATHINK: Usando getSession() en lugar de getUser()...');
+            // console.log('🔍 ULTRATHINK: Usando getSession() en lugar de getUser()...');
             const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
 
-            console.log('📊 DIAGNÓSTICO Session completa:', session);
-            console.log('📊 DIAGNÓSTICO Session error:', sessionError);
+            // console.log('📊 DIAGNÓSTICO Session completa:', session);
+            // console.log('📊 DIAGNÓSTICO Session error:', sessionError);
 
             if (sessionError) {
                 console.error('❌ Error obteniendo sesión:', sessionError);
@@ -124,26 +124,26 @@ class CommunityDatabase {
             // Verificar session && session.user como patrón exitoso
             if (!session || !session.user) {
                 console.warn('⚠️ DIAGNÓSTICO: No hay sesión activa o usuario en sesión');
-                console.log('📊 session:', session);
-                console.log('📊 session?.user:', session?.user);
+                // console.log('📊 session:', session);
+                // console.log('📊 session?.user:', session?.user);
 
                 // Intentar también getUser() para comparación
-                console.log('🔍 DIAGNÓSTICO: Intentando getUser() para comparación...');
+                // console.log('🔍 DIAGNÓSTICO: Intentando getUser() para comparación...');
                 const { data: { user }, error: userError } = await this.supabase.auth.getUser();
-                console.log('📊 DIAGNÓSTICO getUser() result:', user);
-                console.log('📊 DIAGNÓSTICO getUser() error:', userError);
+                // console.log('📊 DIAGNÓSTICO getUser() result:', user);
+                // console.log('📊 DIAGNÓSTICO getUser() error:', userError);
 
                 this.currentUser = null;
                 return null;
             }
 
             const user = session.user;
-            console.log('✅ ULTRATHINK: Usuario encontrado en sesión:', user.email);
-            console.log('📊 DIAGNÓSTICO User ID:', user.id);
-            console.log('📊 DIAGNÓSTICO Session expires:', new Date(session.expires_at * 1000));
+            // console.log('✅ ULTRATHINK: Usuario encontrado en sesión:', user.email);
+            // console.log('📊 DIAGNÓSTICO User ID:', user.id);
+            // console.log('📊 DIAGNÓSTICO Session expires:', new Date(session.expires_at * 1000));
             
             if (user) {
-                console.log('✅ Usuario autenticado encontrado:', user.email);
+                // console.log('✅ Usuario autenticado encontrado:', user.email);
                 
                 // Buscar o crear usuario en la tabla users
                 let { data: userData, error: userError } = await this.supabase
@@ -154,7 +154,7 @@ class CommunityDatabase {
 
                 if (userError && userError.code === 'PGRST116') {
                     // Usuario no existe en la tabla users, crearlo
-                    console.log('ðŸ“ Creando nuevo usuario en la base de datos...');
+                    // console.log('ðŸ“ Creando nuevo usuario en la base de datos...');
                     const { data: newUser, error: createError } = await this.supabase
                         .from('users')
                         .insert({
@@ -182,10 +182,10 @@ class CommunityDatabase {
                 }
 
                 this.currentUser = userData;
-                console.log('👤 ULTRATHINK: Usuario establecido correctamente:', this.currentUser.email);
+                // console.log('👤 ULTRATHINK: Usuario establecido correctamente:', this.currentUser.email);
                 return this.currentUser;
             } else {
-                console.log('âš ï¸ No hay usuario autenticado');
+                // console.log('âš ï¸ No hay usuario autenticado');
                 return null;
             }
         } catch (error) {
@@ -196,7 +196,7 @@ class CommunityDatabase {
 
     async updateUserPoints(userId, points) {
         try {
-            console.log(`ðŸ’° Actualizando puntos para usuario ${userId}: ${points}`);
+            // console.log(`ðŸ’° Actualizando puntos para usuario ${userId}: ${points}`);
             
             const { data, error } = await this.supabase
                 .from('users')
@@ -209,7 +209,7 @@ class CommunityDatabase {
                 return false;
             }
 
-            console.log('âœ… Puntos actualizados:', data);
+            // console.log('âœ… Puntos actualizados:', data);
             return true;
         } catch (error) {
             console.error('âŒ Error en updateUserPoints:', error);
@@ -222,11 +222,11 @@ class CommunityDatabase {
     // ========================================
 
     async getCommunities() {
-        console.log('🏘️ Obteniendo comunidades...');
-        console.log('📊 Supabase client:', this.supabase);
+        // console.log('🏘️ Obteniendo comunidades...');
+        // console.log('📊 Supabase client:', this.supabase);
 
         try {
-            console.log('ðŸ˜ï¸ Obteniendo comunidades...');
+            // console.log('ðŸ˜ï¸ Obteniendo comunidades...');
             
             const { data, error } = await this.supabase
                 .from('communities')
@@ -239,7 +239,7 @@ class CommunityDatabase {
                 return [];
             }
 
-            console.log('âœ… Comunidades obtenidas:', data);
+            // console.log('âœ… Comunidades obtenidas:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en getCommunities:', error);
@@ -248,57 +248,57 @@ class CommunityDatabase {
     }
 
     async getCommunities() {
-        console.log('🏘️ ULTRATHINK: Método principal de comunidades con autenticación híbrida...');
-        console.log('📊 Supabase client:', this.supabase);
-        console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
+        // console.log('🏘️ ULTRATHINK: Método principal de comunidades con autenticación híbrida...');
+        // console.log('📊 Supabase client:', this.supabase);
+        // console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
 
         try {
             // PASO 1: Verificar autenticación y actualizar usuario si es necesario
             if (!this.currentUser) {
-                console.log('🔍 ULTRATHINK: Verificando autenticación antes de consulta...');
+                // console.log('🔍 ULTRATHINK: Verificando autenticación antes de consulta...');
                 await this.getCurrentUser();
             }
 
             // PASO 2: Método híbrido con diagnóstico completo
-            console.log('🏘️ ULTRATHINK: Iniciando consulta híbrida de comunidades...');
+            // console.log('🏘️ ULTRATHINK: Iniciando consulta híbrida de comunidades...');
 
             // MÉTODO 1: Consulta básica sin filtros para diagnóstico
-            console.log('🔍 MÉTODO 1: Consulta básica sin filtros...');
+            // console.log('🔍 MÉTODO 1: Consulta básica sin filtros...');
             const { data: basicData, error: basicError } = await this.supabase
                 .from('communities')
                 .select('*');
 
-            console.log('📊 Resultado básico:', basicData);
-            console.log('❌ Error básico:', basicError);
+            // console.log('📊 Resultado básico:', basicData);
+            // console.log('❌ Error básico:', basicError);
 
             // MÉTODO 2: Consulta con filtro is_active y orden
-            console.log('🔍 MÉTODO 2: Consulta con filtro is_active...');
+            // console.log('🔍 MÉTODO 2: Consulta con filtro is_active...');
             const { data: activeData, error: activeError } = await this.supabase
                 .from('communities')
                 .select('*')
                 .eq('is_active', true)
                 .order('name');
 
-            console.log('📊 Resultado activo:', activeData);
-            console.log('❌ Error activo:', activeError);
+            // console.log('📊 Resultado activo:', activeData);
+            // console.log('❌ Error activo:', activeError);
 
             // ANÁLISIS DE RESULTADOS CON ESTRATEGIA HÍBRIDA
             if (basicData && basicData.length > 0) {
-                console.log('✅ ULTRATHINK: Hay datos en la tabla communities');
-                console.log('🔍 Análisis de cada comunidad:');
+                // console.log('✅ ULTRATHINK: Hay datos en la tabla communities');
+                // console.log('🔍 Análisis de cada comunidad:');
                 basicData.forEach((community, index) => {
-                    console.log(`  ${index + 1}. ${community.name}:`);
-                    console.log(`     - ID: ${community.id}`);
-                    console.log(`     - is_active: ${community.is_active}`);
-                    console.log(`     - slug: ${community.slug}`);
+                    // console.log(`  ${index + 1}. ${community.name}:`);
+                    // console.log(`     - ID: ${community.id}`);
+                    // console.log(`     - is_active: ${community.is_active}`);
+                    // console.log(`     - slug: ${community.slug}`);
                 });
 
                 // ESTRATEGIA HÍBRIDA: Preferir datos activos filtrados
                 if (activeData && activeData.length > 0) {
-                    console.log(`✅ ULTRATHINK: Retornando ${activeData.length} comunidades activas filtradas`);
+                    // console.log(`✅ ULTRATHINK: Retornando ${activeData.length} comunidades activas filtradas`);
                     return activeData;
                 } else {
-                    console.log('⚠️ ULTRATHINK: No hay comunidades activas, retornando todas para debug');
+                    // console.log('⚠️ ULTRATHINK: No hay comunidades activas, retornando todas para debug');
                     return basicData.filter(c => c.is_active !== false); // Filtro manual si hay problema con eq()
                 }
 
@@ -322,7 +322,7 @@ class CommunityDatabase {
                     }
 
                     // NUEVO: Usar fallback cuando hay problemas de RLS
-                    console.log('🔄 ULTRATHINK: Activando fallback por error RLS...');
+                    // console.log('🔄 ULTRATHINK: Activando fallback por error RLS...');
                     return this.getFallbackCommunities();
                 } else {
                     console.error('🔧 ULTRATHINK: Error técnico no relacionado con RLS:', basicError);
@@ -342,62 +342,62 @@ class CommunityDatabase {
             console.error('👤 Estado autenticación:', this.currentUser ? 'Autenticado' : 'No autenticado');
 
             // NUEVO: Usar fallback en caso de error crítico
-            console.log('🔄 ULTRATHINK: Activando fallback por error crítico...');
+            // console.log('🔄 ULTRATHINK: Activando fallback por error crítico...');
             return this.getFallbackCommunities();
         }
     }
 
     async getCommunitiesULTRATHINK_BACKUP() {
-        console.log('🏘️ ULTRATHINK: Obteniendo comunidades con diagnóstico completo...');
-        console.log('📊 Supabase client:', this.supabase);
-        console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
+        // console.log('🏘️ ULTRATHINK: Obteniendo comunidades con diagnóstico completo...');
+        // console.log('📊 Supabase client:', this.supabase);
+        // console.log('👤 Usuario actual:', this.currentUser?.email || 'No autenticado');
 
         try {
             // MÉTODO 1: Consulta básica sin filtros para diagnóstico
-            console.log('🔍 MÉTODO 1: Consulta básica sin filtros...');
+            // console.log('🔍 MÉTODO 1: Consulta básica sin filtros...');
             const { data: basicData, error: basicError } = await this.supabase
                 .from('communities')
                 .select('*');
 
-            console.log('📊 Resultado básico:', basicData);
-            console.log('❌ Error básico:', basicError);
+            // console.log('📊 Resultado básico:', basicData);
+            // console.log('❌ Error básico:', basicError);
 
             // MÉTODO 2: Consulta con filtro is_active
-            console.log('🔍 MÉTODO 2: Consulta con filtro is_active...');
+            // console.log('🔍 MÉTODO 2: Consulta con filtro is_active...');
             const { data: activeData, error: activeError } = await this.supabase
                 .from('communities')
                 .select('*')
                 .eq('is_active', true);
 
-            console.log('📊 Resultado activo:', activeData);
-            console.log('❌ Error activo:', activeError);
+            // console.log('📊 Resultado activo:', activeData);
+            // console.log('❌ Error activo:', activeError);
 
             // MÉTODO 3: Contar total de registros
-            console.log('🔍 MÉTODO 3: Contando registros...');
+            // console.log('🔍 MÉTODO 3: Contando registros...');
             const { count, error: countError } = await this.supabase
                 .from('communities')
                 .select('*', { count: 'exact', head: true });
 
-            console.log('📊 Total de registros:', count);
-            console.log('❌ Error de conteo:', countError);
+            // console.log('📊 Total de registros:', count);
+            // console.log('❌ Error de conteo:', countError);
 
             // ANÁLISIS DE RESULTADOS
             if (basicData && basicData.length > 0) {
-                console.log('✅ ULTRATHINK: Hay datos en la tabla communities');
-                console.log('🔍 Análisis de cada comunidad:');
+                // console.log('✅ ULTRATHINK: Hay datos en la tabla communities');
+                // console.log('🔍 Análisis de cada comunidad:');
                 basicData.forEach((community, index) => {
-                    console.log(`  ${index + 1}. ${community.name}:`);
-                    console.log(`     - ID: ${community.id}`);
-                    console.log(`     - is_active: ${community.is_active}`);
-                    console.log(`     - slug: ${community.slug}`);
+                    // console.log(`  ${index + 1}. ${community.name}:`);
+                    // console.log(`     - ID: ${community.id}`);
+                    // console.log(`     - is_active: ${community.is_active}`);
+                    // console.log(`     - slug: ${community.slug}`);
                 });
 
                 // Determinar qué datos retornar
                 if (activeData && activeData.length > 0) {
-                    console.log('✅ ULTRATHINK: Retornando comunidades activas filtradas');
+                    // console.log('✅ ULTRATHINK: Retornando comunidades activas filtradas');
                     return activeData;
                 } else {
-                    console.log('⚠️ ULTRATHINK: No hay comunidades activas, retornando todas para debug');
+                    // console.log('⚠️ ULTRATHINK: No hay comunidades activas, retornando todas para debug');
                     return basicData;
                 }
 
@@ -432,7 +432,7 @@ class CommunityDatabase {
 
     async getCommunityBySlug(slug) {
         try {
-            console.log(`ðŸ˜ï¸ Obteniendo comunidad: ${slug}`);
+            // console.log(`ðŸ˜ï¸ Obteniendo comunidad: ${slug}`);
             
             const { data, error } = await this.supabase
                 .from('communities')
@@ -446,7 +446,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('âœ… Comunidad obtenida:', data);
+            // console.log('âœ… Comunidad obtenida:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en getCommunityBySlug:', error);
@@ -460,7 +460,7 @@ class CommunityDatabase {
 
     async getPosts(communityId, limit = 50) {
         try {
-            console.log(`ðŸ“ Obteniendo publicaciones para comunidad ${communityId}...`);
+            // console.log(`ðŸ“ Obteniendo publicaciones para comunidad ${communityId}...`);
             
             const { data, error } = await this.supabase
                 .from('community_posts')
@@ -483,7 +483,7 @@ class CommunityDatabase {
                 return [];
             }
 
-            console.log('âœ… Publicaciones obtenidas:', data);
+            // console.log('âœ… Publicaciones obtenidas:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en getPosts:', error);
@@ -498,9 +498,9 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('ðŸ“ Creando nueva publicaciÃ³n...');
+            // console.log('ðŸ“ Creando nueva publicaciÃ³n...');
             
-            console.log('[DEBUG] Parametros recibidos:', {
+            // console.log('[DEBUG] Parametros recibidos:', {
                 communityId,
                 content,
                 title,
@@ -519,7 +519,7 @@ class CommunityDatabase {
                 attachment_data: attachmentData
             };
 
-            console.log('[DEBUG] postData preparado:', postData);
+            // console.log('[DEBUG] postData preparado:', postData);
 
             const { data, error } = await this.supabase
                 .from('community_posts')
@@ -541,7 +541,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('âœ… PublicaciÃ³n creada:', data);
+            // console.log('âœ… PublicaciÃ³n creada:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en createPost:', error);
@@ -551,7 +551,7 @@ class CommunityDatabase {
 
     async updatePost(postId, content, title = null) {
         try {
-            console.log(`ðŸ“ Actualizando publicaciÃ³n ${postId}...`);
+            // console.log(`ðŸ“ Actualizando publicaciÃ³n ${postId}...`);
             
             const updateData = {
                 content: content,
@@ -575,7 +575,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('âœ… PublicaciÃ³n actualizada:', data);
+            // console.log('âœ… PublicaciÃ³n actualizada:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en updatePost:', error);
@@ -585,7 +585,7 @@ class CommunityDatabase {
 
     async deletePost(postId) {
         try {
-            console.log(`ðŸ—‘ï¸ Eliminando publicaciÃ³n ${postId}...`);
+            // console.log(`ðŸ—‘ï¸ Eliminando publicaciÃ³n ${postId}...`);
             
             const { error } = await this.supabase
                 .from('community_posts')
@@ -597,7 +597,7 @@ class CommunityDatabase {
                 return false;
             }
 
-            console.log('âœ… PublicaciÃ³n eliminada');
+            // console.log('âœ… PublicaciÃ³n eliminada');
             return true;
         } catch (error) {
             console.error('âŒ Error en deletePost:', error);
@@ -611,7 +611,7 @@ class CommunityDatabase {
 
     async getComments(postId) {
         try {
-            console.log(`ðŸ’¬ Obteniendo comentarios para publicaciÃ³n ${postId}...`);
+            // console.log(`ðŸ’¬ Obteniendo comentarios para publicaciÃ³n ${postId}...`);
             
             const { data, error } = await this.supabase
                 .from('community_comments')
@@ -633,7 +633,7 @@ class CommunityDatabase {
                 return [];
             }
 
-            console.log('âœ… Comentarios obtenidos:', data);
+            // console.log('âœ… Comentarios obtenidos:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en getComments:', error);
@@ -648,7 +648,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('ðŸ’¬ Creando nuevo comentario...');
+            // console.log('ðŸ’¬ Creando nuevo comentario...');
             
             const commentData = {
                 post_id: postId,
@@ -677,7 +677,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('âœ… Comentario creado:', data);
+            // console.log('âœ… Comentario creado:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en createComment:', error);
@@ -691,7 +691,7 @@ class CommunityDatabase {
 
     async getReactions(postId = null, commentId = null) {
         try {
-            console.log(`ðŸ‘ Obteniendo reacciones...`);
+            // console.log(`ðŸ‘ Obteniendo reacciones...`);
             
             let query = this.supabase
                 .from('community_reactions')
@@ -718,7 +718,7 @@ class CommunityDatabase {
                 return [];
             }
 
-            console.log('âœ… Reacciones obtenidas:', data);
+            // console.log('âœ… Reacciones obtenidas:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en getReactions:', error);
@@ -733,7 +733,7 @@ class CommunityDatabase {
                 return false;
             }
 
-            console.log(`ðŸ‘ Alternando reacciÃ³n: ${reactionType}...`);
+            // console.log(`ðŸ‘ Alternando reacciÃ³n: ${reactionType}...`);
             
             // Verificar si ya existe una reacciÃ³n
             let query = this.supabase
@@ -766,7 +766,7 @@ class CommunityDatabase {
                     return false;
                 }
 
-                console.log('âœ… ReacciÃ³n eliminada');
+                // console.log('âœ… ReacciÃ³n eliminada');
                 return true;
             } else {
                 // Crear nueva reacciÃ³n
@@ -790,7 +790,7 @@ class CommunityDatabase {
                     return false;
                 }
 
-                console.log('âœ… ReacciÃ³n creada');
+                // console.log('âœ… ReacciÃ³n creada');
                 return true;
             }
         } catch (error) {
@@ -805,8 +805,8 @@ class CommunityDatabase {
 
     async countCommunityMembers(communityId) {
         try {
-            console.log('[COMMUNITY_DB] Contando miembros para community_id:', communityId);
-            console.log('[COMMUNITY_DB] Supabase disponible:', !!this.supabase);
+            // console.log('[COMMUNITY_DB] Contando miembros para community_id:', communityId);
+            // console.log('[COMMUNITY_DB] Supabase disponible:', !!this.supabase);
             
             const { count, error } = await this.supabase
                 .from('community_members')
@@ -814,9 +814,9 @@ class CommunityDatabase {
                 .eq('community_id', communityId)
                 .eq('is_active', true);
 
-            console.log('[COMMUNITY_DB] Resultado de la consulta:');
-            console.log('  - count:', count);
-            console.log('  - error:', error);
+            // console.log('[COMMUNITY_DB] Resultado de la consulta:');
+            // console.log('  - count:', count);
+            // console.log('  - error:', error);
 
             if (error) {
                 console.error('[COMMUNITY_DB] Error contando miembros:', error);
@@ -824,7 +824,7 @@ class CommunityDatabase {
             }
 
             const result = count || 0;
-            console.log('[COMMUNITY_DB] Número final de miembros:', result);
+            // console.log('[COMMUNITY_DB] Número final de miembros:', result);
             return result;
         } catch (error) {
             console.error('[COMMUNITY_DB] Error en countCommunityMembers:', error);
@@ -852,7 +852,7 @@ class CommunityDatabase {
     }
     async getCommunityMembers(communityId) {
         try {
-            console.log(`ðŸ‘¥ Obteniendo miembros de comunidad ${communityId}...`);
+            // console.log(`ðŸ‘¥ Obteniendo miembros de comunidad ${communityId}...`);
             
             const { data, error } = await this.supabase
                 .from('community_members')
@@ -876,7 +876,7 @@ class CommunityDatabase {
                 return [];
             }
 
-            console.log('âœ… Miembros obtenidos:', data);
+            // console.log('âœ… Miembros obtenidos:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en getCommunityMembers:', error);
@@ -891,7 +891,7 @@ class CommunityDatabase {
                 return false;
             }
 
-            console.log(`ðŸ‘¥ UniÃ©ndose a comunidad ${communityId}...`);
+            // console.log(`ðŸ‘¥ UniÃ©ndose a comunidad ${communityId}...`);
             
             const memberData = {
                 community_id: communityId,
@@ -908,7 +908,7 @@ class CommunityDatabase {
                 return false;
             }
 
-            console.log('âœ… Usuario unido a comunidad');
+            // console.log('âœ… Usuario unido a comunidad');
             return true;
         } catch (error) {
             console.error('âŒ Error en joinCommunity:', error);
@@ -922,7 +922,7 @@ class CommunityDatabase {
 
     async getQuestions(params = {}) {
         try {
-            console.log('ðŸ“‹ Obteniendo preguntas de comunidad...');
+            // console.log('ðŸ“‹ Obteniendo preguntas de comunidad...');
             
             // Verificar estado de Supabase
             if (!this.supabase) {
@@ -934,10 +934,10 @@ class CommunityDatabase {
             const user = await this.getCurrentUser();
             
             if (user) {
-                console.log('ðŸ‘¤ Usuario autenticado, cargando preguntas completas...');
+                // console.log('ðŸ‘¤ Usuario autenticado, cargando preguntas completas...');
                 return await this.getQuestionsAuthenticated(params);
             } else {
-                console.log('ðŸ‘¤ Usuario no autenticado, cargando preguntas pÃºblicas...');
+                // console.log('ðŸ‘¤ Usuario no autenticado, cargando preguntas pÃºblicas...');
                 return await this.getQuestionsPublic(params);
             }
         } catch (error) {
@@ -950,7 +950,7 @@ class CommunityDatabase {
     // MÃ©todo para preguntas con usuario autenticado
     async getQuestionsAuthenticated(params = {}) {
         try {
-            console.log('ðŸ” Cargando preguntas para usuario autenticado...');
+            // console.log('ðŸ” Cargando preguntas para usuario autenticado...');
             
             let query = this.supabase
                 .from('community_questions')
@@ -999,7 +999,7 @@ class CommunityDatabase {
                 throw error;
             }
 
-            console.log(`âœ… ${data.length} preguntas autenticadas obtenidas`);
+            // console.log(`âœ… ${data.length} preguntas autenticadas obtenidas`);
             return data || [];
         } catch (error) {
             console.error('âŒ Error en getQuestionsAuthenticated:', error);
@@ -1010,7 +1010,7 @@ class CommunityDatabase {
     // Nuevo mÃ©todo para preguntas pÃºblicas (sin autenticaciÃ³n)
     async getQuestionsPublic(params = {}) {
         try {
-            console.log('ðŸŒ Cargando preguntas pÃºblicas...');
+            // console.log('ðŸŒ Cargando preguntas pÃºblicas...');
             
             let query = this.supabase
                 .from('community_questions')
@@ -1073,7 +1073,7 @@ class CommunityDatabase {
                 throw error;
             }
 
-            console.log(`âœ… ${data.length} preguntas pÃºblicas obtenidas`);
+            // console.log(`âœ… ${data.length} preguntas pÃºblicas obtenidas`);
             return data || [];
         } catch (error) {
             console.error('âŒ Error en getQuestionsPublic:', error);
@@ -1088,7 +1088,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('ðŸ“ Creando nueva pregunta...');
+            // console.log('ðŸ“ Creando nueva pregunta...');
             
             const { data, error } = await this.supabase
                 .from('community_questions')
@@ -1115,7 +1115,7 @@ class CommunityDatabase {
                 return null;
             }
 
-            console.log('âœ… Pregunta creada:', data);
+            // console.log('âœ… Pregunta creada:', data);
             return data;
         } catch (error) {
             console.error('âŒ Error en createQuestion:', error);
@@ -1128,9 +1128,9 @@ class CommunityDatabase {
     // ========================================
 
     async initialize() {
-        console.log('🚀 Inicializando CommunityDatabase...');
+        // console.log('🚀 Inicializando CommunityDatabase...');
         await this.getCurrentUser();
-        console.log('✅ CommunityDatabase inicializado');
+        // console.log('✅ CommunityDatabase inicializado');
     }
 
     formatTimestamp(timestamp) {
@@ -1176,12 +1176,12 @@ class CommunityDatabase {
             }
             
             // Si no se encuentra, usar fallback
-            console.log('🔄 Usando fallback para slug:', slug);
+            // console.log('🔄 Usando fallback para slug:', slug);
             const fallbackCommunities = this.getFallbackCommunities();
             const fallbackCommunity = fallbackCommunities.find(c => c.slug === slug);
             
             if (fallbackCommunity) {
-                console.log('✅ Comunidad encontrada en fallback:', fallbackCommunity.name);
+                // console.log('✅ Comunidad encontrada en fallback:', fallbackCommunity.name);
                 return fallbackCommunity;
             }
             
@@ -1195,7 +1195,7 @@ class CommunityDatabase {
 
     // NUEVA función de fallback para comunidades
     getFallbackCommunities() {
-        console.log('🔄 Usando fallback de comunidades hardcodeadas...');
+        // console.log('🔄 Usando fallback de comunidades hardcodeadas...');
         return [
             {
                 id: '7886aa14-35b9-41da-b099-29ff1ad3516b',

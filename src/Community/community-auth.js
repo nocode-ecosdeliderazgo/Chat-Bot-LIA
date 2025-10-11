@@ -17,7 +17,7 @@ class CommunityAuth {
 
     log(message, data = null) {
         if (this.debugMode) {
-            console.log(`[COMMUNITY-AUTH] ${message}`, data || '');
+            // console.log(`[COMMUNITY-AUTH] ${message}`, data || '');
         }
     }
 
@@ -30,7 +30,7 @@ class CommunityAuth {
     }
 
     success(message, data = null) {
-        console.log(`[COMMUNITY-AUTH] ✅ ${message}`, data || '');
+        // console.log(`[COMMUNITY-AUTH] ✅ ${message}`, data || '');
     }
 
     // Verificar si hay sesión válida de Supabase (para operaciones protegidas)
@@ -553,15 +553,15 @@ window.CommunityAuth = new CommunityAuth();
 
 // Esperar a que Supabase esté completamente inicializado
 window.addEventListener('supabaseReady', (event) => {
-    console.log('[COMMUNITY-AUTH] ✅ Supabase inicializado correctamente');
-    console.log('[COMMUNITY-AUTH] 🔄 Verificando estado de autenticación...');
+    // console.log('[COMMUNITY-AUTH] ✅ Supabase inicializado correctamente');
+    // console.log('[COMMUNITY-AUTH] 🔄 Verificando estado de autenticación...');
 
     // Verificar inmediatamente el estado de autenticación
     window.CommunityAuth.hasSupabaseSession().then(hasSession => {
         if (hasSession) {
-            console.log('[COMMUNITY-AUTH] ✅ Sesión válida detectada al inicializar');
+            // console.log('[COMMUNITY-AUTH] ✅ Sesión válida detectada al inicializar');
         } else {
-            console.log('[COMMUNITY-AUTH] ℹ️ No hay sesión activa al inicializar');
+            // console.log('[COMMUNITY-AUTH] ℹ️ No hay sesión activa al inicializar');
         }
     }).catch(error => {
         console.warn('[COMMUNITY-AUTH] ⚠️ Error verificando sesión inicial:', error.message);
@@ -586,4 +586,4 @@ window.executeRPCWithAuth = (rpcName, params) => {
     return window.supabase.rpc(rpcName, params);
 };
 
-console.log('✅ Community Auth System initialized with Supabase session management');
+// console.log('✅ Community Auth System initialized with Supabase session management');

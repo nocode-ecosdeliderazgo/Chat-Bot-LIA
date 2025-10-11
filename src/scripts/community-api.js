@@ -62,7 +62,7 @@ class CommunityAPI {
         };
 
         try {
-            console.log(`🌐 API Request: ${options.method || 'GET'} ${this.baseURL}${endpoint}`);
+            // console.log(`🌐 API Request: ${options.method || 'GET'} ${this.baseURL}${endpoint}`);
             
             const response = await fetch(`${this.baseURL}${endpoint}`, config);
             
@@ -72,7 +72,7 @@ class CommunityAPI {
             }
 
             const data = await response.json();
-            console.log(`✅ API Response:`, data);
+            // console.log(`✅ API Response:`, data);
             
             return data;
             

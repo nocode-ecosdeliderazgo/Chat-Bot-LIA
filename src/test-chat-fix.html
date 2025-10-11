@@ -146,7 +146,7 @@
     <script>
         // Logger personalizado para mostrar en la página
         const logDiv = document.getElementById('consoleLog');
-        const originalLog = console.log;
+        const originalLog = // console.log;
         const originalError = console.error;
         const originalWarn = console.warn;
         
@@ -162,7 +162,7 @@
             logDiv.scrollTop = logDiv.scrollHeight;
         }
         
-        console.log = function(...args) {
+        // console.log = function(...args) {
             originalLog.apply(console, args);
             addToLog(args.join(' '), 'log');
         };
@@ -178,8 +178,8 @@
         };
         
         // Mensaje de inicio
-        console.log('🚀 Test Chat Fix iniciado');
-        console.log('📱 Para probar, escribe un mensaje o haz click en "Prueba Automática"');
+        // console.log('🚀 Test Chat Fix iniciado');
+        // console.log('📱 Para probar, escribe un mensaje o haz click en "Prueba Automática"');
     </script>
 </body>
 </html>

@@ -16,9 +16,9 @@
         document.documentElement.setAttribute('data-theme', themeToApply);
         
         // Debug
-        console.log('🎨 Auto-theme aplicado:', themeToApply);
-        console.log('🎨 Tema guardado:', storedTheme);
-        console.log('🎨 Preferencia del sistema:', systemPrefersDark ? 'dark' : 'light');
+        // console.log('🎨 Auto-theme aplicado:', themeToApply);
+        // console.log('🎨 Tema guardado:', storedTheme);
+        // console.log('🎨 Preferencia del sistema:', systemPrefersDark ? 'dark' : 'light');
     }
     
     // Aplicar tema inmediatamente

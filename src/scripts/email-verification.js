@@ -58,7 +58,7 @@ class EmailVerification {
                 emailElement.textContent = this.userEmail;
             }
 
-            console.log('📧 Datos de verificación cargados:', {
+            // console.log('📧 Datos de verificación cargados:', {
                 userId: this.userId,
                 email: this.userEmail
             });

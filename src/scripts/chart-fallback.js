@@ -182,7 +182,7 @@ async function drawSubdomainsFallback(containerId, sessionId) {
 
 // Función principal de fallback
 function drawChartFallback(panelId, sessionId) {
-  console.log('Activando fallback Chart.js para panel:', panelId);
+  // console.log('Activando fallback Chart.js para panel:', panelId);
   
   switch (panelId) {
     case 1:

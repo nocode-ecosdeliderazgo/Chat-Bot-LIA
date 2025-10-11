@@ -11,8 +11,8 @@ class Module1VideosLoader {
         this.apiBaseUrl = this.getApiBaseUrl();
         this.retryInProgress = false; // Flag para prevenir bucles infinitos
         
-        console.log('🎬 Module 1 Videos Loader inicializado');
-        console.log('🌐 API Base URL:', this.apiBaseUrl);
+        // console.log('🎬 Module 1 Videos Loader inicializado');
+        // console.log('🌐 API Base URL:', this.apiBaseUrl);
     }
 
     // =====================================================
@@ -21,7 +21,7 @@ class Module1VideosLoader {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Module 1 Videos Loader...');
+            // console.log('🚀 Inicializando Module 1 Videos Loader...');
 
             // 1. Obtener ID del módulo 1
             await this.getModule1Id();
@@ -41,7 +41,7 @@ class Module1VideosLoader {
             // 6. Actualizar progreso inicial
             this.updateCourseProgress();
 
-            console.log('✅ Module 1 Videos Loader inicializado exitosamente');
+            // console.log('✅ Module 1 Videos Loader inicializado exitosamente');
 
         } catch (error) {
             console.error('💥 Error inicializando Module 1 Videos Loader:', error);
@@ -55,20 +55,20 @@ class Module1VideosLoader {
 
     async getModule1Id() {
         try {
-            console.log('🔍 Obteniendo ID del módulo 1...');
+            // console.log('🔍 Obteniendo ID del módulo 1...');
 
             // Buscar el módulo 1 en la estructura del curso
             if (window.dynamicVideoLoader && window.dynamicVideoLoader.courseData) {
                 const module1 = window.dynamicVideoLoader.courseData.modules.find(m => m.module_number === 1);
                 if (module1) {
                     this.moduleId = module1.id;
-                    console.log('✅ ID del módulo 1 obtenido:', this.moduleId);
+                    // console.log('✅ ID del módulo 1 obtenido:', this.moduleId);
                     return;
                 }
             }
 
             // Si no está disponible, usar un ID por defecto o hacer una consulta directa
-            console.log('⚠️ Módulo 1 no encontrado en dynamicVideoLoader, usando consulta directa...');
+            // console.log('⚠️ Módulo 1 no encontrado en dynamicVideoLoader, usando consulta directa...');
             
             // Hacer consulta directa a la API
             const cacheBuster = new Date().getTime();
@@ -85,7 +85,7 @@ class Module1VideosLoader {
             if (response.ok) {
                 const data = await response.json();
                 this.moduleId = data.module_id;
-                console.log('✅ ID del módulo 1 obtenido por API:', this.moduleId);
+                // console.log('✅ ID del módulo 1 obtenido por API:', this.moduleId);
             } else {
                 throw new Error('No se pudo obtener el ID del módulo 1');
             }
@@ -94,7 +94,7 @@ class Module1VideosLoader {
             console.error('❌ Error obteniendo ID del módulo 1:', error);
             // Usar ID por defecto para desarrollo
             this.moduleId = 'default-module-1-id';
-            console.log('🔧 Usando ID por defecto para desarrollo:', this.moduleId);
+            // console.log('🔧 Usando ID por defecto para desarrollo:', this.moduleId);
         }
     }
 
@@ -104,7 +104,7 @@ class Module1VideosLoader {
 
     async testNetlifyFunctions() {
         try {
-            console.log('🧪 Probando si Netlify Functions funcionan...');
+            // console.log('🧪 Probando si Netlify Functions funcionan...');
             
             // Timeout rápido para no hacer esperar al usuario
             const controller = new AbortController();
@@ -120,7 +120,7 @@ class Module1VideosLoader {
 
             if (testResponse.ok) {
                 const data = await testResponse.json();
-                console.log('✅ Netlify Functions funcionan correctamente:', data.message);
+                // console.log('✅ Netlify Functions funcionan correctamente:', data.message);
                 return true;
             } else {
                 console.warn('⚠️ Netlify Functions responden con error:', testResponse.status);
@@ -142,15 +142,15 @@ class Module1VideosLoader {
 
     async loadModule1Videos() {
         try {
-            console.log('📚 Cargando videos del módulo 1...');
+            // console.log('📚 Cargando videos del módulo 1...');
 
             // Si tenemos el dynamicVideoLoader, usar sus datos
             if (window.dynamicVideoLoader && window.dynamicVideoLoader.courseData) {
                 const module1 = window.dynamicVideoLoader.courseData.modules.find(m => m.module_number === 1);
                 if (module1 && module1.module_videos && module1.module_videos.length > 0) {
                     this.videos = module1.module_videos;
-                    console.log('✅ Videos cargados desde dynamicVideoLoader:', this.videos.length);
-                    console.log('📹 Primer video:', this.videos[0]);
+                    // console.log('✅ Videos cargados desde dynamicVideoLoader:', this.videos.length);
+                    // console.log('📹 Primer video:', this.videos[0]);
                     return;
                 }
             }
@@ -159,14 +159,14 @@ class Module1VideosLoader {
             const functionsWorking = await this.testNetlifyFunctions();
             
             if (!functionsWorking) {
-                console.log('📚 Netlify Functions no disponibles, mostrando contenido de demostración');
+                // console.log('📚 Netlify Functions no disponibles, mostrando contenido de demostración');
                 this.createSampleVideos();
                 return;
             }
 
             // Si funcionan, hacer consulta directa a la API
-            console.log('🔄 Haciendo consulta directa a la API...');
-            console.log('🌐 URL completa:', `${this.apiBaseUrl}/courses/module1-videos`);
+            // console.log('🔄 Haciendo consulta directa a la API...');
+            // console.log('🌐 URL completa:', `${this.apiBaseUrl}/courses/module1-videos`);
             
             // Agregar cache busting para evitar problemas de cache
             const cacheBuster = new Date().getTime();
@@ -180,11 +180,11 @@ class Module1VideosLoader {
                 }
             });
 
-            console.log('📡 Respuesta HTTP recibida:');
-            console.log('   - Status:', response.status);
-            console.log('   - Status Text:', response.statusText);
-            console.log('   - OK:', response.ok);
-            console.log('   - Headers:', Object.fromEntries(response.headers.entries()));
+            // console.log('📡 Respuesta HTTP recibida:');
+            // console.log('   - Status:', response.status);
+            // console.log('   - Status Text:', response.statusText);
+            // console.log('   - OK:', response.ok);
+            // console.log('   - Headers:', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -193,16 +193,16 @@ class Module1VideosLoader {
             }
 
             const data = await response.json();
-            console.log('📋 Datos JSON recibidos del servidor:');
-            console.log('   - Respuesta completa:', JSON.stringify(data, null, 2));
-            console.log('   - Success:', data.success);
-            console.log('   - Videos length:', data.videos ? data.videos.length : 'undefined');
-            console.log('   - Error field:', data.error || 'none');
+            // console.log('📋 Datos JSON recibidos del servidor:');
+            // console.log('   - Respuesta completa:', JSON.stringify(data, null, 2));
+            // console.log('   - Success:', data.success);
+            // console.log('   - Videos length:', data.videos ? data.videos.length : 'undefined');
+            // console.log('   - Error field:', data.error || 'none');
             
             if (data.success && data.videos && data.videos.length > 0) {
                 this.videos = data.videos;
-                console.log('✅ Videos cargados desde API:', this.videos.length);
-                console.log('📹 Primer video:', this.videos[0]);
+                // console.log('✅ Videos cargados desde API:', this.videos.length);
+                // console.log('📹 Primer video:', this.videos[0]);
             } else {
                 throw new Error(data.error || 'Error obteniendo videos del módulo 1');
             }
@@ -238,9 +238,9 @@ class Module1VideosLoader {
     // =====================================================
 
     createSampleVideos() {
-        console.log('🔧 Creando videos de ejemplo...');
-        console.log('📚 Mostrando contenido de demostración del curso de IA');
-        console.log('🎯 11 videos de demostración del Módulo 1: Fundamentos de IA');
+        // console.log('🔧 Creando videos de ejemplo...');
+        // console.log('📚 Mostrando contenido de demostración del curso de IA');
+        // console.log('🎯 11 videos de demostración del Módulo 1: Fundamentos de IA');
         
         this.videos = [
             {
@@ -344,7 +344,7 @@ class Module1VideosLoader {
             }
         ];
 
-        console.log('✅ Videos de ejemplo creados:', this.videos.length);
+        // console.log('✅ Videos de ejemplo creados:', this.videos.length);
         
         // Mostrar notificación al usuario
         this.showDemoModeNotification();
@@ -398,7 +398,7 @@ class Module1VideosLoader {
 
     loadFirstVideoAutomatically() {
         if (this.videos.length > 0) {
-            console.log('🎬 Cargando primer video automáticamente...');
+            // console.log('🎬 Cargando primer video automáticamente...');
             this.currentVideoIndex = 0;
             this.currentVideo = this.videos[0];
             
@@ -410,9 +410,9 @@ class Module1VideosLoader {
                     video.video_title, 
                     this.formatDuration(video.duration_seconds)
                 );
-                console.log('✅ Primer video cargado automáticamente');
+                // console.log('✅ Primer video cargado automáticamente');
             } else {
-                console.log('⚠️ chatOnline no disponible para cargar video automáticamente');
+                // console.log('⚠️ chatOnline no disponible para cargar video automáticamente');
             }
         }
     }
@@ -459,15 +459,15 @@ class Module1VideosLoader {
             this.videos.forEach((video, index) => {
                 const videoElement = this.createVideoElement(video, index);
                 videosList.appendChild(videoElement);
-                console.log(`📹 Video ${index + 1} renderizado:`, {
+                // console.log(`📹 Video ${index + 1} renderizado:`, {
                     title: video.video_title,
                     id: video.id,
                     duration: this.formatDuration(video.duration_seconds)
                 });
             });
 
-            console.log('✅ Lista de videos renderizada:', this.videos.length);
-            console.log('🔍 Verificando elementos en DOM:', {
+            // console.log('✅ Lista de videos renderizada:', this.videos.length);
+            // console.log('🔍 Verificando elementos en DOM:', {
                 container: !!videosList,
                 children: videosList.children.length,
                 firstChild: videosList.firstElementChild?.className
@@ -475,7 +475,7 @@ class Module1VideosLoader {
 
             // Cargar automáticamente el primer video si hay videos disponibles
             if (this.videos.length > 0 && !this.currentVideoId) {
-                console.log('🎬 Cargando automáticamente el primer video...');
+                // console.log('🎬 Cargando automáticamente el primer video...');
                 this.selectVideo(this.videos[0]);
             }
             
@@ -497,11 +497,11 @@ class Module1VideosLoader {
         // Intentar múltiples formas de cargar el video en el reproductor
         const video = this.currentVideo || this.videos[0];
         
-        console.log('🎯 Asegurando que el video esté cargado en el reproductor:', video.video_title);
+        // console.log('🎯 Asegurando que el video esté cargado en el reproductor:', video.video_title);
 
         // Método 1: Usar window.chatOnline si está disponible
         if (window.chatOnline && typeof window.chatOnline.changeYouTubeVideo === 'function') {
-            console.log('📺 Método 1: Usando window.chatOnline.changeYouTubeVideo');
+            // console.log('📺 Método 1: Usando window.chatOnline.changeYouTubeVideo');
             window.chatOnline.changeYouTubeVideo(
                 video.youtube_video_id, 
                 video.video_title, 
@@ -512,7 +512,7 @@ class Module1VideosLoader {
 
         // Método 2: Usar window.chatOnlineV2 si está disponible
         if (window.chatOnlineV2 && typeof window.chatOnlineV2.loadVideo === 'function') {
-            console.log('📺 Método 2: Usando window.chatOnlineV2.loadVideo');
+            // console.log('📺 Método 2: Usando window.chatOnlineV2.loadVideo');
             window.chatOnlineV2.loadVideo(video);
             return;
         }
@@ -520,7 +520,7 @@ class Module1VideosLoader {
         // Método 3: Manipulación directa del iframe de YouTube si existe
         const youtubeIframe = document.querySelector('#youtube-player-iframe, iframe[src*="youtube.com"]');
         if (youtubeIframe && video.youtube_video_id) {
-            console.log('📺 Método 3: Manipulación directa del iframe de YouTube');
+            // console.log('📺 Método 3: Manipulación directa del iframe de YouTube');
             const newSrc = `https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=0&controls=1&rel=0`;
             youtubeIframe.src = newSrc;
             
@@ -537,7 +537,7 @@ class Module1VideosLoader {
     }
 
     createFallbackVideoPlayer(video) {
-        console.log('📺 Método 4: Creando reproductor de fallback');
+        // console.log('📺 Método 4: Creando reproductor de fallback');
         
         const videoContainer = document.querySelector('.video-container, .youtube-player-container, .main-video-area');
         if (videoContainer) {
@@ -557,7 +557,7 @@ class Module1VideosLoader {
                     </div>
                 </div>
             `;
-            console.log('✅ Reproductor de fallback creado exitosamente');
+            // console.log('✅ Reproductor de fallback creado exitosamente');
         } else {
             console.warn('⚠️ No se encontró contenedor para el reproductor de video');
         }
@@ -586,11 +586,11 @@ class Module1VideosLoader {
                 // NO reintentar aquí para evitar bucle infinito
                 console.warn('💡 Para usar videos reales, configure correctamente la base de datos y el servidor API');
             } else {
-                console.log('✅ Usando videos reales de la base de datos');
-                console.log('📊 Videos disponibles:', this.videos.length);
-                console.log('🎬 Títulos de videos:');
+                // console.log('✅ Usando videos reales de la base de datos');
+                // console.log('📊 Videos disponibles:', this.videos.length);
+                // console.log('🎬 Títulos de videos:');
                 this.videos.forEach((video, index) => {
-                    console.log(`   ${index + 1}. ${video.video_title} (${this.formatDuration(video.duration_seconds)})`);
+                    // console.log(`   ${index + 1}. ${video.video_title} (${this.formatDuration(video.duration_seconds)})`);
                 });
             }
         }
@@ -601,11 +601,11 @@ class Module1VideosLoader {
     // =====================================================
 
     async retryLoadFromDatabase() {
-        console.log('🔄 Reintentando cargar videos desde la base de datos...');
+        // console.log('🔄 Reintentando cargar videos desde la base de datos...');
         
         // Prevenir múltiples reintentos concurrentes
         if (this.retryInProgress) {
-            console.log('⚠️ Reintento ya en progreso, ignorando solicitud duplicada');
+            // console.log('⚠️ Reintento ya en progreso, ignorando solicitud duplicada');
             return;
         }
 
@@ -620,11 +620,11 @@ class Module1VideosLoader {
             
             // Si se cargaron videos reales, re-renderizar (pero sin volver a verificar)
             if (this.videos.length > 0 && !this.videos[0].id.startsWith('sample-video-') && !this.videos[0].id.startsWith('module1-video-')) {
-                console.log('✅ Videos reales cargados exitosamente, re-renderizando...');
+                // console.log('✅ Videos reales cargados exitosamente, re-renderizando...');
                 // Renderizar directamente sin volver a llamar checkIfUsingSampleVideos
                 this.renderVideosListDirect();
             } else {
-                console.log('⚠️ Aún usando videos de ejemplo tras reintento');
+                // console.log('⚠️ Aún usando videos de ejemplo tras reintento');
             }
         } catch (error) {
             console.error('❌ Error en reintento de carga:', error);
@@ -657,11 +657,11 @@ class Module1VideosLoader {
                 videosList.appendChild(videoElement);
             });
 
-            console.log('✅ Lista de videos renderizada directamente:', this.videos.length);
+            // console.log('✅ Lista de videos renderizada directamente:', this.videos.length);
 
             // Cargar automáticamente el primer video si hay videos disponibles
             if (this.videos.length > 0 && !this.currentVideoId) {
-                console.log('🎬 Cargando automáticamente el primer video...');
+                // console.log('🎬 Cargando automáticamente el primer video...');
                 this.selectVideo(this.videos[0]);
             }
 
@@ -675,34 +675,34 @@ class Module1VideosLoader {
     // =====================================================
 
     debugInfo() {
-        console.log('🔍 === INFORMACIÓN DE DEBUG ===');
-        console.log('📊 Estado actual del loader:');
-        console.log('   - Módulo ID:', this.moduleId);
-        console.log('   - Videos cargados:', this.videos.length);
-        console.log('   - Video activo:', this.currentVideoId);
+        // console.log('🔍 === INFORMACIÓN DE DEBUG ===');
+        // console.log('📊 Estado actual del loader:');
+        // console.log('   - Módulo ID:', this.moduleId);
+        // console.log('   - Videos cargados:', this.videos.length);
+        // console.log('   - Video activo:', this.currentVideoId);
         
         if (this.videos.length > 0) {
-            console.log('📹 Primer video:', this.videos[0]);
-            console.log('🎯 Usando videos de ejemplo:', this.videos[0].id.startsWith('sample-video-'));
+            // console.log('📹 Primer video:', this.videos[0]);
+            // console.log('🎯 Usando videos de ejemplo:', this.videos[0].id.startsWith('sample-video-'));
         }
         
-        console.log('🌐 API Base URL:', this.apiBaseUrl);
-        console.log('🔗 dynamicVideoLoader disponible:', !!window.dynamicVideoLoader);
+        // console.log('🌐 API Base URL:', this.apiBaseUrl);
+        // console.log('🔗 dynamicVideoLoader disponible:', !!window.dynamicVideoLoader);
         
         if (window.dynamicVideoLoader) {
-            console.log('📚 Course data disponible:', !!window.dynamicVideoLoader.courseData);
+            // console.log('📚 Course data disponible:', !!window.dynamicVideoLoader.courseData);
             if (window.dynamicVideoLoader.courseData) {
-                console.log('   - Módulos:', window.dynamicVideoLoader.courseData.modules?.length || 0);
+                // console.log('   - Módulos:', window.dynamicVideoLoader.courseData.modules?.length || 0);
                 const module1 = window.dynamicVideoLoader.courseData.modules?.find(m => m.module_number === 1);
-                console.log('   - Módulo 1 encontrado:', !!module1);
+                // console.log('   - Módulo 1 encontrado:', !!module1);
                 if (module1) {
-                    console.log('   - Videos del módulo 1:', module1.module_videos?.length || 0);
+                    // console.log('   - Videos del módulo 1:', module1.module_videos?.length || 0);
                 }
             }
         }
         
-        console.log('🎬 Función loadVideo disponible:', typeof loadVideo === 'function');
-        console.log('=====================================');
+        // console.log('🎬 Función loadVideo disponible:', typeof loadVideo === 'function');
+        // console.log('=====================================');
     }
 
     // =====================================================
@@ -781,9 +781,9 @@ class Module1VideosLoader {
 
     selectVideo(video) {
         try {
-            console.log('🎬 Seleccionando video:', video.video_title);
-            console.log('🔍 Datos completos del video:', video);
-            console.log('🎯 YouTube ID que se usará:', video.youtube_video_id);
+            // console.log('🎬 Seleccionando video:', video.video_title);
+            // console.log('🔍 Datos completos del video:', video);
+            // console.log('🎯 YouTube ID que se usará:', video.youtube_video_id);
 
             // Actualizar video activo
             this.currentVideoId = video.id;
@@ -804,7 +804,7 @@ class Module1VideosLoader {
             // Actualizar información del video
             this.updateVideoInfo(video);
 
-            console.log('✅ Video seleccionado:', video.video_title);
+            // console.log('✅ Video seleccionado:', video.video_title);
 
         } catch (error) {
             console.error('❌ Error seleccionando video:', error);
@@ -817,27 +817,27 @@ class Module1VideosLoader {
 
     loadVideoInPlayer(video) {
         try {
-            console.log('🎬 Cargando video en reproductor:', video.video_title);
-            console.log('🔗 YouTube ID:', video.youtube_video_id);
+            // console.log('🎬 Cargando video en reproductor:', video.video_title);
+            // console.log('🔗 YouTube ID:', video.youtube_video_id);
 
             // Método 1: Usar la función global changeVideo (preferido)
             if (typeof changeVideo === 'function') {
                 const formattedDuration = this.formatDuration(video.duration_seconds);
-                console.log('🎥 DEBUG - Video data:', {
+                // console.log('🎥 DEBUG - Video data:', {
                     id: video.youtube_video_id,
                     title: video.video_title,
                     duration_seconds: video.duration_seconds,
                     formatted_duration: formattedDuration
                 });
                 changeVideo(video.youtube_video_id, video.video_title, formattedDuration);
-                console.log('✅ Video cargado usando función global changeVideo');
+                // console.log('✅ Video cargado usando función global changeVideo');
                 return;
             }
 
             // Método 2: Usar chatOnline directamente
             if (window.chatOnline && typeof window.chatOnline.changeYouTubeVideo === 'function') {
                 window.chatOnline.changeYouTubeVideo(video.youtube_video_id, video.video_title, this.formatDuration(video.duration_seconds));
-                console.log('✅ Video cargado usando window.chatOnline.changeYouTubeVideo');
+                // console.log('✅ Video cargado usando window.chatOnline.changeYouTubeVideo');
                 return;
             }
 
@@ -845,7 +845,7 @@ class Module1VideosLoader {
             if (typeof loadVideo === 'function') {
                 const videoUrl = `https://www.youtube.com/watch?v=${video.youtube_video_id}`;
                 loadVideo(videoUrl, video.video_title, this.formatDuration(video.duration_seconds));
-                console.log('✅ Video cargado usando función global loadVideo (URL completa)');
+                // console.log('✅ Video cargado usando función global loadVideo (URL completa)');
                 return;
             }
 
@@ -855,7 +855,7 @@ class Module1VideosLoader {
                 const videoUrl = `https://www.youtube.com/embed/${video.youtube_video_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
                 youtubePlayer.src = videoUrl;
                 youtubePlayer.title = video.video_title;
-                console.log('✅ Video cargado en reproductor (fallback directo):', videoUrl);
+                // console.log('✅ Video cargado en reproductor (fallback directo):', videoUrl);
                 
                 // Actualizar información manualmente
                 this.updateVideoInfoManually(video);
@@ -898,7 +898,7 @@ class Module1VideosLoader {
             // Actualizar descripción del video desde BD
             const videoDescription = document.querySelector('.video-stats span:last-child');
             if (videoDescription) {
-                console.log('📝 DEBUG - Video description from DB (manual):', video.description);
+                // console.log('📝 DEBUG - Video description from DB (manual):', video.description);
                 videoDescription.innerHTML = `
                     <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -906,10 +906,10 @@ class Module1VideosLoader {
                     </svg>
                     ${video.description || 'Sin descripción disponible'}
                 `;
-                console.log('✅ Descripción del video actualizada manualmente:', video.description || 'Sin descripción disponible');
+                // console.log('✅ Descripción del video actualizada manualmente:', video.description || 'Sin descripción disponible');
             }
 
-            console.log('✅ Información del video actualizada manualmente');
+            // console.log('✅ Información del video actualizada manualmente');
         } catch (error) {
             console.error('❌ Error actualizando información manualmente:', error);
         }
@@ -1031,7 +1031,7 @@ class Module1VideosLoader {
             // Actualizar descripción del video desde BD
             const videoDescription = document.querySelector('.video-stats span:last-child');
             if (videoDescription) {
-                console.log('📝 DEBUG - Video description from DB:', video.description);
+                // console.log('📝 DEBUG - Video description from DB:', video.description);
                 videoDescription.innerHTML = `
                     <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -1039,10 +1039,10 @@ class Module1VideosLoader {
                     </svg>
                     ${video.description || 'Sin descripción disponible'}
                 `;
-                console.log('✅ Descripción del video actualizada:', video.description || 'Sin descripción disponible');
+                // console.log('✅ Descripción del video actualizada:', video.description || 'Sin descripción disponible');
             }
 
-            console.log('✅ Información del video actualizada');
+            // console.log('✅ Información del video actualizada');
 
             // Actualizar transcripción en el área correcta
             this.updateTranscriptContent(video);
@@ -1056,7 +1056,7 @@ class Module1VideosLoader {
             // ===== ACTUALIZAR CONTEXTO PARA LIA DESPUÉS DE ACTUALIZAR INFO DEL VIDEO =====
             setTimeout(() => {
                 if (window.chatOnline && typeof window.chatOnline.actualizarContextoLIA === 'function') {
-                    console.log('[LIA CONTEXT] 🔄 Actualizando contexto después de actualizar info del video...');
+                    // console.log('[LIA CONTEXT] 🔄 Actualizando contexto después de actualizar info del video...');
                     window.chatOnline.actualizarContextoLIA();
                 } else {
                     console.warn('[LIA CONTEXT] ⚠️ ChatOnline o actualizarContextoLIA no disponible');
@@ -1076,7 +1076,7 @@ class Module1VideosLoader {
         try {
             const transcriptContent = document.querySelector('.transcript-content');
             if (transcriptContent && video.transcript_text) {
-                console.log('📝 Actualizando transcripción para:', video.video_title);
+                // console.log('📝 Actualizando transcripción para:', video.video_title);
                 
                 transcriptContent.innerHTML = `
                     <h4>Transcripción del Video - ${video.video_title}</h4>
@@ -1087,9 +1087,9 @@ class Module1VideosLoader {
                     </div>
                 `;
                 
-                console.log('✅ Transcripción actualizada correctamente');
+                // console.log('✅ Transcripción actualizada correctamente');
             } else if (transcriptContent) {
-                console.log('⚠️ No hay transcripción disponible para:', video.video_title);
+                // console.log('⚠️ No hay transcripción disponible para:', video.video_title);
                 transcriptContent.innerHTML = `
                     <h4>Transcripción del Video - ${video.video_title}</h4>
                     <p class="no-transcript">No hay transcripción disponible para este video.</p>
@@ -1102,17 +1102,17 @@ class Module1VideosLoader {
 
     updateActivityContent(video) {
         try {
-            console.log('🔍 [DEBUG] updateActivityContent llamado para:', video.video_title);
-            console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
-            console.log('🔍 [DEBUG] actividad_detalle length:', video.actividad_detalle?.length || 0);
-            console.log('🔍 [DEBUG] descripcion_actividad:', video.descripcion_actividad ? 'EXISTE' : 'NO EXISTE');
-            console.log('🔍 [DEBUG] prompts_actividad:', video.prompts_actividad ? 'EXISTE' : 'NO EXISTE');
+            // console.log('🔍 [DEBUG] updateActivityContent llamado para:', video.video_title);
+            // console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
+            // console.log('🔍 [DEBUG] actividad_detalle length:', video.actividad_detalle?.length || 0);
+            // console.log('🔍 [DEBUG] descripcion_actividad:', video.descripcion_actividad ? 'EXISTE' : 'NO EXISTE');
+            // console.log('🔍 [DEBUG] prompts_actividad:', video.prompts_actividad ? 'EXISTE' : 'NO EXISTE');
             
             const activityContent = document.querySelector('.activity-content');
-            console.log('🔍 [DEBUG] activity-content encontrado:', !!activityContent);
+            // console.log('🔍 [DEBUG] activity-content encontrado:', !!activityContent);
             
             if (activityContent) {
-                console.log('📋 Actualizando actividades para:', video.video_title);
+                // console.log('📋 Actualizando actividades para:', video.video_title);
                 
                 // Actualizar el título de la actividad
                 const activityTitle = activityContent.querySelector('h4');
@@ -1125,37 +1125,37 @@ class Module1VideosLoader {
                 
                 // NUEVA LÓGICA DUAL: usar actividad_detalle si está disponible
                 if (video.actividad_detalle && video.actividad_detalle.length > 0) {
-                    console.log('✨ Usando actividad_detalle (nuevo formato)');
-                    console.log('📊 Actividades encontradas:', video.actividad_detalle.length);
+                    // console.log('✨ Usando actividad_detalle (nuevo formato)');
+                    // console.log('📊 Actividades encontradas:', video.actividad_detalle.length);
                     
                     // Filtrar por secciones
                     const descripcionItems = video.actividad_detalle.filter(item => item.seccion === 'descripcion');
                     const promptsItems = video.actividad_detalle.filter(item => item.seccion === 'prompts');
                     
-                    console.log('📝 Items descripción:', descripcionItems.length);
-                    console.log('💡 Items prompts:', promptsItems.length);
+                    // console.log('📝 Items descripción:', descripcionItems.length);
+                    // console.log('💡 Items prompts:', promptsItems.length);
                     
                     // Actualizar descripción usando helper
                     if (activityDescription) {
                         const descriptionHTML = this.buildDescriptionHTMLFromDetalle(descripcionItems);
                         activityDescription.innerHTML = descriptionHTML;
-                        console.log('✅ Descripción actualizada con actividad_detalle');
+                        // console.log('✅ Descripción actualizada con actividad_detalle');
                     }
                     
                     // Actualizar prompts usando helper
                     if (activityPrompts) {
                         const promptsHTML = this.buildPromptsHTMLFromDetalle(promptsItems);
                         activityPrompts.innerHTML = promptsHTML;
-                        console.log('✅ Prompts actualizados con actividad_detalle');
+                        // console.log('✅ Prompts actualizados con actividad_detalle');
                     }
                     
                 } else {
-                    console.log('📜 Usando modo legacy (descripcion_actividad + prompts_actividad)');
+                    // console.log('📜 Usando modo legacy (descripcion_actividad + prompts_actividad)');
                     
                     // MODO LEGACY: usar campos de texto plano
                     if (activityDescription) {
                         if (video.descripcion_actividad && video.descripcion_actividad.trim()) {
-                            console.log('📝 Actualizando descripción legacy');
+                            // console.log('📝 Actualizando descripción legacy');
                             
                             // Aplicar formato especial para encabezados reconocibles
                             const formattedDescription = this.formatLegacyContent(video.descripcion_actividad);
@@ -1169,7 +1169,7 @@ class Module1VideosLoader {
                             `;
                             
                             activityDescription.innerHTML = htmlContent;
-                            console.log('✅ Descripción legacy actualizada');
+                            // console.log('✅ Descripción legacy actualizada');
                         } else {
                             activityDescription.innerHTML = `
                                 <p class="no-activity">No hay descripción de actividad disponible para este video.</p>
@@ -1179,7 +1179,7 @@ class Module1VideosLoader {
                     
                     if (activityPrompts) {
                         if (video.prompts_actividad && video.prompts_actividad.trim()) {
-                            console.log('💡 Actualizando prompts legacy');
+                            // console.log('💡 Actualizando prompts legacy');
                             
                             // Aplicar formato especial para encabezados reconocibles
                             const formattedPrompts = this.formatLegacyContent(video.prompts_actividad);
@@ -1215,7 +1215,7 @@ class Module1VideosLoader {
                             `;
                             
                             activityPrompts.innerHTML = promptsHtml;
-                            console.log('✅ Prompts legacy actualizados');
+                            // console.log('✅ Prompts legacy actualizados');
                         } else {
                             activityPrompts.innerHTML = `
                                 <p class="no-activity">No hay prompts de actividad disponibles para este video.</p>
@@ -1224,7 +1224,7 @@ class Module1VideosLoader {
                     }
                 }
                 
-                console.log('✅ Actividades actualizadas correctamente');
+                // console.log('✅ Actividades actualizadas correctamente');
             }
         } catch (error) {
             console.error('❌ Error actualizando actividades:', error);
@@ -1251,15 +1251,15 @@ class Module1VideosLoader {
 
     updateSummaryContent(video) {
         try {
-            console.log('🔍 [DEBUG] updateSummaryContent llamado para:', video.video_title);
-            console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
-            console.log('🔍 [DEBUG] resumen:', video.resumen ? 'EXISTE' : 'NO EXISTE');
+            // console.log('🔍 [DEBUG] updateSummaryContent llamado para:', video.video_title);
+            // console.log('🔍 [DEBUG] Video object keys:', Object.keys(video));
+            // console.log('🔍 [DEBUG] resumen:', video.resumen ? 'EXISTE' : 'NO EXISTE');
             
             const summaryContent = document.querySelector('.summary-content');
-            console.log('🔍 [DEBUG] summary-content encontrado:', !!summaryContent);
+            // console.log('🔍 [DEBUG] summary-content encontrado:', !!summaryContent);
             
             if (summaryContent) {
-                console.log('📄 Actualizando resumen para:', video.video_title);
+                // console.log('📄 Actualizando resumen para:', video.video_title);
                 
                 // Actualizar el título del resumen
                 const summaryTitle = summaryContent.querySelector('h4');
@@ -1277,8 +1277,8 @@ class Module1VideosLoader {
                 
                 if (summaryBody) {
                     if (video.resumen && video.resumen.trim()) {
-                        console.log('📄 Actualizando contenido de resumen');
-                        console.log('📄 [DEBUG] Contenido resumen (primeros 100 chars):', video.resumen.substring(0, 100));
+                        // console.log('📄 Actualizando contenido de resumen');
+                        // console.log('📄 [DEBUG] Contenido resumen (primeros 100 chars):', video.resumen.substring(0, 100));
                         
                         const htmlContent = `
                             <div class="summary-text-content">
@@ -1292,9 +1292,9 @@ class Module1VideosLoader {
                         `;
                         
                         summaryBody.innerHTML = htmlContent;
-                        console.log('✅ [DEBUG] Resumen HTML actualizado');
+                        // console.log('✅ [DEBUG] Resumen HTML actualizado');
                     } else {
-                        console.log('⚠️ [DEBUG] No hay resumen, mostrando mensaje de no disponible');
+                        // console.log('⚠️ [DEBUG] No hay resumen, mostrando mensaje de no disponible');
                         summaryBody.innerHTML = `
                             <div class="no-summary">
                                 <p>No hay resumen disponible para este video.</p>
@@ -1302,10 +1302,10 @@ class Module1VideosLoader {
                         `;
                     }
                 } else {
-                    console.log('❌ [DEBUG] No se pudo crear o encontrar .summary-text en el DOM');
+                    // console.log('❌ [DEBUG] No se pudo crear o encontrar .summary-text en el DOM');
                 }
                 
-                console.log('✅ Resumen actualizado correctamente');
+                // console.log('✅ Resumen actualizado correctamente');
             }
         } catch (error) {
             console.error('❌ Error actualizando resumen:', error);
@@ -1317,14 +1317,14 @@ class Module1VideosLoader {
     // =====================================================
 
     setupEventListeners() {
-        console.log('🔧 Configurando event listeners...');
+        // console.log('🔧 Configurando event listeners...');
 
         // Configurar event delegation en el contenedor de videos
         const videosContainer = document.getElementById('module1VideosList');
         if (videosContainer) {
             videosContainer.addEventListener('click', (event) => {
-                console.log('👆 Click detectado en contenedor de videos');
-                console.log('🎯 Target del click:', event.target.tagName, event.target.className);
+                // console.log('👆 Click detectado en contenedor de videos');
+                // console.log('🎯 Target del click:', event.target.tagName, event.target.className);
 
                 // Verificar si el click fue en un checkbox
                 if (event.target.closest('.lesson-checkbox-container')) {
@@ -1339,7 +1339,7 @@ class Module1VideosLoader {
                     const youtubeId = videoItem.getAttribute('data-youtube-id');
                     const videoTitle = videoItem.getAttribute('data-video-title');
 
-                    console.log('🎬 Click detectado en video:', {
+                    // console.log('🎬 Click detectado en video:', {
                         id: videoId,
                         youtubeId: youtubeId,
                         title: videoTitle
@@ -1348,17 +1348,17 @@ class Module1VideosLoader {
                     // Encontrar el video en nuestros datos
                     const video = this.videos.find(v => v.id === videoId);
                     if (video) {
-                        console.log('✅ Video encontrado, seleccionando...');
+                        // console.log('✅ Video encontrado, seleccionando...');
                         this.selectVideo(video);
                     } else {
                         console.warn('⚠️ Video no encontrado en datos locales:', videoId);
                         console.warn('📋 Videos disponibles:', this.videos.map(v => v.id));
                     }
                 } else {
-                    console.log('⚠️ Click no fue en un video-item, ignorando');
+                    // console.log('⚠️ Click no fue en un video-item, ignorando');
                 }
             });
-            console.log('✅ Event delegation configurado en videosContainer');
+            // console.log('✅ Event delegation configurado en videosContainer');
         } else {
             console.warn('⚠️ Contenedor de videos no encontrado');
         }
@@ -1369,7 +1369,7 @@ class Module1VideosLoader {
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
                 // Los videos se actualizarán automáticamente por el sistema de temas
-                console.log('🎨 Tema cambiado, actualizando estilos de videos...');
+                // console.log('🎨 Tema cambiado, actualizando estilos de videos...');
             });
         }
         */
@@ -1382,7 +1382,7 @@ class Module1VideosLoader {
             const text = btn.getAttribute('data-copy') || '';
             if (text) {
                 navigator.clipboard.writeText(text).then(() => {
-                    console.log('📋 Texto copiado al portapapeles:', text.substring(0, 50) + '...');
+                    // console.log('📋 Texto copiado al portapapeles:', text.substring(0, 50) + '...');
                     
                     // Mostrar feedback visual
                     const originalText = btn.textContent;
@@ -1418,7 +1418,7 @@ class Module1VideosLoader {
             }
         });
 
-        console.log('✅ Event listeners configurados');
+        // console.log('✅ Event listeners configurados');
     }
 
     // =====================================================
@@ -1428,19 +1428,19 @@ class Module1VideosLoader {
     handleCheckboxClick(event) {
         const checkbox = event.target.closest('.lesson-checkbox-container')?.querySelector('.lesson-checkbox');
         if (!checkbox || checkbox.disabled) {
-            console.log('⚠️ Checkbox disabled o no encontrado');
+            // console.log('⚠️ Checkbox disabled o no encontrado');
             return;
         }
 
         const lessonId = checkbox.getAttribute('data-lesson-id');
-        console.log('✅ Checkbox clicked for lesson:', lessonId);
+        // console.log('✅ Checkbox clicked for lesson:', lessonId);
 
         this.markLessonCompleted(lessonId);
     }
 
     markLessonCompleted(lessonId) {
         try {
-            console.log('📝 Marcando lección como completada:', lessonId);
+            // console.log('📝 Marcando lección como completada:', lessonId);
 
             // Encontrar el video
             const video = this.videos.find(v => v.id === lessonId);
@@ -1474,7 +1474,7 @@ class Module1VideosLoader {
                 // Actualizar tooltip
                 label.title = 'Completado';
 
-                console.log('✅ Lección marcada como completada en UI');
+                // console.log('✅ Lección marcada como completada en UI');
             }
 
             // Guardar progreso en localStorage
@@ -1511,7 +1511,7 @@ class Module1VideosLoader {
             });
 
             localStorage.setItem('lessonProgress', JSON.stringify(lessonProgress));
-            console.log('💾 Progreso de lecciones guardado en localStorage');
+            // console.log('💾 Progreso de lecciones guardado en localStorage');
 
         } catch (error) {
             console.error('❌ Error guardando progreso de lecciones:', error);
@@ -1522,12 +1522,12 @@ class Module1VideosLoader {
         try {
             const savedProgress = localStorage.getItem('lessonProgress');
             if (!savedProgress) {
-                console.log('📋 No hay progreso guardado');
+                // console.log('📋 No hay progreso guardado');
                 return;
             }
 
             const lessonProgress = JSON.parse(savedProgress);
-            console.log('📂 Cargando progreso guardado:', lessonProgress);
+            // console.log('📂 Cargando progreso guardado:', lessonProgress);
 
             this.videos.forEach(video => {
                 const progress = lessonProgress[video.id];
@@ -1543,7 +1543,7 @@ class Module1VideosLoader {
                 }
             });
 
-            console.log('✅ Progreso de lecciones cargado');
+            // console.log('✅ Progreso de lecciones cargado');
         } catch (error) {
             console.error('❌ Error cargando progreso de lecciones:', error);
         }
@@ -1559,7 +1559,7 @@ class Module1VideosLoader {
             const progressPercentage = totalLessons > 0 ?
                 Math.round((completedLessons / totalLessons) * 100) : 0;
 
-            console.log(`📊 Progreso del curso: ${completedLessons}/${totalLessons} (${progressPercentage}%)`);
+            // console.log(`📊 Progreso del curso: ${completedLessons}/${totalLessons} (${progressPercentage}%)`);
 
             // Actualizar el indicador de progreso en el módulo
             const moduleProgress = document.querySelector('.module-progress');
@@ -1665,7 +1665,7 @@ class Module1VideosLoader {
             });
             window.dispatchEvent(videoCompletedEvent);
 
-            console.log('📡 Eventos de progreso emitidos al sistema global');
+            // console.log('📡 Eventos de progreso emitidos al sistema global');
         } catch (error) {
             console.error('❌ Error emitiendo eventos de progreso:', error);
         }
@@ -1677,7 +1677,7 @@ class Module1VideosLoader {
 
     clearAllProgress() {
         try {
-            console.log('🧹 Limpiando todo el progreso guardado...');
+            // console.log('🧹 Limpiando todo el progreso guardado...');
 
             // Limpiar localStorage
             localStorage.removeItem('lessonProgress');
@@ -1697,7 +1697,7 @@ class Module1VideosLoader {
             // Actualizar progreso
             this.updateCourseProgress();
 
-            console.log('✅ Progreso limpiado exitosamente');
+            // console.log('✅ Progreso limpiado exitosamente');
         } catch (error) {
             console.error('❌ Error limpiando progreso:', error);
         }
@@ -1804,12 +1804,12 @@ class Module1VideosLoader {
 
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Inicializando Module 1 Videos Loader...');
+    // console.log('🚀 Inicializando Module 1 Videos Loader...');
     
     try {
         window.module1VideosLoader = new Module1VideosLoader();
         await window.module1VideosLoader.init();
-        console.log('✅ Module 1 Videos Loader inicializado correctamente');
+        // console.log('✅ Module 1 Videos Loader inicializado correctamente');
         
     } catch (error) {
         console.error('💥 Error inicializando Module 1 Videos Loader:', error);

@@ -116,7 +116,7 @@ async function initSupabase() {
       
       if (supabaseUrl && supabaseKey) {
         supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('✅ Supabase inicializado para favoritos');
+        // console.log('✅ Supabase inicializado para favoritos');
         return true;
       }
     }
@@ -154,7 +154,7 @@ async function loadUserFavorites() {
   try {
     const user = getCurrentUser();
     if (!user || !user.id) {
-      console.log('⚠️ No hay usuario autenticado, usando favoritos locales');
+      // console.log('⚠️ No hay usuario autenticado, usando favoritos locales');
       loadLocalFavorites();
       return;
     }
@@ -169,7 +169,7 @@ async function loadUserFavorites() {
       }
     }
     
-    console.log('🔄 Cargando favoritos del usuario:', currentUserId);
+    // console.log('🔄 Cargando favoritos del usuario:', currentUserId);
     
     const { data, error } = await supabaseClient
       .from('course_favorites')
@@ -183,7 +183,7 @@ async function loadUserFavorites() {
     }
     
     userFavorites = new Set(data.map(f => f.course_id));
-    console.log('✅ Favoritos cargados:', userFavorites.size);
+    // console.log('✅ Favoritos cargados:', userFavorites.size);
     
     // Sincronizar con localStorage
     saveLocalFavorites();
@@ -200,7 +200,7 @@ function loadLocalFavorites() {
     const saved = localStorage.getItem('courseFavorites');
     if (saved) {
       userFavorites = new Set(JSON.parse(saved));
-      console.log('✅ Favoritos cargados desde localStorage:', userFavorites.size);
+      // console.log('✅ Favoritos cargados desde localStorage:', userFavorites.size);
     }
   } catch (error) {
     console.error('❌ Error cargando favoritos locales:', error);
@@ -238,7 +238,7 @@ async function toggleFavorite(courseId, buttonElement) {
           .eq('course_id', courseId);
       }
       
-      console.log('💔 Curso eliminado de favoritos:', courseId);
+      // console.log('💔 Curso eliminado de favoritos:', courseId);
     } else {
       // Agregar a favoritos
       userFavorites.add(courseId);
@@ -256,7 +256,7 @@ async function toggleFavorite(courseId, buttonElement) {
           });
       }
       
-      console.log('❤️ Curso agregado a favoritos:', courseId);
+      // console.log('❤️ Curso agregado a favoritos:', courseId);
     }
     
     // Guardar en localStorage

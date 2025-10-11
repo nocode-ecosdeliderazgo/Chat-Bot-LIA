@@ -26,7 +26,7 @@ class EmailService {
                 }
             });
 
-            console.log('✅ Servicio de email inicializado correctamente');
+            // console.log('✅ Servicio de email inicializado correctamente');
         } catch (error) {
             console.error('❌ Error inicializando servicio de email:', error);
             this.transporter = null;
@@ -86,7 +86,7 @@ class EmailService {
                 text: this.generateVerificationEmailText(otp, username)
             });
 
-            console.log('📧 Email de verificación enviado:', {
+            // console.log('📧 Email de verificación enviado:', {
                 to: to,
                 messageId: info.messageId,
                 timestamp: new Date().toISOString()
@@ -290,7 +290,7 @@ El equipo de Aprende y Aplica IA
                 text: this.generatePasswordResetEmailText(resetUrl, resetToken, username)
             });
 
-            console.log('📧 Email de recuperación enviado:', {
+            // console.log('📧 Email de recuperación enviado:', {
                 to: to,
                 messageId: info.messageId,
                 timestamp: new Date().toISOString()

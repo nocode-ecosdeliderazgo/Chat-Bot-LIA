@@ -649,12 +649,12 @@ class AdminPanel {
     }
 
     loadAnalyticsData() {
-        console.log('Cargando datos de analíticas...');
+        // console.log('Cargando datos de analíticas...');
         // Aquí se implementarían los gráficos reales de analíticas
     }
 
     loadSettingsData() {
-        console.log('Cargando configuraciones...');
+        // console.log('Cargando configuraciones...');
         // Las configuraciones ya están en el HTML
     }
 
@@ -750,12 +750,12 @@ class AdminPanel {
     }
 
     filterCourses() {
-        console.log('Filtrando cursos...');
+        // console.log('Filtrando cursos...');
         // Implementar lógica de filtrado
     }
 
     filterUsers() {
-        console.log('Filtrando usuarios...');
+        // console.log('Filtrando usuarios...');
         
         const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
         const selectedRole = document.getElementById('userRole')?.value || '';
@@ -840,7 +840,7 @@ class AdminPanel {
             }
         }
         
-        console.log(`Filtros aplicados: ${visibleCount} usuarios visibles`);
+        // console.log(`Filtros aplicados: ${visibleCount} usuarios visibles`);
     }
     
     clearUserFilters() {
@@ -867,20 +867,20 @@ class AdminPanel {
     
     // Attach event listeners to user action buttons
     attachUserActionListeners() {
-        console.log('🔗 Adjuntando event listeners a botones de acción...');
+        // console.log('🔗 Adjuntando event listeners a botones de acción...');
         
         const editButtons = document.querySelectorAll('.btn-edit[data-action="edit"]');
         const deleteButtons = document.querySelectorAll('.btn-delete[data-action="delete"]');
         
-        console.log(`🔧 Botones de editar encontrados: ${editButtons.length}`);
-        console.log(`🗑️ Botones de eliminar encontrados: ${deleteButtons.length}`);
+        // console.log(`🔧 Botones de editar encontrados: ${editButtons.length}`);
+        // console.log(`🗑️ Botones de eliminar encontrados: ${deleteButtons.length}`);
         
         // Event listeners para botones de editar
         editButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const userId = button.getAttribute('data-user-id');
-                console.log('🔧 Click en editar usuario:', userId);
+                // console.log('🔧 Click en editar usuario:', userId);
                 this.editUser(userId);
             });
         });
@@ -890,19 +890,19 @@ class AdminPanel {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const userId = button.getAttribute('data-user-id');
-                console.log('🗑️ Click en eliminar usuario:', userId);
+                // console.log('🗑️ Click en eliminar usuario:', userId);
                 this.deleteUser(userId);
             });
         });
         
-        console.log('✓ Event listeners adjuntados correctamente');
+        // console.log('✓ Event listeners adjuntados correctamente');
     }
 
     // ===== BÚSQUEDA GLOBAL =====
     handleGlobalSearch(query) {
         if (query.length < 2) return;
         
-        console.log('Búsqueda global:', query);
+        // console.log('Búsqueda global:', query);
         // Implementar búsqueda global
     }
 
@@ -940,14 +940,14 @@ class AdminPanel {
     }
     
     attachModalListeners() {
-        console.log('🔗 Adjuntando event listeners del modal...');
+        // console.log('🔗 Adjuntando event listeners del modal...');
         
         // Botón cancelar
         const cancelButtons = document.querySelectorAll('[data-action="close-modal"], .btn-secondary');
         cancelButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('❌ Cerrando modal');
+                // console.log('❌ Cerrando modal');
                 this.closeModal();
             }, { once: true }); // Solo ejecutar una vez
         });
@@ -958,7 +958,7 @@ class AdminPanel {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const userId = button.getAttribute('data-user-id');
-                console.log('💾 Confirmando cambio de rol para:', userId);
+                // console.log('💾 Confirmando cambio de rol para:', userId);
                 this.confirmRoleChange(userId);
             }, { once: true });
         });
@@ -969,12 +969,12 @@ class AdminPanel {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const userId = button.getAttribute('data-user-id');
-                console.log('🗑️ Confirmando eliminación de:', userId);
+                // console.log('🗑️ Confirmando eliminación de:', userId);
                 this.confirmDeleteUser(userId);
             }, { once: true });
         });
         
-        console.log('✓ Event listeners del modal adjuntados');
+        // console.log('✓ Event listeners del modal adjuntados');
     }
 
     closeModal() {
@@ -1096,21 +1096,21 @@ class AdminPanel {
 
     // ===== MANEJADORES DE FORMULARIOS =====
     handleAddCourse(data) {
-        console.log('Agregando curso:', data);
+        // console.log('Agregando curso:', data);
         this.showToast('Curso creado exitosamente', 'success');
         this.closeModal();
         this.loadCoursesData();
     }
 
     handleAddUser(data) {
-        console.log('Agregando usuario:', data);
+        // console.log('Agregando usuario:', data);
         this.showToast('Usuario creado exitosamente', 'success');
         this.closeModal();
         this.loadUsersData();
     }
 
     handleAddNews(data) {
-        console.log('Agregando noticia:', data);
+        // console.log('Agregando noticia:', data);
         this.showToast('Noticia creada exitosamente', 'success');
         this.closeModal();
         this.loadNewsData();
@@ -1127,7 +1127,7 @@ class AdminPanel {
     async loadCommunityRequestsData() {
         // Evitar múltiples ejecuciones simultáneas
         if (this.isLoadingRequests) {
-            console.log('⚠️ Ya se está cargando las solicitudes, saltando...');
+            // console.log('⚠️ Ya se está cargando las solicitudes, saltando...');
             return;
         }
         this.isLoadingRequests = true;
@@ -1707,20 +1707,20 @@ class AdminPanel {
 
     // ===== ACCIONES CRUD =====
     editCourse(id) {
-        console.log('Editando curso:', id);
+        // console.log('Editando curso:', id);
         this.showToast('Funcionalidad de edición en desarrollo', 'info');
     }
 
     deleteCourse(id) {
         if (confirm('¿Estás seguro de que quieres eliminar este curso?')) {
-            console.log('Eliminando curso:', id);
+            // console.log('Eliminando curso:', id);
             this.showToast('Curso eliminado exitosamente', 'success');
             this.loadCoursesData();
         }
     }
 
     async editUser(id) {
-        console.log('🔧 Editando usuario con ID:', id);
+        // console.log('🔧 Editando usuario con ID:', id);
         
         if (!id) {
             console.error('❌ Error: ID de usuario no válido:', id);
@@ -1810,7 +1810,7 @@ class AdminPanel {
     }
 
     async deleteUser(id) {
-        console.log('🗑️ Eliminando usuario con ID:', id);
+        // console.log('🗑️ Eliminando usuario con ID:', id);
         
         if (!id) {
             console.error('❌ Error: ID de usuario no válido:', id);
@@ -1819,7 +1819,7 @@ class AdminPanel {
         }
         
         try {
-            console.log('📡 Obteniendo datos del usuario...');
+            // console.log('📡 Obteniendo datos del usuario...');
             // Obtener datos del usuario actual
             const response = await this.makeAuthenticatedRequest('/api/admin/users');
             if (!response.ok) throw new Error('Error obteniendo usuarios');
@@ -1892,13 +1892,13 @@ class AdminPanel {
     }
 
     editNews(id) {
-        console.log('Editando noticia:', id);
+        // console.log('Editando noticia:', id);
         this.showToast('Funcionalidad de edición en desarrollo', 'info');
     }
 
     deleteNews(id) {
         if (confirm('¿Estás seguro de que quieres eliminar esta noticia?')) {
-            console.log('Eliminando noticia:', id);
+            // console.log('Eliminando noticia:', id);
             this.showToast('Noticia eliminada exitosamente', 'success');
             this.loadNewsData();
         }
@@ -2032,7 +2032,7 @@ class AdminPanel {
     // ===== LOGOUT =====
     async logout() {
         try {
-            console.log('Cerrando sesión...');
+            // console.log('Cerrando sesión...');
             
             // Llamar al endpoint de logout
             const response = await this.makeAuthenticatedRequest('/api/admin/auth/logout', {
@@ -2055,7 +2055,7 @@ class AdminPanel {
 
     // ===== CARGA INICIAL =====
     async loadInitialData() {
-        console.log('Cargando datos iniciales...');
+        // console.log('Cargando datos iniciales...');
         
         // Cargar información del administrador
         await this.loadAdminInfo();
@@ -2097,7 +2097,7 @@ let adminPanel;
 window.adminPanel = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Inicializando Admin Panel...');
+    // console.log('🚀 Inicializando Admin Panel...');
     
     // Apply additional styles
     const styleSheet = document.createElement('style');
@@ -2107,11 +2107,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     adminPanel = new AdminPanel();
     window.adminPanel = adminPanel; // Asignar globalmente
     
-    console.log('👍 AdminPanel asignado globalmente:', !!window.adminPanel);
+    // console.log('👍 AdminPanel asignado globalmente:', !!window.adminPanel);
     
     await adminPanel.init();
     
-    console.log('✓ Admin Panel inicializado completamente');
+    // console.log('✓ Admin Panel inicializado completamente');
 });
 
 // ===== ESTILOS ADICIONALES PARA COMPONENTES =====

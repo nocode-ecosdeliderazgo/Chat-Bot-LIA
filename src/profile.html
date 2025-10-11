@@ -14,7 +14,7 @@
         window.supabaseCredentialsLoaded = false;
         window.supabaseCredentialsPromise = (async function loadSupabaseCredentials() {
             try {
-                console.log('🔄 Cargando credenciales de Supabase desde API...');
+                // console.log('🔄 Cargando credenciales de Supabase desde API...');
                 const response = await fetch('/api/supabase-config');
                 if (response.ok) {
                     const config = await response.json();
@@ -32,7 +32,7 @@
                         window.SUPABASE_ANON_KEY = config.anon_key;
 
                         window.supabaseCredentialsLoaded = true;
-                        console.log('✅ Credenciales de Supabase cargadas desde API');
+                        // console.log('✅ Credenciales de Supabase cargadas desde API');
                         return true;
                     } else {
                         console.warn('⚠️ Respuesta de API incompleta:', config);
@@ -47,7 +47,7 @@
                 // Verificar si hay credenciales en localStorage como fallback
                 const hasLocalCredentials = localStorage.getItem('supabaseUrl') && localStorage.getItem('supabaseAnonKey');
                 if (hasLocalCredentials) {
-                    console.log('✅ Usando credenciales de localStorage como fallback');
+                    // console.log('✅ Usando credenciales de localStorage como fallback');
                     window.supabaseCredentialsLoaded = true;
                     return true;
                 }
@@ -390,13 +390,13 @@
     <!-- Script de debugging para verificar campos del formulario -->
     <script>
         window.debugFormFields = function() {
-            console.log('🔍 DEBUG: Verificando campos del formulario');
+            // console.log('🔍 DEBUG: Verificando campos del formulario');
             const fields = ['username', 'email', 'firstName', 'lastName', 'companyRole', 'phone', 'location', 'bio', 'linkedinUrl', 'githubUrl', 'portfolioUrl'];
 
             fields.forEach(fieldId => {
                 const element = document.getElementById(fieldId);
                 if (element) {
-                    console.log(`✅ ${fieldId}:`, {
+                    // console.log(`✅ ${fieldId}:`, {
                         exists: true,
                         value: element.value,
                         placeholder: element.placeholder
@@ -407,14 +407,14 @@
             });
 
             if (window.profileManager) {
-                console.log('📊 Estado de ProfileManager:', {
+                // console.log('📊 Estado de ProfileManager:', {
                     currentUser: window.profileManager.currentUser,
                     profileData: window.profileManager.profileData
                 });
             }
         };
 
-        console.log('💡 Usa window.debugFormFields() en la consola para verificar los campos del formulario');
+        // console.log('💡 Usa window.debugFormFields() en la consola para verificar los campos del formulario');
     </script>
 </body>
 </html>

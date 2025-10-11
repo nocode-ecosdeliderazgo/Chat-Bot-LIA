@@ -14,12 +14,12 @@ class ChatOnlineV2 {
         this.courseData = null;
         this.isInitialized = false;
         
-        console.log('🚀 ChatOnline V2 creado');
+        // console.log('🚀 ChatOnline V2 creado');
     }
 
     async init() {
         try {
-            console.log('🚀 Inicializando Chat Online V2...');
+            // console.log('🚀 Inicializando Chat Online V2...');
 
             // Esperar a que dynamic video loader esté listo
             await this.waitForDynamicVideoLoader();
@@ -43,7 +43,7 @@ class ChatOnlineV2 {
             this.initializeNotes();
 
             this.isInitialized = true;
-            console.log('✅ Chat Online V2 inicializado correctamente');
+            // console.log('✅ Chat Online V2 inicializado correctamente');
 
         } catch (error) {
             console.error('💥 Error inicializando Chat Online V2:', error);
@@ -54,13 +54,13 @@ class ChatOnlineV2 {
         return new Promise((resolve) => {
             const checkLoader = () => {
                 if (window.dynamicVideoLoader && window.dynamicVideoLoader.courseData) {
-                    console.log('✅ Dynamic Video Loader está listo');
+                    // console.log('✅ Dynamic Video Loader está listo');
                     this.courseData = window.dynamicVideoLoader.courseData;
                     this.currentModule = window.dynamicVideoLoader.currentModule;
                     this.currentVideo = window.dynamicVideoLoader.currentVideo;
                     resolve();
                 } else {
-                    console.log('⏳ Esperando a Dynamic Video Loader...');
+                    // console.log('⏳ Esperando a Dynamic Video Loader...');
                     setTimeout(checkLoader, 500);
                 }
             };
@@ -74,7 +74,7 @@ class ChatOnlineV2 {
     
     async loadFullCourseContext() {
         try {
-            console.log('📚 Cargando contexto completo del curso para LIA...');
+            // console.log('📚 Cargando contexto completo del curso para LIA...');
             
             // Buscar course_id del módulo actual
             const moduleId = this.currentModule?.id;
@@ -87,7 +87,7 @@ class ChatOnlineV2 {
             const response = await fetch(`/api/modules/${moduleId}/video-data`);
             if (response.ok) {
                 const data = await response.json();
-                console.log('📊 Datos del curso obtenidos:', data);
+                // console.log('📊 Datos del curso obtenidos:', data);
                 
                 if (data.course_modules?.courses) {
                     this.fullCourseInfo = {
@@ -99,7 +99,7 @@ class ChatOnlineV2 {
                         learningPath: data.course_modules.courses.learning_path,
                         category: data.course_modules.courses.category
                     };
-                    console.log('✅ Contexto completo del curso cargado:', this.fullCourseInfo);
+                    // console.log('✅ Contexto completo del curso cargado:', this.fullCourseInfo);
                     return;
                 }
             }
@@ -124,7 +124,7 @@ class ChatOnlineV2 {
             learningPath: 'Ruta de Aprendizaje Personalizada',
             category: 'Tecnología'
         };
-        console.log('📝 Contexto por defecto establecido');
+        // console.log('📝 Contexto por defecto establecido');
     }
 
     // =====================================================
@@ -132,7 +132,7 @@ class ChatOnlineV2 {
     // =====================================================
 
     setupEventListeners() {
-        console.log('🔧 Configurando event listeners básicos...');
+        // console.log('🔧 Configurando event listeners básicos...');
 
         // Navegación superior
         this.setupNavigation();
@@ -150,7 +150,7 @@ class ChatOnlineV2 {
         
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                console.log('🔙 Navegando hacia atrás...');
+                // console.log('🔙 Navegando hacia atrás...');
                 this.goBack();
             });
         }
@@ -158,7 +158,7 @@ class ChatOnlineV2 {
         navTabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
                 const tabName = e.currentTarget.dataset.tab;
-                console.log(`📑 Cambiando a pestaña: ${tabName}`);
+                // console.log(`📑 Cambiando a pestaña: ${tabName}`);
                 this.switchTab(tabName);
             });
         });
@@ -201,7 +201,7 @@ class ChatOnlineV2 {
     // =====================================================
 
     setupDynamicIntegration() {
-        console.log('🔗 Configurando integración con sistema dinámico...');
+        // console.log('🔗 Configurando integración con sistema dinámico...');
 
         // Escuchar eventos de progreso
         window.addEventListener('progressUpdated', (event) => {
@@ -220,19 +220,19 @@ class ChatOnlineV2 {
         
         // Escuchar cuando se completa un video
         window.addEventListener('videoCompleted', (event) => {
-            console.log('🎬 Video completado detectado:', event.detail);
+            // console.log('🎬 Video completado detectado:', event.detail);
             this.handleVideoCompleted(event.detail);
         });
         
         // Escuchar evento de progreso de YouTube tracker 
         window.addEventListener('moduleCompleted', (event) => {
-            console.log('🎯 Módulo completado detectado:', event.detail);
+            // console.log('🎯 Módulo completado detectado:', event.detail);
             this.handleModuleCompleted(event.detail);
         });
     }
 
     handleProgressUpdate(progressData) {
-        console.log('📊 Actualizando UI con progreso:', progressData);
+        // console.log('📊 Actualizando UI con progreso:', progressData);
         
         // Actualizar indicadores visuales de progreso
         this.updateProgressIndicators(progressData);
@@ -245,7 +245,7 @@ class ChatOnlineV2 {
     }
 
     handleModuleChange(moduleData) {
-        console.log('🔄 Módulo cambiado:', moduleData);
+        // console.log('🔄 Módulo cambiado:', moduleData);
         
         this.currentModule = moduleData.module;
         this.currentVideo = moduleData.current_video;
@@ -258,7 +258,7 @@ class ChatOnlineV2 {
     }
 
     handleCourseStructureLoaded(courseData) {
-        console.log('📚 Estructura del curso cargada:', courseData);
+        // console.log('📚 Estructura del curso cargada:', courseData);
         
         this.courseData = courseData;
         
@@ -267,7 +267,7 @@ class ChatOnlineV2 {
     }
 
     handleVideoCompleted(videoData) {
-        console.log('🎬 Manejando video completado:', videoData);
+        // console.log('🎬 Manejando video completado:', videoData);
         
         // Actualizar el progreso del módulo inmediatamente
         setTimeout(() => {
@@ -276,7 +276,7 @@ class ChatOnlineV2 {
     }
 
     handleModuleCompleted(moduleData) {
-        console.log('🎯 Manejando módulo completado:', moduleData);
+        // console.log('🎯 Manejando módulo completado:', moduleData);
         
         // Actualizar el progreso del módulo
         this.updateModuleProgress();
@@ -392,7 +392,7 @@ class ChatOnlineV2 {
 
     async updateModuleProgress() {
         try {
-            console.log('🔄 Actualizando progreso del módulo...');
+            // console.log('🔄 Actualizando progreso del módulo...');
             
             // Obtener todos los videos del módulo actual desde el dynamic video loader
             if (!window.dynamicVideoLoader || !window.dynamicVideoLoader.currentModule) {
@@ -406,7 +406,7 @@ class ChatOnlineV2 {
                     ).length;
                     
                     const moduleProgressPercentage = Math.round((completedVideos / videos.length) * 100);
-                    console.log(`📊 Progreso del módulo (desde Module1VideosLoader): ${completedVideos}/${videos.length} videos completados (${moduleProgressPercentage}%)`);
+                    // console.log(`📊 Progreso del módulo (desde Module1VideosLoader): ${completedVideos}/${videos.length} videos completados (${moduleProgressPercentage}%)`);
                     
                     this.updateModuleProgressDisplay(moduleProgressPercentage);
                     return;
@@ -431,7 +431,7 @@ class ChatOnlineV2 {
             
             const moduleProgressPercentage = Math.round((completedVideos / moduleVideos.length) * 100);
             
-            console.log(`📊 Progreso del módulo: ${completedVideos}/${moduleVideos.length} videos completados (${moduleProgressPercentage}%)`);
+            // console.log(`📊 Progreso del módulo: ${completedVideos}/${moduleVideos.length} videos completados (${moduleProgressPercentage}%)`);
 
             // Actualizar el elemento en el panel izquierdo
             this.updateModuleProgressDisplay(moduleProgressPercentage);
@@ -454,7 +454,7 @@ class ChatOnlineV2 {
             // Actualizar el contenido
             moduleProgressElement.textContent = `${percentage}% completado`;
             
-            console.log(`✅ Progreso del módulo actualizado en UI: ${percentage}%`);
+            // console.log(`✅ Progreso del módulo actualizado en UI: ${percentage}%`);
             
             // Remover la clase después de la animación
             setTimeout(() => {
@@ -500,7 +500,7 @@ class ChatOnlineV2 {
                         progressPercentage.textContent = `${overallPercentage}%`;
                     }
                     
-                    console.log(`📈 Progreso general del curso actualizado: ${overallPercentage}%`);
+                    // console.log(`📈 Progreso general del curso actualizado: ${overallPercentage}%`);
                 }
             }
         } catch (error) {
@@ -513,7 +513,7 @@ class ChatOnlineV2 {
     // =====================================================
 
     setupLiaChat() {
-        console.log('💬 Configurando chat de LIA...');
+        // console.log('💬 Configurando chat de LIA...');
 
         const sendBtn = document.getElementById('sendLiaMessage');
         const input = document.getElementById('liaMessageInput');
@@ -538,7 +538,7 @@ class ChatOnlineV2 {
             }
         });
 
-        console.log('✅ Chat de LIA configurado');
+        // console.log('✅ Chat de LIA configurado');
     }
 
     async sendLiaMessage() {
@@ -550,7 +550,7 @@ class ChatOnlineV2 {
         const mensaje = input.value.trim();
         if (!mensaje) return;
 
-        console.log('💬 Enviando mensaje a LIA:', mensaje);
+        // console.log('💬 Enviando mensaje a LIA:', mensaje);
 
         // Limpiar input
         input.value = '';
@@ -614,7 +614,7 @@ class ChatOnlineV2 {
             totalModules: this.courseData?.modules?.length || 1
         };
 
-        console.log('🧠 Contexto ENRIQUECIDO generado para LIA:', context);
+        // console.log('🧠 Contexto ENRIQUECIDO generado para LIA:', context);
         return context;
     }
 
@@ -716,7 +716,7 @@ PREGUNTA DEL USUARIO: ${message}`
     updateLiaChatContext() {
         // Actualizar contexto del chat cuando cambia el módulo/video
         if (this.currentVideo && this.currentModule) {
-            console.log('🔄 Actualizando contexto de LIA para nuevo contenido');
+            // console.log('🔄 Actualizando contexto de LIA para nuevo contenido');
         }
     }
 
@@ -725,7 +725,7 @@ PREGUNTA DEL USUARIO: ${message}`
     // =====================================================
 
     setupNotesAndUI() {
-        console.log('📝 Configurando notas y UI adicional...');
+        // console.log('📝 Configurando notas y UI adicional...');
 
         // Configurar sistema de notas
         this.setupNotes();
@@ -851,15 +851,15 @@ PREGUNTA DEL USUARIO: ${message}`
 
     showVideoContent() {
         // Lógica específica para mostrar contenido de video
-        console.log('📹 Mostrando contenido de video');
+        // console.log('📹 Mostrando contenido de video');
     }
 
     showMaterialsContent() {
-        console.log('📚 Mostrando contenido de materiales');
+        // console.log('📚 Mostrando contenido de materiales');
     }
 
     showQuizContent() {
-        console.log('❓ Mostrando contenido de quiz');
+        // console.log('❓ Mostrando contenido de quiz');
     }
 
     togglePanel(panelId) {
@@ -922,7 +922,7 @@ PREGUNTA DEL USUARIO: ${message}`
         this.displayNote(note);
         this.hideNoteCreator();
 
-        console.log('📝 Nota guardada:', note);
+        // console.log('📝 Nota guardada:', note);
     }
 
     clearNoteForm() {
@@ -971,7 +971,7 @@ PREGUNTA DEL USUARIO: ${message}`
         // Actualizar la lista en la interfaz
         this.loadNotesList();
         
-        console.log('🗑️ Nota eliminada:', noteId);
+        // console.log('🗑️ Nota eliminada:', noteId);
     }
 
     loadNotesList() {
@@ -1037,7 +1037,7 @@ PREGUNTA DEL USUARIO: ${message}`
     }
 
     initializeNotes() {
-        console.log('📝 Inicializando sistema de notas...');
+        // console.log('📝 Inicializando sistema de notas...');
         
         // Cargar notas existentes al inicializar
         this.loadNotesList();
@@ -1045,7 +1045,7 @@ PREGUNTA DEL USUARIO: ${message}`
         // Configurar event listeners para notas
         this.setupNotesEventListeners();
         
-        console.log('✅ Sistema de notas inicializado');
+        // console.log('✅ Sistema de notas inicializado');
     }
 
     setupNotesEventListeners() {
@@ -1164,7 +1164,7 @@ PREGUNTA DEL USUARIO: ${message}`
         }
         
         try {
-            console.log(`📊 Votando ${targetType} ${targetId}: ${isUpvote ? 'upvote' : 'downvote'}`);
+            // console.log(`📊 Votando ${targetType} ${targetId}: ${isUpvote ? 'upvote' : 'downvote'}`);
             
             // Usar la API de comunidad si está disponible
             if (window.communityAPI) {
@@ -1180,7 +1180,7 @@ PREGUNTA DEL USUARIO: ${message}`
                     // Actualizar el estado visual del botón
                     this.updateVoteButtonState(voteBtn, response.data.user_vote);
                     
-                    console.log(`✅ Voto registrado: ${response.data.user_vote}`);
+                    // console.log(`✅ Voto registrado: ${response.data.user_vote}`);
                 } else {
                     console.error('❌ Error en la API:', response.error);
                 }
@@ -1231,7 +1231,7 @@ PREGUNTA DEL USUARIO: ${message}`
 // =====================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('💬 Inicializando Chat Online V2...');
+    // console.log('💬 Inicializando Chat Online V2...');
     
     // Verificar si ya hay una instancia de ChatOnline v1 y preservar compatibilidad
     const existingChatOnline = window.chatOnline;
@@ -1241,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Si había una instancia v1, transferir algunos métodos importantes para compatibilidad
     if (existingChatOnline && existingChatOnline.constructor.name === 'ChatOnline') {
-        console.log('🔄 Detectada instancia ChatOnline v1, configurando compatibilidad...');
+        // console.log('🔄 Detectada instancia ChatOnline v1, configurando compatibilidad...');
         
         // Preservar métodos específicos si existen
         if (existingChatOnline.showQuestionModal) {
@@ -1252,7 +1252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    console.log('🔗 Instancias registradas en window:', {
+    // console.log('🔗 Instancias registradas en window:', {
         chatOnline: !!window.chatOnline,
         chatOnlineV2: !!window.chatOnlineV2
     });
@@ -1260,9 +1260,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Asegurar compatibilidad global para funciones críticas como deleteNote
     window.ensureNoteFunctionality = function() {
         if (!window.chatOnline || typeof window.chatOnline.deleteNote !== 'function') {
-            console.log('⚠️ Implementando función de respaldo para deleteNote');
+            // console.log('⚠️ Implementando función de respaldo para deleteNote');
             window.deleteNote = function(noteId) {
-                console.log('🗑️ Ejecutando deleteNote de respaldo:', noteId);
+                // console.log('🗑️ Ejecutando deleteNote de respaldo:', noteId);
                 let notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
                 notes = notes.filter(note => note.id !== noteId);
                 localStorage.setItem('lia_notes', JSON.stringify(notes));
@@ -1289,7 +1289,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Verificar una vez más después de la inicialización
         setTimeout(() => {
             window.ensureNoteFunctionality();
-            console.log('🔧 Verificación final - deleteNote disponible:', 
+            // console.log('🔧 Verificación final - deleteNote disponible:', 
                        typeof (window.chatOnline?.deleteNote || window.deleteNote) === 'function');
         }, 1000);
     }, 2000); // Esperar a que dynamic video loader se inicialice
@@ -1298,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Limpiar al cerrar
 window.addEventListener('beforeunload', () => {
     if (window.chatOnline && window.chatOnline.isInitialized) {
-        console.log('🧹 Limpiando Chat Online V2...');
+        // console.log('🧹 Limpiando Chat Online V2...');
     }
 });
 

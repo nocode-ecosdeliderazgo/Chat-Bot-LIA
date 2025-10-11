@@ -132,7 +132,7 @@ class ModulesStaticDemo {
             }
         ];
 
-        console.log('[ModulesStaticDemo] ✨ Inicializando demo con datos estáticos');
+        // console.log('[ModulesStaticDemo] ✨ Inicializando demo con datos estáticos');
     }
 
     /**
@@ -147,7 +147,7 @@ class ModulesStaticDemo {
                 return false;
             }
 
-            console.log('[ModulesStaticDemo] 🎯 Elemento encontrado, renderizando módulos...');
+            // console.log('[ModulesStaticDemo] 🎯 Elemento encontrado, renderizando módulos...');
 
             // Renderizar módulos inmediatamente
             this.renderModules();
@@ -158,7 +158,7 @@ class ModulesStaticDemo {
             // Cargar primer video por defecto
             this.loadVideo('video-1-1', 'modulo-1');
 
-            console.log('[ModulesStaticDemo] ✅ Demo inicializada correctamente');
+            // console.log('[ModulesStaticDemo] ✅ Demo inicializada correctamente');
             return true;
 
         } catch (error) {
@@ -224,7 +224,7 @@ class ModulesStaticDemo {
         });
 
         modulesList.innerHTML = html;
-        console.log('[ModulesStaticDemo] ✅ Módulos renderizados correctamente');
+        // console.log('[ModulesStaticDemo] ✅ Módulos renderizados correctamente');
     }
 
     /**
@@ -297,7 +297,7 @@ class ModulesStaticDemo {
      * Toggle expandir/colapsar módulo
      */
     toggleModule(moduleId) {
-        console.log('[ModulesStaticDemo] 🔄 Toggle módulo:', moduleId);
+        // console.log('[ModulesStaticDemo] 🔄 Toggle módulo:', moduleId);
 
         const moduleToggle = document.querySelector(`.module-toggle[data-module-id="${moduleId}"]`);
         const moduleVideos = document.querySelector(`.module-videos[data-module-id="${moduleId}"]`);
@@ -313,12 +313,12 @@ class ModulesStaticDemo {
             // Colapsar
             moduleToggle.classList.remove('expanded');
             moduleVideos.classList.remove('expanded');
-            console.log('[ModulesStaticDemo] ➖ Módulo colapsado:', moduleId);
+            // console.log('[ModulesStaticDemo] ➖ Módulo colapsado:', moduleId);
         } else {
             // Expandir
             moduleToggle.classList.add('expanded');
             moduleVideos.classList.add('expanded');
-            console.log('[ModulesStaticDemo] ➕ Módulo expandido:', moduleId);
+            // console.log('[ModulesStaticDemo] ➕ Módulo expandido:', moduleId);
         }
     }
 
@@ -326,7 +326,7 @@ class ModulesStaticDemo {
      * Cambiar a un video específico
      */
     switchToVideo(videoId, moduleId) {
-        console.log('[ModulesStaticDemo] 🎥 Cambiando a video:', { videoId, moduleId });
+        // console.log('[ModulesStaticDemo] 🎥 Cambiando a video:', { videoId, moduleId });
 
         // Encontrar datos del video
         const module = this.modulesData.find(m => m.id === moduleId);
@@ -350,7 +350,7 @@ class ModulesStaticDemo {
         this.currentVideoId = videoId;
         this.currentModuleId = moduleId;
 
-        console.log('[ModulesStaticDemo] ✅ Video cambiado exitosamente');
+        // console.log('[ModulesStaticDemo] ✅ Video cambiado exitosamente');
     }
 
     /**
@@ -467,7 +467,7 @@ class ModulesStaticDemo {
      * Cargar video inicial
      */
     loadVideo(videoId, moduleId) {
-        console.log('[ModulesStaticDemo] 📺 Cargando video inicial:', { videoId, moduleId });
+        // console.log('[ModulesStaticDemo] 📺 Cargando video inicial:', { videoId, moduleId });
         
         // Buscar el video en los datos
         const module = this.modulesData.find(m => m.id === moduleId);
@@ -483,7 +483,7 @@ class ModulesStaticDemo {
      * Configurar event listeners
      */
     setupEventListeners() {
-        console.log('[ModulesStaticDemo] 👂 Event listeners configurados');
+        // console.log('[ModulesStaticDemo] 👂 Event listeners configurados');
     }
 
     /**
@@ -496,7 +496,7 @@ class ModulesStaticDemo {
         if (video) {
             video.completed = true;
             video.progress = 100;
-            console.log('[ModulesStaticDemo] ✅ Video marcado como completado:', videoId);
+            // console.log('[ModulesStaticDemo] ✅ Video marcado como completado:', videoId);
             
             // Re-renderizar módulos para actualizar el estado
             this.renderModules();
@@ -506,22 +506,22 @@ class ModulesStaticDemo {
 
 // Auto-inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[ModulesStaticDemo] 🚀 DOM cargado, inicializando demo...');
+    // console.log('[ModulesStaticDemo] 🚀 DOM cargado, inicializando demo...');
     
     window.modulesStaticDemo = new ModulesStaticDemo();
     await window.modulesStaticDemo.init();
     
     // Mostrar mensaje de demo en consola
     setTimeout(() => {
-        console.log('%c🎯 DEMO INTERACTIVA LISTA!', 'font-size: 16px; font-weight: bold; color: #44E5FF;');
-        console.log('%cPrueba hacer click en:', 'font-size: 14px; color: #22C55E;');
-        console.log('  • Los títulos de módulos para expandir/colapsar');
-        console.log('  • Los videos para cambiar el reproductor');
-        console.log('  • window.modulesStaticDemo.markVideoCompleted("video-1-1", "modulo-1") para marcar como completado');
+        // console.log('%c🎯 DEMO INTERACTIVA LISTA!', 'font-size: 16px; font-weight: bold; color: #44E5FF;');
+        // console.log('%cPrueba hacer click en:', 'font-size: 14px; color: #22C55E;');
+        // console.log('  • Los títulos de módulos para expandir/colapsar');
+        // console.log('  • Los videos para cambiar el reproductor');
+        // console.log('  • window.modulesStaticDemo.markVideoCompleted("video-1-1", "modulo-1") para marcar como completado');
     }, 1000);
 });
 
 // Exponer globalmente
 window.ModulesStaticDemo = ModulesStaticDemo;
 
-console.log('[ModulesStaticDemo] 📦 Script cargado correctamente');
+// console.log('[ModulesStaticDemo] 📦 Script cargado correctamente');

@@ -48,7 +48,7 @@ class ProfileAvatarManager {
             const userData = JSON.parse(currentUser);
             const profilePictureUrl = userData.profile_picture_url;
             
-            console.log('🔍 Datos del avatar en profile.html (PRIORITARIO):', {
+            // console.log('🔍 Datos del avatar en profile.html (PRIORITARIO):', {
                 hasProfilePicture: !!profilePictureUrl,
                 profilePictureUrl: profilePictureUrl ? profilePictureUrl.substring(0, 50) + '...' : 'ninguna',
                 currentSrc: avatarImage.src ? avatarImage.src.substring(0, 50) + '...' : 'ninguna'

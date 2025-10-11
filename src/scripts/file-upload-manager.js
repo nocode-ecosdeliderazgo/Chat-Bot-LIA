@@ -38,7 +38,7 @@ class FileUploadManager {
                 this.supabase = window.supabase;
             }
 
-            console.log('Supabase inicializado correctamente');
+            // console.log('Supabase inicializado correctamente');
             
             // Verificar autenticación del usuario en Supabase
             await this.verifySupabaseAuth();
@@ -63,7 +63,7 @@ class FileUploadManager {
             }
             
             if (session && session.user) {
-                console.log('✅ Usuario autenticado en Supabase:', {
+                // console.log('✅ Usuario autenticado en Supabase:', {
                     id: session.user.id,
                     email: session.user.email,
                     expires_at: session.expires_at
@@ -81,7 +81,7 @@ class FileUploadManager {
     // Método simplificado para storage público (sin autenticación compleja)
     async tryAuthenticateUser() {
         // Para buckets públicos, la autenticación no es necesaria
-        console.log('ℹ️ [AUTH] Storage público configurado - autenticación opcional');
+        // console.log('ℹ️ [AUTH] Storage público configurado - autenticación opcional');
         return true;
     }
 
@@ -92,7 +92,7 @@ class FileUploadManager {
                 throw new Error('Usuario no autenticado');
             }
             this.currentUser = JSON.parse(raw);
-            console.log('Usuario cargado:', this.currentUser);
+            // console.log('Usuario cargado:', this.currentUser);
         } catch (error) {
             console.error('Error cargando usuario:', error);
             throw error;
@@ -102,7 +102,7 @@ class FileUploadManager {
     setupEventListeners() {
         // Sistema anti-duplicación para event listeners
         if (this.listenersSetup) {
-            console.log('ℹ️ Event listeners ya configurados, evitando duplicación');
+            // console.log('ℹ️ Event listeners ya configurados, evitando duplicación');
             return;
         }
         
@@ -123,12 +123,12 @@ class FileUploadManager {
                 
                 // Prevenir uploads múltiples
                 if (uploadInProgress) {
-                    console.log('⚠️ Upload ya en progreso, ignorando...');
+                    // console.log('⚠️ Upload ya en progreso, ignorando...');
                     return;
                 }
                 
                 uploadInProgress = true;
-                console.log('📸 Procesando archivo:', file.name, file.size, 'bytes');
+                // console.log('📸 Procesando archivo:', file.name, file.size, 'bytes');
                 
                 try {
                     // Mostrar preview inmediato
@@ -144,7 +144,7 @@ class FileUploadManager {
                     // Resetear flag después de un delay
                     setTimeout(() => {
                         uploadInProgress = false;
-                        console.log('✅ Upload completado, listo para siguiente archivo');
+                        // console.log('✅ Upload completado, listo para siguiente archivo');
                     }, 2000);
                 }
             });
@@ -155,7 +155,7 @@ class FileUploadManager {
         const curriculumInput = document.getElementById('curriculum');
         
         if (curriculumBtn && curriculumInput && !this.curriculumListenersSetup) {
-            console.log('📝 Configurando listeners de curriculum...');
+            // console.log('📝 Configurando listeners de curriculum...');
             
             // Limpiar listeners previos para evitar duplicación
             const newCurriculumBtn = curriculumBtn.cloneNode(true);
@@ -166,26 +166,26 @@ class FileUploadManager {
             // Configurar listeners únicos
             newCurriculumBtn.addEventListener('click', (event) => {
                 event.preventDefault();
-                console.log('📝 Abriendo selector de CV...');
+                // console.log('📝 Abriendo selector de CV...');
                 newCurriculumInput.click();
             });
 
             newCurriculumInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    console.log('📄 Archivo CV seleccionado:', file.name, file.type);
+                    // console.log('📄 Archivo CV seleccionado:', file.name, file.type);
                     await this.handleCurriculumUpload(file);
                 }
             });
             
             // Marcar como configurado
             this.curriculumListenersSetup = true;
-            console.log('✅ Listeners de curriculum configurados');
+            // console.log('✅ Listeners de curriculum configurados');
         }
         
         // Marcar listeners como configurados para evitar duplicación
         this.listenersSetup = true;
-        console.log('✅ Event listeners configurados correctamente');
+        // console.log('✅ Event listeners configurados correctamente');
     }
 
     async handleProfilePictureUpload(file) {
@@ -208,7 +208,7 @@ class FileUploadManager {
                 imageUrl = await this.uploadToStorage(file, 'profile');
                 if (imageUrl && imageUrl !== 'DOCX_FALLBACK') {
                     uploadMethod = 'storage';
-                    console.log('✅ Upload a Storage exitoso:', imageUrl);
+                    // console.log('✅ Upload a Storage exitoso:', imageUrl);
                 }
             } catch (storageError) {
                 console.warn('⚠️ Storage falló, usando base64:', storageError.message);
@@ -216,7 +216,7 @@ class FileUploadManager {
             
             // Si Storage falló, usar base64
             if (!imageUrl || imageUrl === 'DOCX_FALLBACK') {
-                console.log('🔄 Convirtiendo a base64 para guardar en BD...');
+                // console.log('🔄 Convirtiendo a base64 para guardar en BD...');
                 imageUrl = await this.convertToBase64(file);
                 uploadMethod = 'base64';
             }
@@ -232,7 +232,7 @@ class FileUploadManager {
                     this.showSuccess('✅ Foto de perfil guardada en BD (base64)');
                 }
                 
-                console.log('✅ Avatar actualizado exitosamente en BD:', uploadMethod);
+                // console.log('✅ Avatar actualizado exitosamente en BD:', uploadMethod);
                 
             } catch (dbError) {
                 console.error('❌ Error actualizando en BD:', dbError);
@@ -275,7 +275,7 @@ class FileUploadManager {
             
             if (fileUrl === 'DOCX_FALLBACK') {
                 // Manejo especial para archivos .docx
-                console.log('📄 Procesando archivo .docx con fallback especial');
+                // console.log('📄 Procesando archivo .docx con fallback especial');
                 const base64Data = await this.convertToBase64(file);
                 await this.updateUserCurriculumWithBase64(file.name, base64Data);
                 this.updateCurriculumDisplayWithBase64(file.name);
@@ -287,7 +287,7 @@ class FileUploadManager {
                 this.showSuccess('Curriculum subido correctamente');
             } else {
                 // Si falla Storage, guardar información del archivo localmente
-                console.log('Storage falló, guardando información local del CV');
+                // console.log('Storage falló, guardando información local del CV');
                 await this.updateUserCurriculumLocal(file.name);
                 this.updateCurriculumDisplayLocal(file.name);
                 this.showSuccess('Información del curriculum guardada (modo local)');
@@ -347,7 +347,7 @@ class FileUploadManager {
     // Nueva función para intentar subir a Storage con manejo robusto
     async uploadToStorage(file, type) {
         try {
-            console.log('🔄 [STORAGE] Iniciando uploadToStorage:', {
+            // console.log('🔄 [STORAGE] Iniciando uploadToStorage:', {
                 fileName: file.name,
                 fileSize: file.size,
                 fileType: file.type,
@@ -359,7 +359,7 @@ class FileUploadManager {
                 return null;
             }
             
-            console.log('✅ [STORAGE] Supabase client disponible');
+            // console.log('✅ [STORAGE] Supabase client disponible');
             
             // Verificar/intentar autenticación de forma simplificada
             await this.ensureAuthentication();
@@ -384,23 +384,23 @@ class FileUploadManager {
             const userId = this.currentUser.id || this.currentUser.username || 'user';
             const fileName = `${config.prefix}_${userId}.${fileExtension}`;
             
-            console.log('📁 Nombre de archivo:', fileName, '(reemplazará archivo anterior si existe)');
+            // console.log('📁 Nombre de archivo:', fileName, '(reemplazará archivo anterior si existe)');
 
             // Verificar si el tipo de archivo es soportado por Storage
             if (!config.allowedTypes.includes(file.type)) {
                 console.warn('Tipo MIME no soportado por Storage:', file.type);
-                console.log('🔄 Intentando convertir o usar fallback para:', file.name);
+                // console.log('🔄 Intentando convertir o usar fallback para:', file.name);
                 
                 // Para archivos .docx, intentar convertir a base64 y guardar en BD
                 if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                    console.log('📄 Archivo .docx detectado, guardando en BD como base64');
+                    // console.log('📄 Archivo .docx detectado, guardando en BD como base64');
                     return 'DOCX_FALLBACK'; // Señal especial para manejo posterior
                 }
                 
                 return null;
             }
 
-            console.log('🚀 [UPLOAD] Intentando subir a Storage:', {
+            // console.log('🚀 [UPLOAD] Intentando subir a Storage:', {
                 fileName,
                 fileType: file.type,
                 fileSize: file.size,
@@ -409,7 +409,7 @@ class FileUploadManager {
             });
 
             // Verificar/crear bucket de forma robusta
-            console.log('🔍 [BUCKET] Verificando/creando bucket:', config.bucket);
+            // console.log('🔍 [BUCKET] Verificando/creando bucket:', config.bucket);
             const bucketReady = await this.ensureBucketExists(config);
             if (!bucketReady) {
                 console.warn('⚠️ [BUCKET] Bucket no disponible, intentando upload directo...');
@@ -421,7 +421,7 @@ class FileUploadManager {
             await this.cleanupUserFiles(config, userId);
 
             // Intentar subir archivo
-            console.log('📤 [UPLOAD] Ejecutando upload...');
+            // console.log('📤 [UPLOAD] Ejecutando upload...');
             const { data, error } = await this.supabase.storage
                 .from(config.bucket)
                 .upload(fileName, file, {
@@ -444,33 +444,33 @@ class FileUploadManager {
                 
                 // Manejo específico de errores comunes
                 if (error.message.includes('bucket') || error.message.includes('Bucket')) {
-                    console.log('💡 [SOLUCIÓN] Verificar que el bucket existe y es público');
+                    // console.log('💡 [SOLUCIÓN] Verificar que el bucket existe y es público');
                 } else if (error.message.includes('row-level security') || error.message.includes('RLS')) {
-                    console.log('💡 [SOLUCIÓN] Verificar políticas RLS del bucket');
+                    // console.log('💡 [SOLUCIÓN] Verificar políticas RLS del bucket');
                 } else if (error.message.includes('401') || error.status === 401) {
-                    console.log('💡 [SOLUCIÓN] Usuario no autenticado - usando fallback');
+                    // console.log('💡 [SOLUCIÓN] Usuario no autenticado - usando fallback');
                 } else if (error.message.includes('403') || error.status === 403) {
-                    console.log('💡 [SOLUCIÓN] Sin permisos - verificar políticas del bucket');
+                    // console.log('💡 [SOLUCIÓN] Sin permisos - verificar políticas del bucket');
                 }
                 
                 return null;
             }
 
             // Si llegamos aquí, el upload fue exitoso
-            console.log('✅ [UPLOAD] Upload exitoso a Storage:', {
+            // console.log('✅ [UPLOAD] Upload exitoso a Storage:', {
                 path: data.path,
                 fullPath: data.fullPath,
                 id: data.id
             });
 
             // Obtener URL pública
-            console.log('🔗 [URL] Obteniendo URL pública...');
+            // console.log('🔗 [URL] Obteniendo URL pública...');
             const { data: urlData } = this.supabase.storage
                 .from(config.bucket)
                 .getPublicUrl(fileName);
 
             if (urlData?.publicUrl) {
-                console.log('✅ [URL] URL pública obtenida:', urlData.publicUrl);
+                // console.log('✅ [URL] URL pública obtenida:', urlData.publicUrl);
                 return urlData.publicUrl;
             } else {
                 console.error('❌ [URL] Error obteniendo URL pública:', urlData);
@@ -502,7 +502,7 @@ class FileUploadManager {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
 
-            console.log('Curriculum info actualizada en localStorage');
+            // console.log('Curriculum info actualizada en localStorage');
         } catch (error) {
             console.error('Error actualizando curriculum local:', error);
             throw error;
@@ -532,7 +532,7 @@ class FileUploadManager {
 
     async updateUserProfilePicture(imageUrl) {
         try {
-            console.log('🖼️ [DB UPDATE] Iniciando actualización de avatar en BD...', {
+            // console.log('🖼️ [DB UPDATE] Iniciando actualización de avatar en BD...', {
                 imageType: imageUrl.startsWith('data:') ? 'base64' : 'url',
                 imageSize: imageUrl.length,
                 userId: this.currentUser.id,
@@ -549,13 +549,13 @@ class FileUploadManager {
                 !String(this.currentUser.id).startsWith('dev-') && 
                 !String(this.currentUser.id).includes('test')) {
                 updateData.user_id = this.currentUser.id;
-                console.log('🔍 [DB UPDATE] Actualizando por user_id:', this.currentUser.id);
+                // console.log('🔍 [DB UPDATE] Actualizando por user_id:', this.currentUser.id);
             } else if (this.currentUser.username) {
                 updateData.username = this.currentUser.username;
-                console.log('🔍 [DB UPDATE] Actualizando por username:', this.currentUser.username);
+                // console.log('🔍 [DB UPDATE] Actualizando por username:', this.currentUser.username);
             } else if (this.currentUser.email) {
                 updateData.email = this.currentUser.email;
-                console.log('🔍 [DB UPDATE] Actualizando por email:', this.currentUser.email);
+                // console.log('🔍 [DB UPDATE] Actualizando por email:', this.currentUser.email);
             } else {
                 throw new Error('❌ No se puede identificar al usuario para actualizar avatar');
             }
@@ -565,7 +565,7 @@ class FileUploadManager {
                 ? 'http://localhost:3000' 
                 : window.location.origin;
             
-            console.log('🌐 [DB UPDATE] Enviando request a:', `${baseURL}/api/update-avatar`);
+            // console.log('🌐 [DB UPDATE] Enviando request a:', `${baseURL}/api/update-avatar`);
             
             // Llamar al endpoint de Netlify
             const response = await fetch(`${baseURL}/api/update-avatar`, {
@@ -576,7 +576,7 @@ class FileUploadManager {
                 body: JSON.stringify(updateData)
             });
             
-            console.log('📡 [DB UPDATE] Response status:', response.status, response.statusText);
+            // console.log('📡 [DB UPDATE] Response status:', response.status, response.statusText);
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -586,7 +586,7 @@ class FileUploadManager {
             }
             
             const result = await response.json();
-            console.log('✅ [DB UPDATE] Avatar actualizado exitosamente en BD:', {
+            // console.log('✅ [DB UPDATE] Avatar actualizado exitosamente en BD:', {
                 success: result.ok,
                 message: result.message,
                 userId: result.user?.id,
@@ -598,7 +598,7 @@ class FileUploadManager {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
             
-            console.log('✅ [DB UPDATE] Profile picture URL actualizada en BD y localStorage');
+            // console.log('✅ [DB UPDATE] Profile picture URL actualizada en BD y localStorage');
             return result;
             
         } catch (error) {
@@ -622,15 +622,15 @@ class FileUploadManager {
                 !String(this.currentUser.id).includes('test')) {
                 // Usar ID si es válido y real de BD
                 query = query.eq('id', this.currentUser.id);
-                console.log('Actualizando curriculum_url por ID:', this.currentUser.id);
+                // console.log('Actualizando curriculum_url por ID:', this.currentUser.id);
             } else if (this.currentUser.username) {
                 // Usar username como fallback
                 query = query.eq('username', this.currentUser.username);
-                console.log('Actualizando curriculum_url por username:', this.currentUser.username);
+                // console.log('Actualizando curriculum_url por username:', this.currentUser.username);
             } else if (this.currentUser.email) {
                 // Usar email como último recurso
                 query = query.eq('email', this.currentUser.email);
-                console.log('Actualizando curriculum_url por email:', this.currentUser.email);
+                // console.log('Actualizando curriculum_url por email:', this.currentUser.email);
             } else {
                 throw new Error('No se puede identificar al usuario para actualizar curriculum');
             }
@@ -647,7 +647,7 @@ class FileUploadManager {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
 
-            console.log('✅ Curriculum URL actualizada en BD y localStorage');
+            // console.log('✅ Curriculum URL actualizada en BD y localStorage');
         } catch (error) {
             console.error('❌ Error actualizando curriculum en BD:', error);
             throw error;
@@ -669,15 +669,15 @@ class FileUploadManager {
                 !String(this.currentUser.id).includes('test')) {
                 // Usar ID si es válido y real de BD
                 query = query.eq('id', this.currentUser.id);
-                console.log('Actualizando curriculum base64 por ID:', this.currentUser.id);
+                // console.log('Actualizando curriculum base64 por ID:', this.currentUser.id);
             } else if (this.currentUser.username) {
                 // Usar username como fallback
                 query = query.eq('username', this.currentUser.username);
-                console.log('Actualizando curriculum base64 por username:', this.currentUser.username);
+                // console.log('Actualizando curriculum base64 por username:', this.currentUser.username);
             } else if (this.currentUser.email) {
                 // Usar email como último recurso
                 query = query.eq('email', this.currentUser.email);
-                console.log('Actualizando curriculum base64 por email:', this.currentUser.email);
+                // console.log('Actualizando curriculum base64 por email:', this.currentUser.email);
             } else {
                 throw new Error('No se puede identificar al usuario para actualizar curriculum');
             }
@@ -699,7 +699,7 @@ class FileUploadManager {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             this.currentUser = updatedUser;
 
-            console.log('✅ Curriculum .docx guardado como base64 en BD y localStorage');
+            // console.log('✅ Curriculum .docx guardado como base64 en BD y localStorage');
         } catch (error) {
             console.error('❌ Error guardando curriculum base64 en BD:', error);
             throw error;
@@ -707,7 +707,7 @@ class FileUploadManager {
     }
 
     updateAvatarDisplay(imageUrl) {
-        console.log('🖼️ [DISPLAY] Actualizando display del avatar...', {
+        // console.log('🖼️ [DISPLAY] Actualizando display del avatar...', {
             imageType: imageUrl.startsWith('data:') ? 'base64' : 'url',
             imageLength: imageUrl.length
         });
@@ -722,7 +722,7 @@ class FileUploadManager {
             avatarImage.setAttribute('data-protected', 'true');
             avatarImage.setAttribute('data-last-updated', new Date().toISOString());
             
-            console.log('✅ [DISPLAY] Avatar principal actualizado y marcado como PROTEGIDO');
+            // console.log('✅ [DISPLAY] Avatar principal actualizado y marcado como PROTEGIDO');
         } else {
             console.warn('⚠️ [DISPLAY] Elemento avatarImage no encontrado');
         }
@@ -731,11 +731,11 @@ class FileUploadManager {
         const headerAvatars = document.querySelectorAll('.header-profile img, .pm-avatar img');
         headerAvatars.forEach((img, index) => {
             img.src = imageUrl;
-            console.log(`✅ [DISPLAY] Avatar header ${index + 1} actualizado`);
+            // console.log(`✅ [DISPLAY] Avatar header ${index + 1} actualizado`);
         });
         
         if (headerAvatars.length === 0) {
-            console.log('ℹ️ [DISPLAY] No se encontraron avatares en header');
+            // console.log('ℹ️ [DISPLAY] No se encontraron avatares en header');
         }
     }
 
@@ -812,7 +812,7 @@ class FileUploadManager {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                console.log('✅ Curriculum descargado desde base64');
+                // console.log('✅ Curriculum descargado desde base64');
             } else {
                 this.showError('No hay curriculum disponible para descargar');
             }
@@ -947,7 +947,7 @@ class FileUploadManager {
                 return false;
             }
 
-            console.log('📧 Reenviando email de confirmación a:', this.currentUser.email);
+            // console.log('📧 Reenviando email de confirmación a:', this.currentUser.email);
             this.showLoading('Reenviando email de confirmación...');
 
             // Usar la función resend de Supabase Auth
@@ -966,7 +966,7 @@ class FileUploadManager {
                 this.showError(`Error reenviando email: ${error.message}`);
                 return false;
             } else {
-                console.log('✅ Email de confirmación reenviado exitosamente');
+                // console.log('✅ Email de confirmación reenviado exitosamente');
                 this.showSuccess('Email de confirmación reenviado. Revisa tu bandeja de entrada.');
                 
                 // Opcional: Cerrar la notificación después de un momento
@@ -1166,7 +1166,7 @@ class FileUploadManager {
         closeBtn.addEventListener('click', () => notification.remove());
         continueBtn.addEventListener('click', () => notification.remove());
         resendBtn.addEventListener('click', async () => {
-            console.log('📧 Reenviando email de confirmación...');
+            // console.log('📧 Reenviando email de confirmación...');
             await this.resendEmailConfirmation();
         });
 
@@ -1183,17 +1183,17 @@ class FileUploadManager {
             clearInterval(this.emailCheckerInterval);
         }
 
-        console.log('⏰ Iniciando verificación periódica de confirmación de email...');
+        // console.log('⏰ Iniciando verificación periódica de confirmación de email...');
         
         this.emailCheckerInterval = setInterval(async () => {
             try {
-                console.log('🔍 Verificando si el email ha sido confirmado...');
+                // console.log('🔍 Verificando si el email ha sido confirmado...');
                 
                 // Intentar autenticar nuevamente
                 const authSuccess = await this.tryAuthenticateUser();
                 
                 if (authSuccess) {
-                    console.log('✅ ¡Email confirmado! Autenticación exitosa.');
+                    // console.log('✅ ¡Email confirmado! Autenticación exitosa.');
                     
                     // Cerrar la notificación
                     const notification = document.querySelector('.email-not-confirmed-notification');
@@ -1209,10 +1209,10 @@ class FileUploadManager {
                     this.showSuccess('✅ Email confirmado correctamente. Ya puedes subir archivos a la nube.');
                     
                     // Opcional: Intentar el upload automáticamente si había uno pendiente
-                    console.log('🔄 Email confirmado, Storage ahora disponible');
+                    // console.log('🔄 Email confirmado, Storage ahora disponible');
                 }
             } catch (error) {
-                console.log('🔍 Aún sin confirmar, continuando verificación...');
+                // console.log('🔍 Aún sin confirmar, continuando verificación...');
             }
         }, 10000); // Verificar cada 10 segundos
 
@@ -1221,7 +1221,7 @@ class FileUploadManager {
             if (this.emailCheckerInterval) {
                 clearInterval(this.emailCheckerInterval);
                 this.emailCheckerInterval = null;
-                console.log('⏰ Verificación automática de email terminada después de 10 minutos');
+                // console.log('⏰ Verificación automática de email terminada después de 10 minutos');
             }
         }, 600000); // 10 minutos
     }
@@ -1387,28 +1387,28 @@ class FileUploadManager {
     // Método simplificado para configuración de storage público
     async ensureAuthentication() {
         try {
-            console.log('🔑 [AUTH] Modo Storage Público - sin autenticación requerida');
+            // console.log('🔑 [AUTH] Modo Storage Público - sin autenticación requerida');
             
             // Para buckets públicos, no necesitamos autenticación
             // Solo verificar si casualmente hay una sesión activa
             try {
                 const { data: { session } } = await this.supabase.auth.getSession();
                 if (session && session.user) {
-                    console.log('✅ [AUTH] Sesión encontrada (bonus):', session.user.email);
+                    // console.log('✅ [AUTH] Sesión encontrada (bonus):', session.user.email);
                     this.supabaseUser = session.user;
                     return true;
                 }
             } catch (authError) {
                 // Ignorar errores de auth para buckets públicos
-                console.log('ℹ️ [AUTH] Sin sesión (normal para storage público)');
+                // console.log('ℹ️ [AUTH] Sin sesión (normal para storage público)');
             }
             
-            console.log('✅ [AUTH] Configurado para storage público - sin autenticación necesaria');
+            // console.log('✅ [AUTH] Configurado para storage público - sin autenticación necesaria');
             this.supabaseUser = null;
             return true; // Retornar true porque el storage público no requiere auth
             
         } catch (error) {
-            console.log('ℹ️ [AUTH] Usando storage público sin verificación auth');
+            // console.log('ℹ️ [AUTH] Usando storage público sin verificación auth');
             this.supabaseUser = null;
             return true; // Siempre permitir para buckets públicos
         }
@@ -1417,14 +1417,14 @@ class FileUploadManager {
     // Método para asegurar que el bucket existe y está configurado correctamente
     async ensureBucketExists(config) {
         try {
-            console.log(`🔍 [BUCKET] Verificando existencia del bucket: ${config.bucket}`);
+            // console.log(`🔍 [BUCKET] Verificando existencia del bucket: ${config.bucket}`);
             
             // Listar buckets existentes
             const { data: buckets, error: listError } = await this.supabase.storage.listBuckets();
             
             if (listError) {
                 console.error('❌ [BUCKET] Error listando buckets:', listError);
-                console.log('💡 [SOLUCIÓN] Verificar credenciales o crear buckets manualmente en Supabase Dashboard');
+                // console.log('💡 [SOLUCIÓN] Verificar credenciales o crear buckets manualmente en Supabase Dashboard');
                 return false;
             }
 
@@ -1432,19 +1432,19 @@ class FileUploadManager {
             const bucketExists = buckets.find(b => b.name === config.bucket);
             
             if (bucketExists) {
-                console.log(`✅ [BUCKET] Bucket "${config.bucket}" ya existe (público: ${bucketExists.public})`);
+                // console.log(`✅ [BUCKET] Bucket "${config.bucket}" ya existe (público: ${bucketExists.public})`);
                 return true;
             }
 
             // Si no existe, intentar crear con diferentes métodos
-            console.log(`📁 [BUCKET] Bucket "${config.bucket}" no existe, intentando crear...`);
+            // console.log(`📁 [BUCKET] Bucket "${config.bucket}" no existe, intentando crear...`);
             
             // Método 1: Crear con service role si está disponible
             const serviceKey = localStorage.getItem('supabaseServiceKey') || 
                               document.querySelector('meta[name="supabase-service-key"]')?.content;
             
             if (serviceKey && serviceKey !== '') {
-                console.log('🔑 [BUCKET] Intentando crear con service role...');
+                // console.log('🔑 [BUCKET] Intentando crear con service role...');
                 
                 try {
                     // Crear cliente temporal con service role
@@ -1460,7 +1460,7 @@ class FileUploadManager {
                     });
                     
                     if (!error || error.message?.includes('already exists')) {
-                        console.log(`✅ [BUCKET] Bucket "${config.bucket}" creado con service role`);
+                        // console.log(`✅ [BUCKET] Bucket "${config.bucket}" creado con service role`);
                         return true;
                     }
                     
@@ -1471,23 +1471,23 @@ class FileUploadManager {
             }
             
             // Método 2: Crear con usuario normal (probablemente falle por RLS)
-            console.log('🔄 [BUCKET] Intentando crear con usuario normal...');
+            // console.log('🔄 [BUCKET] Intentando crear con usuario normal...');
             const { error: normalCreateError } = await this.supabase.storage.createBucket(config.bucket, {
                 public: true
             });
             
             if (!normalCreateError || normalCreateError.message?.includes('already exists')) {
-                console.log(`✅ [BUCKET] Bucket "${config.bucket}" creado con usuario normal`);
+                // console.log(`✅ [BUCKET] Bucket "${config.bucket}" creado con usuario normal`);
                 return true;
             }
             
             // Si llegamos aquí, no se pudo crear el bucket
             console.error(`❌ [BUCKET] No se pudo crear bucket "${config.bucket}"`);
-            console.log('📋 [INSTRUCCIONES] Para resolver este problema:');
-            console.log('1. Ir a https://app.supabase.com/project/[tu-proyecto]/storage/buckets');
-            console.log(`2. Crear bucket "${config.bucket}" manualmente`);
-            console.log('3. Marcar como "Public bucket"');
-            console.log('4. Configurar políticas RLS apropiadas');
+            // console.log('📋 [INSTRUCCIONES] Para resolver este problema:');
+            // console.log('1. Ir a https://app.supabase.com/project/[tu-proyecto]/storage/buckets');
+            // console.log(`2. Crear bucket "${config.bucket}" manualmente`);
+            // console.log('3. Marcar como "Public bucket"');
+            // console.log('4. Configurar políticas RLS apropiadas');
             
             // Intentar continuar sin bucket (fallback total)
             return false;
@@ -1502,7 +1502,7 @@ class FileUploadManager {
     // Método para limpiar archivos anteriores del usuario
     async cleanupUserFiles(config, userId) {
         try {
-            console.log('🧹 [CLEANUP] Limpiando archivos anteriores del usuario...');
+            // console.log('🧹 [CLEANUP] Limpiando archivos anteriores del usuario...');
             
             // Buscar archivos del usuario con diferentes extensiones
             const commonExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -1520,23 +1520,23 @@ class FileUploadManager {
                 
             if (deleteError) {
                 // No mostrar error ya que es normal que algunos archivos no existan
-                console.log('ℹ️ [CLEANUP] Archivos anteriores no encontrados o ya eliminados');
+                // console.log('ℹ️ [CLEANUP] Archivos anteriores no encontrados o ya eliminados');
             } else {
-                console.log('✅ [CLEANUP] Archivos anteriores eliminados exitosamente');
+                // console.log('✅ [CLEANUP] Archivos anteriores eliminados exitosamente');
             }
             
         } catch (error) {
             // Cleanup errors are not critical, just log them
-            console.log('ℹ️ [CLEANUP] No se pudieron eliminar archivos anteriores:', error.message);
+            // console.log('ℹ️ [CLEANUP] No se pudieron eliminar archivos anteriores:', error.message);
         }
     }
     
     // Función de diagnóstico para debugging
     diagnoseUploadStatus() {
-        console.log('🔍 [DIAGNÓSTICO] Estado del FileUploadManager:');
-        console.log('================================');
+        // console.log('🔍 [DIAGNÓSTICO] Estado del FileUploadManager:');
+        // console.log('================================');
         
-        console.log('📱 Usuario actual:', {
+        // console.log('📱 Usuario actual:', {
             id: this.currentUser?.id,
             username: this.currentUser?.username,
             email: this.currentUser?.email,
@@ -1544,32 +1544,32 @@ class FileUploadManager {
             profilePictureType: this.currentUser?.profile_picture_url?.startsWith('data:') ? 'base64' : 'url'
         });
         
-        console.log('🔧 Estado Supabase:', {
+        // console.log('🔧 Estado Supabase:', {
             initialized: !!this.supabase,
             user: this.supabaseUser?.email || 'No autenticado',
             authStatus: this.supabaseUser ? 'Autenticado' : 'No autenticado'
         });
         
-        console.log('🎯 Elementos DOM:', {
+        // console.log('🎯 Elementos DOM:', {
             profilePictureInput: !!document.getElementById('profilePicture'),
             avatarImage: !!document.getElementById('avatarImage'),
             curriculumBtn: !!document.getElementById('curriculumBtn'),
             curriculumInput: !!document.getElementById('curriculum')
         });
         
-        console.log('🌐 Configuración entorno:', {
+        // console.log('🌐 Configuración entorno:', {
             hostname: window.location.hostname,
             baseURL: window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin,
             isLocalhost: window.location.hostname === 'localhost'
         });
         
-        console.log('================================');
-        console.log('💡 Para probar upload manualmente, usa: window.fileUploadManager.testUpload()');
+        // console.log('================================');
+        // console.log('💡 Para probar upload manualmente, usa: window.fileUploadManager.testUpload()');
     }
     
     // Función de test para probar upload manualmente
     async testUpload() {
-        console.log('🧪 [TEST] Iniciando test de upload...');
+        // console.log('🧪 [TEST] Iniciando test de upload...');
         
         // Crear un archivo de prueba (imagen 1x1 pixel)
         const canvas = document.createElement('canvas');
@@ -1581,11 +1581,11 @@ class FileUploadManager {
         
         canvas.toBlob(async (blob) => {
             const testFile = new File([blob], 'test-avatar.png', { type: 'image/png' });
-            console.log('🧪 [TEST] Archivo de prueba creado:', testFile);
+            // console.log('🧪 [TEST] Archivo de prueba creado:', testFile);
             
             try {
                 await this.handleProfilePictureUpload(testFile);
-                console.log('✅ [TEST] Upload de prueba completado');
+                // console.log('✅ [TEST] Upload de prueba completado');
             } catch (error) {
                 console.error('❌ [TEST] Error en upload de prueba:', error);
             }
@@ -1595,7 +1595,7 @@ class FileUploadManager {
 
 // Función global simplificada para storage público
 window.ensureSupabaseAuth = async function() {
-    console.log('ℹ️ [AUTH] Storage público - autenticación no requerida');
+    // console.log('ℹ️ [AUTH] Storage público - autenticación no requerida');
     return true;
 };
 
@@ -1619,7 +1619,7 @@ window.testFileUpload = async function() {
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.fileUploadManager = new FileUploadManager();
-    console.log('✅ [INIT] FileUploadManager inicializado para storage público');
+    // console.log('✅ [INIT] FileUploadManager inicializado para storage público');
 });
 
 // Exportar para uso global

@@ -38,7 +38,7 @@
     <script>
         // FUNCIÓN GLOBAL INMEDIATA - DISPONIBLE DESDE EL INICIO
         window.switchTab = function(contentType) {
-            console.log('🔄 switchTab:', contentType);
+            // console.log('🔄 switchTab:', contentType);
             
             // Ocultar todos los contenidos
             const allContents = document.querySelectorAll('.content-area [data-content]');
@@ -48,7 +48,7 @@
             const targetContent = document.querySelector(`.content-area [data-content="${contentType}"]`);
             if (targetContent) {
                 targetContent.style.display = contentType === 'community' ? 'flex' : 'block';
-                console.log('✅ Mostrado:', contentType);
+                // console.log('✅ Mostrado:', contentType);
             }
             
             // Actualizar botones
@@ -56,7 +56,7 @@
             const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
             if (activeTab) activeTab.classList.add('active');
         };
-        console.log('✅ switchTab LISTO EN HEAD');
+        // console.log('✅ switchTab LISTO EN HEAD');
     </script>
 
     <!-- Iconos SVG personalizados -->
@@ -5499,7 +5499,7 @@ Cargando información...
         // Cargar course-progress-manager-v2.js con fallback
         if (window.loadScriptWithFallback) {
             window.loadScriptWithFallback('../scripts/course-progress-manager-v2.js', 
-                () => console.log('✅ course-progress-manager-v2.js cargado'),
+                () => // console.log('✅ course-progress-manager-v2.js cargado'),
                 () => console.error('❌ Error cargando course-progress-manager-v2.js'));
         } else {
             // Fallback si netlify-compatibility no está disponible
@@ -5512,7 +5512,7 @@ Cargando información...
         // Cargar youtube-progress-tracker.js con fallback
         if (window.loadScriptWithFallback) {
             window.loadScriptWithFallback('../scripts/youtube-progress-tracker.js',
-                () => console.log('✅ youtube-progress-tracker.js cargado'),
+                () => // console.log('✅ youtube-progress-tracker.js cargado'),
                 () => console.error('❌ Error cargando youtube-progress-tracker.js'));
         } else {
             // Fallback si netlify-compatibility no está disponible
@@ -5540,7 +5540,7 @@ Cargando información...
                 if (window.CommunityDatabase) {
                     communityDB = new window.CommunityDatabase();
                     await communityDB.initialize();
-                    console.log('✅ Base de datos de comunidad inicializada');
+                    // console.log('✅ Base de datos de comunidad inicializada');
                     return true;
                 } else {
                     console.error('❌ CommunityDatabase no está disponible');
@@ -5555,7 +5555,7 @@ Cargando información...
         // Función para cargar módulos de cursos desde la base de datos
         async function loadCourseModules() {
             try {
-                console.log('📚 Cargando módulos desde course_modules...');
+                // console.log('📚 Cargando módulos desde course_modules...');
 
                 // Verificar si tenemos acceso a Supabase
                 if (!window.supabase) {
@@ -5573,7 +5573,7 @@ Cargando información...
                     return [];
                 }
 
-                console.log('✅ Módulos obtenidos de la base de datos:', modules);
+                // console.log('✅ Módulos obtenidos de la base de datos:', modules);
                 return modules;
 
             } catch (error) {
@@ -5605,7 +5605,7 @@ Cargando información...
                     moduleFilter.appendChild(option);
                 });
 
-                console.log(`✅ Filtro de módulos actualizado con ${modules.length} módulos`);
+                // console.log(`✅ Filtro de módulos actualizado con ${modules.length} módulos`);
 
             } catch (error) {
                 console.error('❌ Error poblando filtro de módulos:', error);
@@ -5615,28 +5615,28 @@ Cargando información...
         // Función para cargar preguntas dinámicamente
         async function loadCommunityQuestions() {
             try {
-                console.log('📋 Cargando preguntas de la comunidad...');
+                // console.log('📋 Cargando preguntas de la comunidad...');
 
                 // SOLUCIÓN: Configurar el usuario actual en communityAPI antes de cargar preguntas
                 if (window.communityAPI) {
                     const currentUser = obtenerUsuarioActual();
                     window.communityAPI.setCurrentUser(currentUser);
-                    console.log('👤 Usuario configurado en communityAPI para filtros:', currentUser);
+                    // console.log('👤 Usuario configurado en communityAPI para filtros:', currentUser);
                 }
 
                 // Primero intentar usar el API REST directo
                 if (window.communityAPI) {
-                    console.log('🌐 Usando CommunityAPI para obtener preguntas...');
+                    // console.log('🌐 Usando CommunityAPI para obtener preguntas...');
                     const response = await window.communityAPI.getQuestions({
                         sort: 'recent'
                     });
                     
                     if (response.success && response.data && response.data.length > 0) {
-                        console.log('✅ Preguntas obtenidas del API:', response.data);
+                        // console.log('✅ Preguntas obtenidas del API:', response.data);
                         renderQuestionsFromAPI(response.data);
                         return;
                     } else {
-                        console.log('⚠️ API response no exitosa o sin datos:', response);
+                        // console.log('⚠️ API response no exitosa o sin datos:', response);
                     }
                 }
                 
@@ -5655,13 +5655,13 @@ Cargando información...
                     sort: 'created_at'
                 });
 
-                console.log('✅ Preguntas obtenidas de CommunityDatabase:', questions);
+                // console.log('✅ Preguntas obtenidas de CommunityDatabase:', questions);
                 renderQuestions(questions);
 
             } catch (error) {
                 console.error('❌ Error cargando preguntas:', error);
                 // Mantener las preguntas estáticas pero actualizar timestamps
-                console.log('📋 Actualizando solo timestamps de preguntas estáticas');
+                // console.log('📋 Actualizando solo timestamps de preguntas estáticas');
                 await updateStaticTimestamps();
             }
         }
@@ -5765,7 +5765,7 @@ Cargando información...
             }).join('');
 
             questionsList.innerHTML = questionsHTML;
-            console.log(`✅ ${questions.length} preguntas renderizadas desde API`);
+            // console.log(`✅ ${questions.length} preguntas renderizadas desde API`);
         }
 
         // Función para renderizar preguntas con tiempo real (CommunityDatabase)
@@ -5774,7 +5774,7 @@ Cargando información...
             if (!questionsList) return;
 
             if (!questions || questions.length === 0) {
-                console.log('📋 No hay preguntas dinámicas, manteniendo contenido estático');
+                // console.log('📋 No hay preguntas dinámicas, manteniendo contenido estático');
                 return;
             }
 
@@ -5903,7 +5903,7 @@ Cargando información...
         // Funciones auxiliares para manejar interacciones
         async function voteQuestion(questionId, voteType) {
             try {
-                console.log(`📊 Votando pregunta ${questionId}: ${voteType}`);
+                // console.log(`📊 Votando pregunta ${questionId}: ${voteType}`);
                 
                 // Usar la función voteQuestion que ya existe en chat-online.js
                 if (window.chatOnline && window.chatOnline.voteQuestion) {
@@ -5919,7 +5919,7 @@ Cargando información...
 
         async function toggleBookmark(questionId) {
             try {
-                console.log(`🔖 Alternando marcador para pregunta ${questionId}`);
+                // console.log(`🔖 Alternando marcador para pregunta ${questionId}`);
                 if (communityDB && communityDB.toggleBookmark) {
                     await communityDB.toggleBookmark(questionId);
                 }
@@ -5940,7 +5940,7 @@ Cargando información...
                         const simulatedDate = new Date(Date.now() - (hoursAgo * 60 * 60 * 1000));
                         const formattedTime = formatTimestamp(simulatedDate.toISOString());
                         timeElement.textContent = formattedTime;
-                        console.log(`🕒 Tiempo actualizado en pregunta ${index + 1}: ${formattedTime}`);
+                        // console.log(`🕒 Tiempo actualizado en pregunta ${index + 1}: ${formattedTime}`);
                     }
                 });
             } catch (error) {
@@ -5950,7 +5950,7 @@ Cargando información...
 
         // Función de prueba para verificar formato de timestamps
         function testTimestampFormat() {
-            console.log('🧪 Probando formato de timestamps:');
+            // console.log('🧪 Probando formato de timestamps:');
             const testDates = [
                 new Date(Date.now() - 5 * 60 * 1000),  // hace 5 minutos
                 new Date(Date.now() - 2 * 60 * 60 * 1000), // hace 2 horas
@@ -5960,37 +5960,37 @@ Cargando información...
             
             testDates.forEach((date, index) => {
                 const formatted = formatTimestamp(date.toISOString());
-                console.log(`📅 Prueba ${index + 1}: ${date.toISOString()} → ${formatted}`);
+                // console.log(`📅 Prueba ${index + 1}: ${date.toISOString()} → ${formatted}`);
             });
         }
 
         // Función simplificada para forzar actualización de timestamps
         function forceUpdateTimestamps() {
-            console.log('⚡ Forzando actualización de todos los timestamps...');
+            // console.log('⚡ Forzando actualización de todos los timestamps...');
             updateStaticTimestamps();
         }
 
         // Función para debugging - disponible en la consola del navegador
         window.debugTimestamps = function() {
-            console.log('🔧 === DEBUG TIMESTAMPS ===');
-            console.log('1. Probando función formatTimestamp...');
+            // console.log('🔧 === DEBUG TIMESTAMPS ===');
+            // console.log('1. Probando función formatTimestamp...');
             testTimestampFormat();
             
-            console.log('2. Verificando elementos .question-time...');
+            // console.log('2. Verificando elementos .question-time...');
             const timeElements = document.querySelectorAll('.question-time');
-            console.log(`📊 Encontrados ${timeElements.length} elementos .question-time`);
+            // console.log(`📊 Encontrados ${timeElements.length} elementos .question-time`);
             
             timeElements.forEach((el, index) => {
-                console.log(`📅 Elemento ${index + 1}: "${el.textContent}"`);
+                // console.log(`📅 Elemento ${index + 1}: "${el.textContent}"`);
             });
             
-            console.log('3. Forzando actualización...');
+            // console.log('3. Forzando actualización...');
             forceUpdateTimestamps();
             
             setTimeout(() => {
-                console.log('4. Verificando después de actualización...');
+                // console.log('4. Verificando después de actualización...');
                 timeElements.forEach((el, index) => {
-                    console.log(`📅 Elemento ${index + 1} actualizado: "${el.textContent}"`);
+                    // console.log(`📅 Elemento ${index + 1} actualizado: "${el.textContent}"`);
                 });
             }, 1000);
         };
@@ -5998,17 +5998,17 @@ Cargando información...
         // Función específica para precargar comunidad al inicio
         async function preloadCommunityData() {
             try {
-                console.log('🚀 PRECARGA: Inicializando datos de comunidad...');
+                // console.log('🚀 PRECARGA: Inicializando datos de comunidad...');
                 
                 // Asegurar que todas las dependencias estén disponibles
                 if (!window.communityAPI) {
-                    console.log('⚠️ PRECARGA: CommunityAPI no disponible, esperando...');
+                    // console.log('⚠️ PRECARGA: CommunityAPI no disponible, esperando...');
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
                 
                 // Forzar la carga de preguntas
                 await loadCommunityQuestions();
-                console.log('✅ PRECARGA: Datos de comunidad cargados');
+                // console.log('✅ PRECARGA: Datos de comunidad cargados');
                 
                 return true;
             } catch (error) {
@@ -6019,7 +6019,7 @@ Cargando información...
 
         // Inicializar cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Inicializando sistema de preguntas de comunidad...');
+            // console.log('🚀 Inicializando sistema de preguntas de comunidad...');
             
             // Ejecutar prueba de timestamps
             testTimestampFormat();
@@ -6033,10 +6033,10 @@ Cargando información...
                 setTimeout(() => {
                     const questionsWithId = document.querySelectorAll('.question-item[data-question-id]');
                     if (questionsWithId.length === 0) {
-                        console.log('📋 No hay preguntas dinámicas, actualizando timestamps estáticos');
+                        // console.log('📋 No hay preguntas dinámicas, actualizando timestamps estáticos');
                         forceUpdateTimestamps();
                     } else {
-                        console.log('📋 Preguntas dinámicas cargadas correctamente');
+                        // console.log('📋 Preguntas dinámicas cargadas correctamente');
                     }
                 }, 500);
             }, 1000);
@@ -6049,14 +6049,14 @@ Cargando información...
                 originalSwitchTab(contentType);
                 
                 if (contentType === 'community') {
-                    console.log('📋 Cargando preguntas para la pestaña de comunidad');
+                    // console.log('📋 Cargando preguntas para la pestaña de comunidad');
                     setTimeout(async () => {
                         await loadCommunityQuestions();
                         
                         // Si no se cargaron preguntas dinámicas, actualizar timestamps de las estáticas
                         const questionsWithId = document.querySelectorAll('.question-item[data-question-id]');
                         if (questionsWithId.length === 0) {
-                            console.log('📋 Actualizando timestamps estáticos en pestaña de comunidad');
+                            // console.log('📋 Actualizando timestamps estáticos en pestaña de comunidad');
                             updateStaticTimestamps();
                         }
                     }, 500);
@@ -6069,30 +6069,30 @@ Cargando información...
     <script>
         // Función global inmediata para el botón de pregunta
         window.showQuestionModal = function() {
-            console.log('🔘 Función de respaldo ejecutada');
+            // console.log('🔘 Función de respaldo ejecutada');
             const modal = document.getElementById('questionModal');
             if (modal) {
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
-                console.log('✅ Modal abierto con función de respaldo');
+                // console.log('✅ Modal abierto con función de respaldo');
             } else {
                 console.error('❌ Modal no encontrado');
             }
         };
         
         // Verificar que la función esté disponible
-        console.log('✅ Función showQuestionModal definida:', typeof window.showQuestionModal);
+        // console.log('✅ Función showQuestionModal definida:', typeof window.showQuestionModal);
         
         // ===== FUNCIONES GLOBALES DE COMUNIDAD =====
         // Función global inmediata para responder preguntas
         window.showAnswerModal = function(questionId, questionTitle, questionContent) {
-            console.log('🔄 Función global showAnswerModal ejecutada (inmediata):', questionId);
+            // console.log('🔄 Función global showAnswerModal ejecutada (inmediata):', questionId);
             
             // Verificar si chatOnline está disponible
             if (window.chatOnline && window.chatOnline.showAnswerModal) {
                 window.chatOnline.showAnswerModal(questionId);
             } else {
-                console.log('⚠️ ChatOnline no disponible aún, intentando fallback...');
+                // console.log('⚠️ ChatOnline no disponible aún, intentando fallback...');
                 
                 // Fallback: mostrar modal directamente
                 const modal = document.getElementById('answerModal');
@@ -6140,7 +6140,7 @@ Cargando información...
                     // Configurar event listeners básicos si no están configurados
                     window.setupBasicAnswerListeners();
                     
-                    console.log('✅ Modal de respuesta abierto con fallback completo');
+                    // console.log('✅ Modal de respuesta abierto con fallback completo');
                 } else {
                     console.error('❌ Modal de respuesta no encontrado');
                 }
@@ -6149,11 +6149,11 @@ Cargando información...
         
         // Función global inmediata para votar preguntas
         window.voteQuestion = async function(questionId, voteType) {
-            console.log('📊 Función global voteQuestion ejecutada (inmediata):', questionId, voteType);
+            // console.log('📊 Función global voteQuestion ejecutada (inmediata):', questionId, voteType);
 
             try {
                 if (window.communityAPI && window.communityAPI.voteQuestion) {
-                    console.log('🗳️ Usando communityAPI para votar...');
+                    // console.log('🗳️ Usando communityAPI para votar...');
 
                     // Asegurar que tenemos un usuario configurado
                     if (!window.communityAPI.currentUser) {
@@ -6165,7 +6165,7 @@ Cargando información...
                                 currentUser = JSON.parse(userData);
                             }
                         } catch (e) {
-                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                            // console.log('⚠️ No se pudo obtener usuario del localStorage');
                         }
 
                         if (!currentUser) {
@@ -6176,13 +6176,13 @@ Cargando información...
                         }
 
                         window.communityAPI.setCurrentUser(currentUser);
-                        console.log('👤 Usuario configurado:', currentUser);
+                        // console.log('👤 Usuario configurado:', currentUser);
                     }
 
                     const response = await window.communityAPI.voteQuestion(questionId, voteType);
 
                     if (response && response.success) {
-                        console.log('✅ Voto procesado exitosamente:', response);
+                        // console.log('✅ Voto procesado exitosamente:', response);
 
                         // Actualizar visualmente el botón de voto
                         updateVoteButtons(questionId, voteType, response.data);
@@ -6211,7 +6211,7 @@ Cargando información...
         
         // Función global inmediata para bookmark
         window.toggleBookmark = function(questionId) {
-            console.log('🔖 Función global toggleBookmark ejecutada (inmediata):', questionId);
+            // console.log('🔖 Función global toggleBookmark ejecutada (inmediata):', questionId);
             
             if (window.chatOnline && window.chatOnline.handleBookmark) {
                 const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
@@ -6222,7 +6222,7 @@ Cargando información...
                     console.error('❌ Botón bookmark no encontrado');
                 }
             } else {
-                console.log('⚠️ ChatOnline no disponible para toggleBookmark');
+                // console.log('⚠️ ChatOnline no disponible para toggleBookmark');
             }
         };
         
@@ -6230,13 +6230,13 @@ Cargando información...
         window.setupBasicAnswerListeners = function() {
             if (window.basicAnswerListenersSetup) return;
             
-            console.log('🔧 Configurando event listeners básicos para modal de respuesta...');
+            // console.log('🔧 Configurando event listeners básicos para modal de respuesta...');
             
             // Botón cerrar
             const closeBtn = document.getElementById('closeAnswerModal');
             if (closeBtn && !closeBtn.hasAttribute('data-listener-added')) {
                 closeBtn.addEventListener('click', () => {
-                    console.log('❌ Cerrando modal de respuesta');
+                    // console.log('❌ Cerrando modal de respuesta');
                     window.hideAnswerModal();
                 });
                 closeBtn.setAttribute('data-listener-added', 'true');
@@ -6246,7 +6246,7 @@ Cargando información...
             const cancelBtn = document.getElementById('cancelAnswerBtn');
             if (cancelBtn && !cancelBtn.hasAttribute('data-listener-added')) {
                 cancelBtn.addEventListener('click', () => {
-                    console.log('❌ Cancelando respuesta');
+                    // console.log('❌ Cancelando respuesta');
                     window.hideAnswerModal();
                 });
                 cancelBtn.setAttribute('data-listener-added', 'true');
@@ -6257,7 +6257,7 @@ Cargando información...
             if (answerForm && !answerForm.hasAttribute('data-listener-added')) {
                 answerForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    console.log('📤 Enviando respuesta...');
+                    // console.log('📤 Enviando respuesta...');
                     window.submitBasicAnswer();
                 });
                 answerForm.setAttribute('data-listener-added', 'true');
@@ -6267,14 +6267,14 @@ Cargando información...
             const overlay = document.querySelector('#answerModal .modal-overlay');
             if (overlay && !overlay.hasAttribute('data-listener-added')) {
                 overlay.addEventListener('click', () => {
-                    console.log('❌ Cerrando modal por click en overlay');
+                    // console.log('❌ Cerrando modal por click en overlay');
                     window.hideAnswerModal();
                 });
                 overlay.setAttribute('data-listener-added', 'true');
             }
             
             window.basicAnswerListenersSetup = true;
-            console.log('✅ Event listeners básicos configurados');
+            // console.log('✅ Event listeners básicos configurados');
         };
         
         // ===== FUNCIONES AUXILIARES PARA MODAL =====
@@ -6283,7 +6283,7 @@ Cargando información...
             if (modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = '';
-                console.log('✅ Modal de respuesta cerrado');
+                // console.log('✅ Modal de respuesta cerrado');
             }
         };
         
@@ -6302,13 +6302,13 @@ Cargando información...
                 return;
             }
             
-            console.log('📝 Respuesta:', answerContent.value.trim());
-            console.log('📋 Pregunta ID:', questionId);
+            // console.log('📝 Respuesta:', answerContent.value.trim());
+            // console.log('📋 Pregunta ID:', questionId);
 
             // Usar la API mejorada de comunidad
             if (window.communityAPI && window.communityAPI.createAnswer) {
                 try {
-                    console.log('🔧 Usando communityAPI.createAnswer mejorado...');
+                    // console.log('🔧 Usando communityAPI.createAnswer mejorado...');
 
                     // Asegurar que tenemos un usuario configurado
                     if (!window.communityAPI.currentUser) {
@@ -6320,7 +6320,7 @@ Cargando información...
                                 currentUser = JSON.parse(userData);
                             }
                         } catch (e) {
-                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                            // console.log('⚠️ No se pudo obtener usuario del localStorage');
                         }
 
                         if (!currentUser) {
@@ -6331,7 +6331,7 @@ Cargando información...
                         }
 
                         window.communityAPI.setCurrentUser(currentUser);
-                        console.log('👤 Usuario configurado para respuesta:', currentUser);
+                        // console.log('👤 Usuario configurado para respuesta:', currentUser);
                     }
 
                     const answerData = {
@@ -6342,7 +6342,7 @@ Cargando información...
                     const response = await window.communityAPI.createAnswer(questionId, answerData);
 
                     if (response && response.success) {
-                        console.log('✅ Respuesta guardada exitosamente:', response);
+                        // console.log('✅ Respuesta guardada exitosamente:', response);
                         window.showNotification('¡Respuesta publicada exitosamente!', 'success', 3000);
 
                         // Limpiar formulario y cerrar modal
@@ -6357,7 +6357,7 @@ Cargando información...
                         // Recargar preguntas después de un pequeño delay
                         setTimeout(async () => {
                             try {
-                                console.log('🔄 Recargando preguntas después de crear respuesta...');
+                                // console.log('🔄 Recargando preguntas después de crear respuesta...');
                                 if (window.loadCommunityQuestions) {
                                     await window.loadCommunityQuestions();
                                 }
@@ -6375,7 +6375,7 @@ Cargando información...
             } else {
                 // Fallback si communityAPI no está disponible
                 try {
-                    console.log('⚠️ Fallback: communityAPI no disponible, intentando método alternativo...');
+                    // console.log('⚠️ Fallback: communityAPI no disponible, intentando método alternativo...');
                     // Intentar obtener usuario real primero
                     let currentUser = null;
                     
@@ -6386,7 +6386,7 @@ Cargando información...
                             currentUser = JSON.parse(userData);
                         }
                     } catch (e) {
-                        console.log('⚠️ Error obteniendo usuario desde localStorage:', e);
+                        // console.log('⚠️ Error obteniendo usuario desde localStorage:', e);
                     }
                     
                     // Si no hay usuario real, usar UUID demo válido
@@ -6395,7 +6395,7 @@ Cargando información...
                             id: '123e4567-e89b-12d3-a456-426614174000', // UUID demo válido
                             name: 'Usuario Demo' 
                         };
-                        console.log('⚠️ Usando usuario demo con UUID válido:', currentUser);
+                        // console.log('⚠️ Usando usuario demo con UUID válido:', currentUser);
                     }
                     
                     // Preparar datos de respuesta
@@ -6406,7 +6406,7 @@ Cargando información...
                     
                     // Intentar usar la API de comunidad si está disponible
                     if (window.communityAPI && window.communityAPI.createAnswer) {
-                        console.log('💾 Guardando respuesta con communityAPI...');
+                        // console.log('💾 Guardando respuesta con communityAPI...');
                         const response = await window.communityAPI.createAnswer(questionId, answerData);
                         
                         if (response.success) {
@@ -6418,7 +6418,7 @@ Cargando información...
                             window.updateAnswerCount(questionId);
                             
                             // Recargar las preguntas para mostrar la nueva respuesta
-                            console.log('🔄 Recargando preguntas para mostrar nueva respuesta...');
+                            // console.log('🔄 Recargando preguntas para mostrar nueva respuesta...');
                             setTimeout(async () => {
                                 try {
                                     // Intentar usar función global loadCommunityQuestions
@@ -6429,11 +6429,11 @@ Cargando información...
                                     } else if (window.chatOnline && window.chatOnline.loadCommunityQuestions) {
                                         await window.chatOnline.loadCommunityQuestions('after-basic-answer');
                                     } else {
-                                        console.log('📋 Función de recarga no encontrada, intentando recarga manual');
+                                        // console.log('📋 Función de recarga no encontrada, intentando recarga manual');
                                         // Fallback: recargar la página completa si nada más funciona
                                         // window.location.reload();
                                     }
-                                    console.log('✅ Preguntas recargadas después de responder');
+                                    // console.log('✅ Preguntas recargadas después de responder');
                                 } catch (error) {
                                     console.error('❌ Error recargando preguntas:', error);
                                 }
@@ -6443,7 +6443,7 @@ Cargando información...
                         }
                     } else {
                         // Fallback básico si no hay API
-                        console.log('⚠️ CommunityAPI no disponible, usando fallback básico');
+                        // console.log('⚠️ CommunityAPI no disponible, usando fallback básico');
                         window.showNotification('Respuesta enviada (modo básico). La funcionalidad completa se activará cuando la página termine de cargar.', 'info', 5000);
                         answerContent.value = '';
                         window.hideAnswerModal();
@@ -6455,7 +6455,7 @@ Cargando información...
             }
         };
         
-        console.log('✅ Funciones de comunidad definidas:', {
+        // console.log('✅ Funciones de comunidad definidas:', {
             showAnswerModal: typeof window.showAnswerModal,
             voteQuestion: typeof window.voteQuestion,
             toggleBookmark: typeof window.toggleBookmark,
@@ -6466,12 +6466,12 @@ Cargando información...
         
         // Función global para actualizar contador de respuestas
         window.updateAnswerCount = function(questionId) {
-            console.log('📊 Actualizando contador de respuestas para pregunta:', questionId);
+            // console.log('📊 Actualizando contador de respuestas para pregunta:', questionId);
             
             // Buscar el elemento de la pregunta
             const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
             if (!questionElement) {
-                console.log('⚠️ Elemento de pregunta no encontrado:', questionId);
+                // console.log('⚠️ Elemento de pregunta no encontrado:', questionId);
                 return;
             }
             
@@ -6489,7 +6489,7 @@ Cargando información...
                 const newText = text.replace(/\d+/, newCount);
                 answerCountElement.textContent = newText;
                 
-                console.log(`✅ Contador actualizado de ${currentCount} a ${newCount} respuestas`);
+                // console.log(`✅ Contador actualizado de ${currentCount} a ${newCount} respuestas`);
                 
                 // Agregar efecto visual
                 answerCountElement.style.background = 'rgba(68, 229, 255, 0.2)';
@@ -6502,7 +6502,7 @@ Cargando información...
         
         // Función global para mostrar respuestas de una pregunta
         window.showQuestionAnswers = async function(questionId) {
-            console.log('📋 Cargando respuestas para pregunta:', questionId);
+            // console.log('📋 Cargando respuestas para pregunta:', questionId);
             
             // Mostrar modal de carga inmediatamente
             const loadingHTML = `
@@ -6521,7 +6521,7 @@ Cargando información...
             
             try {
                 if (!window.communityAPI) {
-                    console.log('⚠️ CommunityAPI no disponible');
+                    // console.log('⚠️ CommunityAPI no disponible');
                     // Cerrar modal de carga
                     document.querySelector('.answers-modal').remove();
                     document.body.style.overflow = '';
@@ -6736,11 +6736,11 @@ Cargando información...
 
         // ===== FUNCIONES PARA MANEJAR VOTOS Y COMENTARIOS =====
         window.voteAnswer = async function(answerId, voteType) {
-            console.log('📊 Función global voteAnswer ejecutada:', answerId, voteType);
+            // console.log('📊 Función global voteAnswer ejecutada:', answerId, voteType);
 
             try {
                 if (window.communityAPI && window.communityAPI.voteAnswer) {
-                    console.log('🗳️ Usando communityAPI para votar respuesta...');
+                    // console.log('🗳️ Usando communityAPI para votar respuesta...');
 
                     // Asegurar que tenemos un usuario configurado
                     if (!window.communityAPI.currentUser) {
@@ -6752,7 +6752,7 @@ Cargando información...
                                 currentUser = JSON.parse(userData);
                             }
                         } catch (e) {
-                            console.log('⚠️ No se pudo obtener usuario del localStorage');
+                            // console.log('⚠️ No se pudo obtener usuario del localStorage');
                         }
 
                         if (!currentUser) {
@@ -6763,13 +6763,13 @@ Cargando información...
                         }
 
                         window.communityAPI.setCurrentUser(currentUser);
-                        console.log('👤 Usuario configurado para voto de respuesta:', currentUser);
+                        // console.log('👤 Usuario configurado para voto de respuesta:', currentUser);
                     }
 
                     const response = await window.communityAPI.voteAnswer(answerId, voteType);
 
                     if (response && response.success) {
-                        console.log('✅ Voto en respuesta procesado exitosamente:', response);
+                        // console.log('✅ Voto en respuesta procesado exitosamente:', response);
 
                         // Actualizar visualmente el botón de voto de la respuesta
                         updateAnswerVoteButtons(answerId, voteType, response.data);
@@ -6799,7 +6799,7 @@ Cargando información...
 
         // Función para actualizar botones de voto de respuestas después de votar
         function updateAnswerVoteButtons(answerId, voteType, voteData) {
-            console.log('🔄 Actualizando botones de voto para respuesta:', answerId, voteType, voteData);
+            // console.log('🔄 Actualizando botones de voto para respuesta:', answerId, voteType, voteData);
 
             try {
                 // Buscar la respuesta específica en el DOM
@@ -6837,14 +6837,14 @@ Cargando información...
                     }
                 }
 
-                console.log('✅ Botones de voto de respuesta actualizados correctamente');
+                // console.log('✅ Botones de voto de respuesta actualizados correctamente');
             } catch (error) {
                 console.error('❌ Error actualizando botones de voto de respuesta:', error);
             }
         }
 
         window.showAnswerComments = function(answerId) {
-            console.log('💬 Mostrando comentarios para respuesta:', answerId);
+            // console.log('💬 Mostrando comentarios para respuesta:', answerId);
             // Aquí se implementaría la lógica para mostrar comentarios
             // Mostrar notificación personalizada en lugar de alert
             window.showNotification('Función de comentarios próximamente disponible', 'info', 3000);
@@ -6853,7 +6853,7 @@ Cargando información...
         window.closeAnswersModal = function() {
             const modal = document.querySelector('.answers-modal');
             if (modal && !modal.classList.contains('closing')) {
-                console.log('🔒 Cerrando modal de respuestas...');
+                // console.log('🔒 Cerrando modal de respuestas...');
                 modal.classList.add('closing');
                 
                 // Restaurar scroll del body
@@ -6861,7 +6861,7 @@ Cargando información...
                 
                 setTimeout(() => {
                     modal.remove();
-                    console.log('✅ Modal de respuestas cerrado completamente');
+                    // console.log('✅ Modal de respuestas cerrado completamente');
                 }, 300);
             }
         };
@@ -6878,40 +6878,40 @@ Cargando información...
         
         // Función global para mostrar modal de foto de LIA
         window.showLiaPhotoModal = function() {
-            console.log('📸 Función global de modal de LIA ejecutada');
+            // console.log('📸 Función global de modal de LIA ejecutada');
             const liaPhotoModal = document.getElementById('liaPhotoModal');
             if (liaPhotoModal) {
                 liaPhotoModal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
-                console.log('✅ Modal de foto de LIA abierto con función global');
+                // console.log('✅ Modal de foto de LIA abierto con función global');
             } else {
                 console.error('❌ Modal de foto de LIA no encontrado');
             }
         };
         
         // Verificar que la función esté disponible
-        console.log('✅ Función showLiaPhotoModal definida:', typeof window.showLiaPhotoModal);
+        // console.log('✅ Función showLiaPhotoModal definida:', typeof window.showLiaPhotoModal);
         
         // ===== FUNCIÓN PARA OBTENER CONTEXTO DEL CURSO =====
         window.obtenerContextoCurso = function() {
-            console.log('📚 [CONTEXT] Obteniendo contexto del curso...');
+            // console.log('📚 [CONTEXT] Obteniendo contexto del curso...');
             
             try {
                 // Obtener el contenido de transcripción actualmente visible
                 const transcriptContent = document.querySelector('[data-content="transcript"]');
                 if (!transcriptContent) {
-                    console.log('⚠️ [CONTEXT] No se encontró contenido de transcripción');
+                    // console.log('⚠️ [CONTEXT] No se encontró contenido de transcripción');
                     return getFallbackContext();
                 }
                 
                 // Verificar si el contenido de transcripción está visible
                 const isTranscriptVisible = transcriptContent.style.display !== 'none';
-                console.log('👀 [CONTEXT] Transcripción visible:', isTranscriptVisible);
+                // console.log('👀 [CONTEXT] Transcripción visible:', isTranscriptVisible);
                 
                 // Extraer título del video/módulo
                 const titleElement = transcriptContent.querySelector('h4');
                 const videoTitle = titleElement ? titleElement.textContent.trim() : 'Video actual';
-                console.log('🎬 [CONTEXT] Título del video:', videoTitle);
+                // console.log('🎬 [CONTEXT] Título del video:', videoTitle);
                 
                 // Extraer todo el texto de la transcripción
                 const paragraphs = transcriptContent.querySelectorAll('p');
@@ -6941,8 +6941,8 @@ Cargando información...
                     caracteresTranscripcion: transcripcion.length
                 };
                 
-                console.log('✅ [CONTEXT] Contexto generado exitosamente');
-                console.log('📊 [CONTEXT] Caracteres de transcripción:', contexto.caracteresTranscripcion);
+                // console.log('✅ [CONTEXT] Contexto generado exitosamente');
+                // console.log('📊 [CONTEXT] Caracteres de transcripción:', contexto.caracteresTranscripcion);
                 
                 // Retornar contexto formateado para el chat
                 return formatContextForChat(contexto);
@@ -6996,7 +6996,7 @@ INSTRUCCIONES:
         
         // Función de contexto de fallback
         function getFallbackContext() {
-            console.log('🔄 [CONTEXT] Usando contexto de fallback');
+            // console.log('🔄 [CONTEXT] Usando contexto de fallback');
             return `
 INFORMACIÓN DEL VIDEO ACTUAL:
 - Título: Introducción a la IA
@@ -7012,11 +7012,11 @@ INSTRUCCIONES:
         }
         
         // Verificar que la función esté disponible
-        console.log('✅ Función obtenerContextoCurso definida:', typeof window.obtenerContextoCurso);
+        // console.log('✅ Función obtenerContextoCurso definida:', typeof window.obtenerContextoCurso);
         
         // Función para actualizar contexto cuando cambie de video/módulo
         window.actualizarContextoVideo = function() {
-            console.log('🔄 [CONTEXT] Actualizando contexto por cambio de video');
+            // console.log('🔄 [CONTEXT] Actualizando contexto por cambio de video');
             // Esta función se puede llamar cuando cambie el video
             // Forzar regeneración del contexto en la próxima consulta
             if (window.chatOnlineInstance && typeof window.chatOnlineInstance.clearContextCache === 'function') {
@@ -7024,7 +7024,7 @@ INSTRUCCIONES:
             }
         };
         
-        console.log('✅ Función actualizarContextoVideo definida:', typeof window.actualizarContextoVideo);
+        // console.log('✅ Función actualizarContextoVideo definida:', typeof window.actualizarContextoVideo);
     </script>
     
     <!-- Chat Online Main Script -->
@@ -7032,10 +7032,10 @@ INSTRUCCIONES:
 
     <!-- SOLUCIÓN DIRECTA PARA CARGAR NOTAS -->
     <script>
-        console.log('🔧 Script inline para cargar notas - INICIADO');
+        // console.log('🔧 Script inline para cargar notas - INICIADO');
 
         function cargarNotasInmediatamente() {
-            console.log('🔍 Verificando autenticación de usuario...');
+            // console.log('🔍 Verificando autenticación de usuario...');
 
             // Verificar si hay un usuario autenticado
             const authToken = localStorage.getItem('authToken');
@@ -7046,13 +7046,13 @@ INSTRUCCIONES:
             const userEmail = localStorage.getItem('userEmail');
 
             // Logs detallados para debug
-            console.log('🔍 Valores de autenticación en localStorage:');
-            console.log('  authToken:', authToken);
-            console.log('  userData:', userData);
-            console.log('  currentUser:', currentUser);
-            console.log('  userName:', userName);
-            console.log('  userId:', userId);
-            console.log('  userEmail:', userEmail);
+            // console.log('🔍 Valores de autenticación en localStorage:');
+            // console.log('  authToken:', authToken);
+            // console.log('  userData:', userData);
+            // console.log('  currentUser:', currentUser);
+            // console.log('  userName:', userName);
+            // console.log('  userId:', userId);
+            // console.log('  userEmail:', userEmail);
 
             // Verificar si es modo demostración (más específico)
             const isDemoMode = (userName === 'Usuario Prueba' && userId === 'test-user-123' && userEmail === 'usuario@prueba.com');
@@ -7064,30 +7064,30 @@ INSTRUCCIONES:
                                    (userName && userName !== null && userName !== '' &&
                                     userName !== 'Usuario Prueba' && !userName.includes('demo'));
 
-            console.log('🔍 isDemoMode:', isDemoMode);
-            console.log('🔍 isAuthenticated:', isAuthenticated);
+            // console.log('🔍 isDemoMode:', isDemoMode);
+            // console.log('🔍 isAuthenticated:', isAuthenticated);
 
             if (isDemoMode || !isAuthenticated) {
-                console.log('🚫 Usuario en modo demo o no autenticado - no se cargarán notas');
+                // console.log('🚫 Usuario en modo demo o no autenticado - no se cargarán notas');
                 return;
             }
 
-            console.log('✅ Usuario autenticado válido - procediendo a cargar notas');
-            console.log('🔍 Buscando elemento notesList...');
+            // console.log('✅ Usuario autenticado válido - procediendo a cargar notas');
+            // console.log('🔍 Buscando elemento notesList...');
             const notesList = document.getElementById('notesList');
 
             if (!notesList) {
-                console.log('❌ notesList no encontrado, reintentando en 1 segundo...');
+                // console.log('❌ notesList no encontrado, reintentando en 1 segundo...');
                 setTimeout(cargarNotasInmediatamente, 1000);
                 return;
             }
 
-            console.log('✅ notesList encontrado, cargando notas...');
+            // console.log('✅ notesList encontrado, cargando notas...');
             const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-            console.log('📝 Notas en localStorage:', notes.length, notes);
+            // console.log('📝 Notas en localStorage:', notes.length, notes);
 
             if (notes.length === 0) {
-                console.log('📝 No hay notas, mostrando estado vacío');
+                // console.log('📝 No hay notas, mostrando estado vacío');
                 notesList.innerHTML = `
                     <div class="no-notes">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -7114,20 +7114,20 @@ INSTRUCCIONES:
                 setTimeout(() => window.chatOnline.loadNotesList(), 50);
             }
 
-            console.log('✅ Notas cargadas exitosamente en el DOM');
+            // console.log('✅ Notas cargadas exitosamente en el DOM');
         }
 
         // Función para limpiar notas del localStorage
         function limpiarNotasLocalStorage() {
-            console.log('🧹 Limpiando notas del localStorage...');
+            // console.log('🧹 Limpiando notas del localStorage...');
             const notasAntes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-            console.log('📝 Notas antes de limpiar:', notasAntes.length, notasAntes);
+            // console.log('📝 Notas antes de limpiar:', notasAntes.length, notasAntes);
 
             localStorage.removeItem('lia_notes');
 
             const notasDespues = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-            console.log('📝 Notas después de limpiar:', notasDespues.length, notasDespues);
-            console.log('✅ Limpieza completada');
+            // console.log('📝 Notas después de limpiar:', notasDespues.length, notasDespues);
+            // console.log('✅ Limpieza completada');
 
             // Recargar la lista de notas
             const notesList = document.getElementById('notesList');
@@ -7152,7 +7152,7 @@ INSTRUCCIONES:
 
         // Función para bloquear botones de notas en modo demo
         function bloquearBotonesEnModoDemo() {
-            console.log('🚫 Verificando si bloquear botones de notas...');
+            // console.log('🚫 Verificando si bloquear botones de notas...');
 
             // Misma lógica de validación de autenticación
             const authToken = localStorage.getItem('authToken');
@@ -7170,7 +7170,7 @@ INSTRUCCIONES:
                                     userName !== 'Usuario Prueba' && !userName.includes('demo'));
 
             if (isDemoMode || !isAuthenticated) {
-                console.log('🚫 Modo demo detectado - bloqueando botones de notas');
+                // console.log('🚫 Modo demo detectado - bloqueando botones de notas');
 
                 // Buscar y deshabilitar botón de crear nota
                 const addNoteBtn = document.getElementById('addNoteBtn');
@@ -7184,7 +7184,7 @@ INSTRUCCIONES:
                     addNoteBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('🚫 Creación de notas bloqueada en modo demo');
+                        // console.log('🚫 Creación de notas bloqueada en modo demo');
                         alert('Debes iniciar sesión para crear notas');
                         return false;
                     });
@@ -7199,9 +7199,9 @@ INSTRUCCIONES:
                     searchNotesBtn.title = 'Inicia sesión para buscar notas';
                 }
 
-                console.log('🚫 Botones de notas bloqueados exitosamente');
+                // console.log('🚫 Botones de notas bloqueados exitosamente');
             } else {
-                console.log('✅ Usuario autenticado - botones de notas habilitados');
+                // console.log('✅ Usuario autenticado - botones de notas habilitados');
             }
         }
 
@@ -7248,7 +7248,7 @@ INSTRUCCIONES:
             identifier: 'intro-to-ai'
         };
         
-        console.log('🌍 Contexto global establecido:', { 
+        // console.log('🌍 Contexto global establecido:', { 
             user: window.currentUser, 
             course: window.currentCourse 
         });
@@ -7268,7 +7268,7 @@ INSTRUCCIONES:
     <!-- Sistema dinámico V2 ya cargado arriba -->
     <!-- Inicialización del Sistema Dinámico -->
     <script>
-        console.log('🚀 Inicializando sistema dinámico...');
+        // console.log('🚀 Inicializando sistema dinámico...');
 
         
 
@@ -7276,19 +7276,19 @@ INSTRUCCIONES:
 
         document.addEventListener('DOMContentLoaded', async function() {
 
-            console.log('🌟 DOM listo - Inicializando sistema de cursos dinámico');
+            // console.log('🌟 DOM listo - Inicializando sistema de cursos dinámico');
 
             // Verificación previa de scripts cargados
-            console.log('🔍 Verificando componentes disponibles...');
-            console.log('CourseProgressManagerV2:', typeof window.CourseProgressManagerV2);
-            console.log('YouTubeProgressTracker:', typeof window.YouTubeProgressTracker);
-            console.log('ChatOnlineV2:', typeof window.ChatOnlineV2);
+            // console.log('🔍 Verificando componentes disponibles...');
+            // console.log('CourseProgressManagerV2:', typeof window.CourseProgressManagerV2);
+            // console.log('YouTubeProgressTracker:', typeof window.YouTubeProgressTracker);
+            // console.log('ChatOnlineV2:', typeof window.ChatOnlineV2);
 
             try {
 
                 // 1. Sistema de Módulos Expandibles se inicializa automáticamente con DOMContentLoaded
 
-                console.log('✅ Sistema de Módulos Expandibles se inicializará automáticamente');
+                // console.log('✅ Sistema de Módulos Expandibles se inicializará automáticamente');
 
                 
 
@@ -7300,7 +7300,7 @@ INSTRUCCIONES:
 
                     await window.courseProgressManager.init();
 
-                    console.log('✅ Course Progress Manager V2 inicializado');
+                    // console.log('✅ Course Progress Manager V2 inicializado');
 
                 } else {
 
@@ -7308,17 +7308,17 @@ INSTRUCCIONES:
                     
                     // Fallback: intentar cargar el script dinámicamente
                     try {
-                        console.log('🔄 Intentando cargar CourseProgressManagerV2 dinámicamente...');
+                        // console.log('🔄 Intentando cargar CourseProgressManagerV2 dinámicamente...');
                         
                         // Usar función robusta de carga si está disponible
                         if (window.loadScriptWithFallback) {
                             window.loadScriptWithFallback('../scripts/course-progress-manager-v2.js', 
                                 async () => {
-                                    console.log('✅ Script cargado dinámicamente (fallback robusto)');
+                                    // console.log('✅ Script cargado dinámicamente (fallback robusto)');
                                     if (window.CourseProgressManagerV2) {
                                         window.courseProgressManager = new CourseProgressManagerV2();
                                         await window.courseProgressManager.init();
-                                        console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
+                                        // console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
                                     }
                                 },
                                 () => console.error('❌ Error en carga dinámica del script (todos los fallbacks fallaron)')
@@ -7328,11 +7328,11 @@ INSTRUCCIONES:
                             const script = document.createElement('script');
                             script.src = '../scripts/course-progress-manager-v2.js';
                             script.onload = async () => {
-                                console.log('✅ Script cargado dinámicamente');
+                                // console.log('✅ Script cargado dinámicamente');
                                 if (window.CourseProgressManagerV2) {
                                     window.courseProgressManager = new CourseProgressManagerV2();
                                     await window.courseProgressManager.init();
-                                    console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
+                                    // console.log('✅ Course Progress Manager V2 inicializado (carga dinámica)');
                                 }
                             };
                             script.onerror = () => console.error('❌ Error en carga dinámica del script');
@@ -7354,7 +7354,7 @@ INSTRUCCIONES:
 
                     await window.chatOnlineV2.init();
 
-                    console.log('✅ Chat Online V2 inicializado');
+                    // console.log('✅ Chat Online V2 inicializado');
 
                 } else {
 
@@ -7366,19 +7366,19 @@ INSTRUCCIONES:
                 setTimeout(() => {
                     if (typeof initializeMessageProtection === 'function') {
                         initializeMessageProtection();
-                        console.log('✅ Sistema de protección de mensajes inicializado');
+                        // console.log('✅ Sistema de protección de mensajes inicializado');
                     }
                 }, 1000);
 
                 
 
-                console.log('🎉 Sistema dinámico completamente inicializado');
+                // console.log('🎉 Sistema dinámico completamente inicializado');
 
                 // Verificación final de componentes
                 setTimeout(() => {
-                    console.log('🔍 Verificación final de componentes:');
-                    console.log('- CourseProgressManager:', window.courseProgressManager ? '✅' : '❌');
-                    console.log('- ChatOnlineV2:', window.chatOnlineV2 ? '✅' : '❌');
+                    // console.log('🔍 Verificación final de componentes:');
+                    // console.log('- CourseProgressManager:', window.courseProgressManager ? '✅' : '❌');
+                    // console.log('- ChatOnlineV2:', window.chatOnlineV2 ? '✅' : '❌');
                     
                     if (!window.courseProgressManager) {
                         console.warn('⚠️ CourseProgressManager no inicializado - puede afectar la carga de videos');
@@ -7452,12 +7452,12 @@ INSTRUCCIONES:
                             const avatarCircle = messageElement.querySelector('.user-avatar-circle');
 
                             if (authorName && authorName.textContent !== originalName) {
-                                console.log('🛡️ Restaurando nombre de usuario en mensaje protegido:', originalName);
+                                // console.log('🛡️ Restaurando nombre de usuario en mensaje protegido:', originalName);
                                 authorName.textContent = originalName;
                             }
 
                             if (avatarCircle && avatarCircle.textContent !== originalAvatar) {
-                                console.log('🛡️ Restaurando avatar en mensaje protegido:', originalAvatar);
+                                // console.log('🛡️ Restaurando avatar en mensaje protegido:', originalAvatar);
                                 avatarCircle.textContent = originalAvatar;
                             }
                         }
@@ -7506,14 +7506,14 @@ INSTRUCCIONES:
                                                 const originalName = authorName?.getAttribute('data-original-name');
 
                                                 if (originalName && authorName && authorName.textContent !== originalName) {
-                                                    console.log('🛡️ MutationObserver: Restaurando nombre modificado:', originalName);
+                                                    // console.log('🛡️ MutationObserver: Restaurando nombre modificado:', originalName);
                                                     authorName.textContent = originalName;
                                                 }
 
                                                 if (originalName && avatarCircle) {
                                                     const expectedAvatar = originalName.charAt(0).toUpperCase();
                                                     if (avatarCircle.textContent !== expectedAvatar) {
-                                                        console.log('🛡️ MutationObserver: Restaurando avatar modificado:', expectedAvatar);
+                                                        // console.log('🛡️ MutationObserver: Restaurando avatar modificado:', expectedAvatar);
                                                         avatarCircle.textContent = expectedAvatar;
                                                     }
                                                 }
@@ -7530,7 +7530,7 @@ INSTRUCCIONES:
                                 });
 
                                 window.chatMutationObserver = observer;
-                                console.log('🛡️ MutationObserver inicializado para protección de mensajes');
+                                // console.log('🛡️ MutationObserver inicializado para protección de mensajes');
                             }
                         }
 
@@ -7548,7 +7548,7 @@ INSTRUCCIONES:
                             }
                         });
 
-                        console.log('✅ Event listeners configurados correctamente');
+                        // console.log('✅ Event listeners configurados correctamente');
                     } else {
                         console.error('❌ No se encontraron todos los elementos necesarios');
                     }
@@ -7717,7 +7717,7 @@ INSTRUCCIONES:
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
                             const currentUser = obtenerUsuarioActual();
-                            console.log('[LIA] 👤 Usuario actual:', currentUser);
+                            // console.log('[LIA] 👤 Usuario actual:', currentUser);
 
                             
 
@@ -7725,7 +7725,7 @@ INSTRUCCIONES:
 
                             const context = obtenerContextoCurso();
 
-                            console.log('[LIA] 📚 Contexto del curso:', context);
+                            // console.log('[LIA] 📚 Contexto del curso:', context);
 
                             
 
@@ -7733,17 +7733,17 @@ INSTRUCCIONES:
 
                             const prompt = `Usuario: ${mensaje}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
 
-                            console.log('[LIA] 📝 Prompt preparado:', prompt);
+                            // console.log('[LIA] 📝 Prompt preparado:', prompt);
 
                             
 
-                            console.log('[LIA] 🔄 Enviando solicitud a API...');
+                            // console.log('[LIA] 🔄 Enviando solicitud a API...');
 
-                            console.log('[LIA] 🌐 URL de API:', '/api/openai');
+                            // console.log('[LIA] 🌐 URL de API:', '/api/openai');
 
-                            console.log('[LIA] 🔑 Token de autorización:', obtenerTokenAuth().substring(0, 20) + '...');
+                            // console.log('[LIA] 🔑 Token de autorización:', obtenerTokenAuth().substring(0, 20) + '...');
 
-                            console.log('[LIA] 👤 User ID:', currentUser?.id || 'chat-online-user');
+                            // console.log('[LIA] 👤 User ID:', currentUser?.id || 'chat-online-user');
 
                             
 
@@ -7759,34 +7759,34 @@ INSTRUCCIONES:
 
                             let apiUrl;
 
-                            console.log('[LIA] 🔍 Debugging URL:');
-                            console.log('[LIA] 🌐 Hostname:', window.location.hostname);
-                            console.log('[LIA] 🔌 Puerto detectado:', currentPort);
-                            console.log('[LIA] 🏠 Es localhost:', isLocalhost);
-                            console.log('[LIA] 🌐 Es Netlify:', isNetlify);
+                            // console.log('[LIA] 🔍 Debugging URL:');
+                            // console.log('[LIA] 🌐 Hostname:', window.location.hostname);
+                            // console.log('[LIA] 🔌 Puerto detectado:', currentPort);
+                            // console.log('[LIA] 🏠 Es localhost:', isLocalhost);
+                            // console.log('[LIA] 🌐 Es Netlify:', isNetlify);
 
                             // Lógica mejorada para detección de entorno
                             if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
                                 apiUrl = '/api/openai';  // Servidor Express local
-                                console.log('[LIA] ✅ Usando servidor Express local (puerto 3000)');
+                                // console.log('[LIA] ✅ Usando servidor Express local (puerto 3000)');
                             } else if (isLocalhost && currentPort === '8888') {
                                 apiUrl = '/.netlify/functions/openai';  // Para Netlify Dev
-                                console.log('[LIA] ✅ Usando Netlify Dev local');
+                                // console.log('[LIA] ✅ Usando Netlify Dev local');
                             } else if (isNetlify) {
                                 apiUrl = '/.netlify/functions/openai';  // Netlify en producción
-                                console.log('[LIA] ✅ Usando Netlify Functions en producción');
+                                // console.log('[LIA] ✅ Usando Netlify Functions en producción');
                             } else if (isLocalhost) {
                                 apiUrl = '/api/openai';  // Fallback local
-                                console.log('[LIA] ✅ Usando fallback local Express');
+                                // console.log('[LIA] ✅ Usando fallback local Express');
                             } else {
                                 // Para otros entornos de producción (Heroku, etc.)
                                 apiUrl = '/api/openai';  // Servidor Express en producción
-                                console.log('[LIA] ✅ Usando servidor Express en producción');
+                                // console.log('[LIA] ✅ Usando servidor Express en producción');
                             }
 
                             
 
-                            console.log('[LIA] 🎯 URL final de API:', apiUrl);
+                            // console.log('[LIA] 🎯 URL final de API:', apiUrl);
 
                             
 
@@ -7817,7 +7817,7 @@ INSTRUCCIONES:
 
                             
 
-                            console.log('[LIA] 📡 Respuesta del servidor:', response.status, response.statusText);
+                            // console.log('[LIA] 📡 Respuesta del servidor:', response.status, response.statusText);
 
                             
 
@@ -7835,7 +7835,7 @@ INSTRUCCIONES:
 
                                 const data = await response.json();
 
-                                console.log('[LIA] ✅ Datos recibidos:', data);
+                                // console.log('[LIA] ✅ Datos recibidos:', data);
 
                                 
 
@@ -7845,23 +7845,23 @@ INSTRUCCIONES:
 
                                     respuestaLIA = data.response;
 
-                                    console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
+                                    // console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
 
                                     if (data.usage) {
 
-                                        console.log('[LIA] 📊 Tokens utilizados:', data.usage.total_tokens);
+                                        // console.log('[LIA] 📊 Tokens utilizados:', data.usage.total_tokens);
 
                                     }
 
                                     if (data.cost) {
 
-                                        console.log('[LIA] 💰 Costo estimado:', data.cost);
+                                        // console.log('[LIA] 💰 Costo estimado:', data.cost);
 
                                     }
 
                                 } else {
 
-                                    console.log('[LIA] ⚠️ Respuesta vacía de la API');
+                                    // console.log('[LIA] ⚠️ Respuesta vacía de la API');
 
                                     respuestaLIA = '❌ Error: La API respondió correctamente pero sin contenido. Verifica la configuración de OpenAI.';
 
@@ -7906,7 +7906,7 @@ INSTRUCCIONES:
 
                                 
 
-                                console.log('[LIA] ✅ Respuesta de LIA mostrada');
+                                // console.log('[LIA] ✅ Respuesta de LIA mostrada');
 
                                 
 
@@ -7914,13 +7914,13 @@ INSTRUCCIONES:
 
                                 const errorText = await response.text();
 
-                                console.log('[LIA] ❌ Error de API:', response.status, response.statusText);
+                                // console.log('[LIA] ❌ Error de API:', response.status, response.statusText);
 
-                                console.log('[LIA] 📄 Texto del error:', errorText);
+                                // console.log('[LIA] 📄 Texto del error:', errorText);
 
-                                console.log('[LIA] 🌐 URL que falló:', response.url);
+                                // console.log('[LIA] 🌐 URL que falló:', response.url);
 
-                                console.log('[LIA] 🔍 Headers de respuesta:', Object.fromEntries(response.headers.entries()));
+                                // console.log('[LIA] 🔍 Headers de respuesta:', Object.fromEntries(response.headers.entries()));
 
                                 
 
@@ -7985,7 +7985,7 @@ INSTRUCCIONES:
 
                                 
 
-                                console.log('[LIA] 🔄 Respuesta de fallback mostrada');
+                                // console.log('[LIA] 🔄 Respuesta de fallback mostrada');
                             }
                         } catch (error) {
                             if (typingIndicator) {
@@ -8017,7 +8017,7 @@ INSTRUCCIONES:
                             };
                         }
                     } catch (e) {
-                        console.log('[LIA] Error parseando userData:', e);
+                        // console.log('[LIA] Error parseando userData:', e);
                     }
                 }
 
@@ -8033,7 +8033,7 @@ INSTRUCCIONES:
                             };
                         }
                     } catch (e) {
-                        console.log('[LIA] Error parseando currentUser:', e);
+                        // console.log('[LIA] Error parseando currentUser:', e);
                     }
                 }
 
@@ -8053,7 +8053,7 @@ INSTRUCCIONES:
                     email: userEmail || 'usuario@ejemplo.com'
                 };
             } catch (error) {
-                console.log('[LIA] Error obteniendo usuario:', error);
+                // console.log('[LIA] Error obteniendo usuario:', error);
                 return {
                     id: 'chat-online-user',
                     username: 'Usuario',
@@ -8083,7 +8083,7 @@ INSTRUCCIONES:
 
             } catch (error) {
 
-                console.log('[LIA] Error obteniendo contexto:', error);
+                // console.log('[LIA] Error obteniendo contexto:', error);
 
                 return 'Módulo: ¿Qué es la IA?. Contexto: Curso de Inteligencia Artificial.';
             }
@@ -8093,7 +8093,7 @@ INSTRUCCIONES:
             const token = localStorage.getItem('authToken');
 
             if (token) {
-                console.log('[LIA] 🔑 Usando token real del localStorage');
+                // console.log('[LIA] 🔑 Usando token real del localStorage');
                 return token;
             }
 
@@ -8115,7 +8115,7 @@ INSTRUCCIONES:
             // Token de desarrollo con formato JWT válido
             const devToken = `${header}.${payload}.fake-signature-for-dev-testing-only`;
 
-            console.log('[LIA] 🔧 Usando token de desarrollo JWT válido');
+            // console.log('[LIA] 🔧 Usando token de desarrollo JWT válido');
 
             return devToken;
         }
@@ -8133,7 +8133,7 @@ INSTRUCCIONES:
                 messageAuthors.forEach(authorElement => {
                     if (authorElement.textContent === 'Usuario' || authorElement.textContent === 'Usuario Prueba') {
                         authorElement.textContent = userName;
-                        console.log('[LIA] 📝 Nombre de usuario actualizado en mensaje no protegido:', userName);
+                        // console.log('[LIA] 📝 Nombre de usuario actualizado en mensaje no protegido:', userName);
                     }
                 });
 
@@ -8143,7 +8143,7 @@ INSTRUCCIONES:
                 avatarCircles.forEach(avatarElement => {
                     if (avatarElement.textContent === 'U' || avatarElement.textContent === 'P') {
                         avatarElement.textContent = avatarLetter;
-                        console.log('[LIA] 📝 Avatar de usuario actualizado en mensaje no protegido:', avatarLetter);
+                        // console.log('[LIA] 📝 Avatar de usuario actualizado en mensaje no protegido:', avatarLetter);
                     }
                 });
             }
@@ -8161,13 +8161,13 @@ INSTRUCCIONES:
 
         // ===== FUNCIÓN INMEDIATA PARA TABS - NO DEPENDE DE NADA =====
         function switchTab(contentType) {
-            console.log('🔄 switchTab directo:', contentType);
+            // console.log('🔄 switchTab directo:', contentType);
             
             // Ocultar todos los contenidos
             const allContents = document.querySelectorAll('.content-area [data-content]');
             allContents.forEach(content => {
                     content.style.display = 'none';
-                console.log('❌ Ocultando:', content.getAttribute('data-content'));
+                // console.log('❌ Ocultando:', content.getAttribute('data-content'));
             });
             
             // Mostrar el contenido seleccionado
@@ -8175,7 +8175,7 @@ INSTRUCCIONES:
             if (targetContent) {
                 const displayType = contentType === 'community' ? 'flex' : 'block';
                 targetContent.style.display = displayType;
-                console.log('✅ Contenido mostrado:', contentType, 'con display:', displayType);
+                // console.log('✅ Contenido mostrado:', contentType, 'con display:', displayType);
             } else {
                 console.error('❌ No se encontró contenido para:', contentType);
             }
@@ -8187,7 +8187,7 @@ INSTRUCCIONES:
             const activeTab = document.querySelector(`.content-tabs .tab-btn[data-content="${contentType}"]`);
             if (activeTab) {
                 activeTab.classList.add('active');
-                console.log('✅ Tab activado:', contentType);
+                // console.log('✅ Tab activado:', contentType);
             } else {
                 console.error('❌ No se encontró tab para:', contentType);
             }
@@ -8195,22 +8195,22 @@ INSTRUCCIONES:
         
         // Hacer disponible globalmente INMEDIATAMENTE
         window.switchTab = switchTab;
-        console.log('✅ switchTab definido directamente en HTML');
+        // console.log('✅ switchTab definido directamente en HTML');
         
         // Función de debug temporal
         window.debugCommunity = function() {
-            console.log('🔍 DEBUG: Verificando elementos de comunidad...');
+            // console.log('🔍 DEBUG: Verificando elementos de comunidad...');
             const communityContent = document.querySelector('.community-content');
             const communityTab = document.querySelector('.tab-btn[data-content="community"]');
-            console.log('📋 Community content:', communityContent);
-            console.log('📋 Community tab:', communityTab);
-            console.log('📋 Community content display:', communityContent ? communityContent.style.display : 'No encontrado');
-            console.log('📋 Community content computed style:', communityContent ? window.getComputedStyle(communityContent).display : 'No encontrado');
+            // console.log('📋 Community content:', communityContent);
+            // console.log('📋 Community tab:', communityTab);
+            // console.log('📋 Community content display:', communityContent ? communityContent.style.display : 'No encontrado');
+            // console.log('📋 Community content computed style:', communityContent ? window.getComputedStyle(communityContent).display : 'No encontrado');
             
             // Forzar mostrar comunidad
             if (communityContent) {
                 communityContent.style.display = 'flex';
-                console.log('✅ Comunidad forzada a mostrar');
+                // console.log('✅ Comunidad forzada a mostrar');
             }
         };
 
@@ -8228,37 +8228,37 @@ INSTRUCCIONES:
       
       // Función para cargar configuración de Supabase (MEJORADA PARA NETLIFY)
       async function loadSupabaseConfig() {
-        console.log('🔄 Iniciando carga de configuración de Supabase...');
+        // console.log('🔄 Iniciando carga de configuración de Supabase...');
         
         try {
-          console.log('📡 Haciendo fetch a /api/supabase-config...');
+          // console.log('📡 Haciendo fetch a /api/supabase-config...');
           const response = await fetch('/api/supabase-config');
-          console.log('📡 Response status:', response.status, response.statusText);
+          // console.log('📡 Response status:', response.status, response.statusText);
           
           if (response.ok) {
             const config = await response.json();
-            console.log('📋 Respuesta de API:', config);
+            // console.log('📋 Respuesta de API:', config);
             
             window.SUPABASE_URL = config.url;
             window.SUPABASE_ANON_KEY = config.anon_key;
-            console.log('✅ Configuración de Supabase cargada');
-            console.log('   - URL:', window.SUPABASE_URL ? 'Configurada' : 'Faltante');
-            console.log('   - KEY:', window.SUPABASE_ANON_KEY ? 'Configurada' : 'Faltante');
+            // console.log('✅ Configuración de Supabase cargada');
+            // console.log('   - URL:', window.SUPABASE_URL ? 'Configurada' : 'Faltante');
+            // console.log('   - KEY:', window.SUPABASE_ANON_KEY ? 'Configurada' : 'Faltante');
             
             // INICIALIZAR EL CLIENTE DE SUPABASE
             if (typeof supabase !== 'undefined' && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-              console.log('🔧 Inicializando cliente de Supabase...');
+              // console.log('🔧 Inicializando cliente de Supabase...');
               window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-              console.log('✅ Cliente de Supabase inicializado correctamente');
+              // console.log('✅ Cliente de Supabase inicializado correctamente');
               
               // Verificar conexión
               try {
-                console.log('🔍 Verificando autenticación...');
+                // console.log('🔍 Verificando autenticación...');
                 const { data: { user }, error } = await window.supabase.auth.getUser();
                 if (error) {
                   console.warn('⚠️ Usuario no autenticado:', error.message);
                 } else {
-                  console.log('✅ Usuario Supabase:', user?.email || 'Anónimo');
+                  // console.log('✅ Usuario Supabase:', user?.email || 'Anónimo');
                 }
               } catch (authError) {
                 console.warn('⚠️ Error verificando autenticación:', authError);
@@ -8276,7 +8276,7 @@ INSTRUCCIONES:
               console.error('   - SUPABASE_ANON_KEY:', !!window.SUPABASE_ANON_KEY);
               
               // Intentar usar variables de entorno del navegador como fallback
-              console.log('🔄 Intentando fallback con variables de entorno...');
+              // console.log('🔄 Intentando fallback con variables de entorno...');
               window.SUPABASE_URL = window.SUPABASE_URL || 'https://miwbzotcuaywpdbidpwo.supabase.co';
               if (window.SUPABASE_URL && typeof supabase !== 'undefined') {
                 console.warn('⚠️ Usando configuración de fallback para Supabase');
@@ -8288,19 +8288,19 @@ INSTRUCCIONES:
             console.error('❌ Error cargando configuración de Supabase:', response.status, errorText);
             
             // Fallback para Netlify: usar configuración hardcodeada temporalmente
-            console.log('🔄 Usando fallback de configuración...');
+            // console.log('🔄 Usando fallback de configuración...');
             useFallbackSupabaseConfig();
           }
         } catch (error) {
           console.error('❌ Error de red al cargar Supabase config:', error);
-          console.log('🔄 Usando fallback de configuración...');
+          // console.log('🔄 Usando fallback de configuración...');
           useFallbackSupabaseConfig();
         }
       }
       
       // Función de fallback para configuración de Supabase
       function useFallbackSupabaseConfig() {
-        console.log('⚡ Inicializando fallback de Supabase...');
+        // console.log('⚡ Inicializando fallback de Supabase...');
         
         // Configuración de fallback (solo para depuración en Netlify)
         window.SUPABASE_URL = 'https://miwbzotcuaywpdbidpwo.supabase.co';
@@ -8742,7 +8742,7 @@ INSTRUCCIONES:
             try {
                 const activityContent = document.querySelector('.activity-content');
                 if (!activityContent) {
-                    console.log('⚠️ No se encontró contenido de actividad');
+                    // console.log('⚠️ No se encontró contenido de actividad');
                     showNotification('No hay contenido de actividad para copiar', 'warning');
                     return;
                 }
@@ -8763,7 +8763,7 @@ INSTRUCCIONES:
                 }
 
                 if (currentVideo && currentVideo.actividad_detalle && currentVideo.actividad_detalle.length > 0) {
-                    console.log('📋 Construyendo texto desde actividad_detalle');
+                    // console.log('📋 Construyendo texto desde actividad_detalle');
                     
                     // Construir descripción desde actividad_detalle
                     const descripcionItems = currentVideo.actividad_detalle.filter(item => item.seccion === 'descripcion');
@@ -8807,7 +8807,7 @@ INSTRUCCIONES:
                             .join('\n');
                     }
                 } else {
-                    console.log('📋 Construyendo texto desde DOM (modo legacy)');
+                    // console.log('📋 Construyendo texto desde DOM (modo legacy)');
                     
                     // Extraer texto de descripción desde DOM (fallback legacy)
                     const descriptionElement = activityContent.querySelector('.activity-description-content, .activity-description');
@@ -8834,7 +8834,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
                 // Copiar al portapapeles
                 navigator.clipboard.writeText(fullText).then(() => {
-                    console.log('✅ Actividad copiada al portapapeles');
+                    // console.log('✅ Actividad copiada al portapapeles');
                     showNotification('¡Actividad copiada al portapapeles!', 'success');
                 }).catch(err => {
                     console.error('❌ Error copiando actividad:', err);
@@ -8850,7 +8850,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
         // Función para actualizar botones de voto después de votar
         function updateVoteButtons(questionId, voteType, voteData) {
-            console.log('🔄 Actualizando botones de voto para pregunta:', questionId, voteType, voteData);
+            // console.log('🔄 Actualizando botones de voto para pregunta:', questionId, voteType, voteData);
 
             try {
                 // Buscar la pregunta específica en el DOM
@@ -8888,7 +8888,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     }
                 }
 
-                console.log('✅ Botones de voto actualizados correctamente');
+                // console.log('✅ Botones de voto actualizados correctamente');
             } catch (error) {
                 console.error('❌ Error actualizando botones de voto:', error);
             }
@@ -8973,7 +8973,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 }, 500);
             }
 
-            console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentageRounded}%)`);
+            // console.log(`📊 Progreso actualizado: ${completedVideos}/${totalVideos} videos (${percentageRounded}%)`);
         }
 
         // ===== FUNCIÓN PARA CONTAR VIDEOS COMPLETADOS =====
@@ -9026,7 +9026,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
         // ===== ESCUCHAR EVENTOS DE PROGRESO =====
         window.addEventListener('videoCompleted', function(event) {
-            console.log('🎬 Video completado detectado, actualizando progreso...');
+            // console.log('🎬 Video completado detectado, actualizando progreso...');
             setTimeout(() => {
                 const videoCounts = countCompletedVideos();
                 updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
@@ -9034,7 +9034,7 @@ Generado desde Coach LIA IA - ${currentDate}
         });
 
         window.addEventListener('moduleProgressUpdated', function(event) {
-            console.log('📈 Progreso de módulo actualizado, actualizando header...');
+            // console.log('📈 Progreso de módulo actualizado, actualizando header...');
             setTimeout(() => {
                 const videoCounts = countCompletedVideos();
                 updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
@@ -9070,7 +9070,7 @@ Generado desde Coach LIA IA - ${currentDate}
             // Función para inicializar datos de usuario de prueba si no existen
             initializeTestUserData() {
                 if (!localStorage.getItem('userName') && !localStorage.getItem('currentUser')) {
-                    console.log('🧪 Inicializando datos de usuario de prueba');
+                    // console.log('🧪 Inicializando datos de usuario de prueba');
                     localStorage.setItem('userName', 'Usuario Prueba');
                     localStorage.setItem('userId', 'test-user-123');
                     localStorage.setItem('userEmail', 'usuario@prueba.com');
@@ -9083,30 +9083,30 @@ Generado desde Coach LIA IA - ${currentDate}
             // Función para marcar algunas preguntas como propias para testing
             markSampleQuestionsAsOwn(forceRefresh = false) {
                 // FUNCIÓN DESHABILITADA - Causaba conflictos visuales con el chat
-                console.log('🧪 markSampleQuestionsAsOwn: Función deshabilitada para evitar conflictos con el chat');
+                // console.log('🧪 markSampleQuestionsAsOwn: Función deshabilitada para evitar conflictos con el chat');
                 return;
             },
 
             // Función para crear preguntas propias manualmente (para debugging)
             createTestOwnQuestions() {
-                console.log('🧪 Creando preguntas de prueba como propias...');
+                // console.log('🧪 Creando preguntas de prueba como propias...');
 
                 // Intentar marcar preguntas existentes primero
                 this.markSampleQuestionsAsOwn(true);
 
-                console.log('✅ Preguntas de prueba creadas. Ejecuta el filtro "Mis preguntas" para verlas.');
+                // console.log('✅ Preguntas de prueba creadas. Ejecuta el filtro "Mis preguntas" para verlas.');
             },
 
             // Inicializar sistema
             init() {
-                console.log('🔄 Inicializando sistema de filtros avanzados...');
+                // console.log('🔄 Inicializando sistema de filtros avanzados...');
 
                 // Inicializar datos de prueba
                 this.initializeTestUserData();
                 this.loadSavedState();
                 this.setupEventListeners();
                 this.setupRangeSliders();
-                console.log('✅ Sistema de filtros avanzados inicializado');
+                // console.log('✅ Sistema de filtros avanzados inicializado');
             },
 
             // Configurar event listeners
@@ -9214,7 +9214,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 if (key === 'type' && value === 'mine' && window.communityAPI) {
                     const currentUser = obtenerUsuarioActual();
                     window.communityAPI.setCurrentUser(currentUser);
-                    console.log('👤 Usuario actualizado en communityAPI para filtro "mine":', currentUser);
+                    // console.log('👤 Usuario actualizado en communityAPI para filtro "mine":', currentUser);
                 }
 
                 this.state[key] = value;
@@ -9225,17 +9225,17 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Aplicar todos los filtros
             applyAllFilters() {
-                console.log('🔄 Aplicando filtros combinados:', this.state);
+                // console.log('🔄 Aplicando filtros combinados:', this.state);
 
                 const questions = document.querySelectorAll('.question-item, .community-question');
-                console.log(`📝 Encontradas ${questions.length} preguntas para filtrar`);
+                // console.log(`📝 Encontradas ${questions.length} preguntas para filtrar`);
 
                 let visibleCount = 0;
                 const filteredQuestions = [];
 
                 questions.forEach((question, index) => {
                     const shouldShow = this.shouldShowQuestion(question);
-                    console.log(`📝 Pregunta ${index + 1}: ${shouldShow ? '✅ Visible' : '❌ Oculta'}`);
+                    // console.log(`📝 Pregunta ${index + 1}: ${shouldShow ? '✅ Visible' : '❌ Oculta'}`);
 
                     if (shouldShow) {
                         filteredQuestions.push(question);
@@ -9253,7 +9253,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 this.updateQuestionCounter(visibleCount);
                 this.updateClearButton(visibleCount);
 
-                console.log(`✅ Filtros aplicados - ${visibleCount} preguntas visibles`);
+                // console.log(`✅ Filtros aplicados - ${visibleCount} preguntas visibles`);
             },
 
             // Verificar si la pregunta debe mostrarse
@@ -9293,7 +9293,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         return this.isQuestionAnswered(question);
                     case 'mine':
                         const isMine = this.isMyQuestion(question);
-                        console.log(`🔍 Filtro 'mine': pregunta ${isMine ? 'ES' : 'NO ES'} mía`);
+                        // console.log(`🔍 Filtro 'mine': pregunta ${isMine ? 'ES' : 'NO ES'} mía`);
                         return isMine;
                     default:
                         return true;
@@ -9306,7 +9306,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 // SOLUCIÓN: Usar data-module-name que se asigna en el renderizado dinámico
                 const questionModuleName = question.getAttribute('data-module-name') || 'General';
 
-                console.log('🔍 [checkModuleFilter] Filtro:', this.state.module, 'Pregunta módulo:', questionModuleName);
+                // console.log('🔍 [checkModuleFilter] Filtro:', this.state.module, 'Pregunta módulo:', questionModuleName);
 
                 // Si el filtro seleccionado coincide con el módulo de la pregunta
                 return this.state.module === questionModuleName;
@@ -9356,7 +9356,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 }
 
                 if (this.state.date !== 'all') {
-                    console.log(`📅 Filtro fecha "${this.state.date}": pregunta del ${questionTime.toLocaleDateString()} ${result ? '✅' : '❌'}`);
+                    // console.log(`📅 Filtro fecha "${this.state.date}": pregunta del ${questionTime.toLocaleDateString()} ${result ? '✅' : '❌'}`);
                 }
 
                 return result;
@@ -9422,7 +9422,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     email: currentUser?.email || localStorage.getItem('userEmail')
                 };
 
-                console.log('🔍 [isMyQuestion] Datos de usuario obtenidos:', userData);
+                // console.log('🔍 [isMyQuestion] Datos de usuario obtenidos:', userData);
 
                 // Buscar elementos de autor en diferentes selectores
                 const authorElement = question.querySelector(
@@ -9495,11 +9495,11 @@ Generado desde Coach LIA IA - ${currentDate}
                     question.classList.contains('user-own') ||
                     question.dataset.isOwn === 'true' ||
                     (authorElement && authorElement.classList.contains('current-user'))) {
-                    console.log('👤 Pregunta propia encontrada por clase CSS o atributo');
+                    // console.log('👤 Pregunta propia encontrada por clase CSS o atributo');
                     return true;
                 }
 
-                console.log('👤 No es pregunta propia:', {
+                // console.log('👤 No es pregunta propia:', {
                     authorText,
                     userData,
                     authorUserId,
@@ -9717,23 +9717,23 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función de debugging
             debugFilters() {
-                console.log('🐛 ===== DEBUG DE FILTROS =====');
-                console.log('Estado actual:', this.state);
-                console.log('Datos de usuario:', {
+                // console.log('🐛 ===== DEBUG DE FILTROS =====');
+                // console.log('Estado actual:', this.state);
+                // console.log('Datos de usuario:', {
                     userName: localStorage.getItem('userName'),
                     userId: localStorage.getItem('userId'),
                     email: localStorage.getItem('userEmail')
                 });
 
                 const questions = document.querySelectorAll('.question-item, .community-question');
-                console.log(`Total de preguntas: ${questions.length}`);
+                // console.log(`Total de preguntas: ${questions.length}`);
 
                 questions.forEach((question, index) => {
                     const shouldShow = this.shouldShowQuestion(question);
                     const isMyQuestion = this.isMyQuestion(question);
                     const questionDate = this.getQuestionDate(question);
 
-                    console.log(`Pregunta ${index + 1}:`, {
+                    // console.log(`Pregunta ${index + 1}:`, {
                         shouldShow,
                         isMyQuestion,
                         questionDate,
@@ -9742,7 +9742,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     });
                 });
 
-                console.log('🐛 ===== FIN DEBUG =====');
+                // console.log('🐛 ===== FIN DEBUG =====');
             },
 
             // Animaciones
@@ -9855,14 +9855,14 @@ Generado desde Coach LIA IA - ${currentDate}
 
                 this.updateUI();
                 this.applyAllFilters();
-                console.log('✅ Filtros avanzados reseteados');
+                // console.log('✅ Filtros avanzados reseteados');
             },
 
             clearAllFilters() {
                 this.state = this.getDefaultState();
                 this.updateUI();
                 this.applyAllFilters();
-                console.log('✅ Todos los filtros limpiados');
+                // console.log('✅ Todos los filtros limpiados');
             },
 
             // Estado por defecto
@@ -9992,8 +9992,8 @@ Generado desde Coach LIA IA - ${currentDate}
         // Función global para crear preguntas de prueba
         window.createTestOwnQuestions = () => CommunityFilters.createTestOwnQuestions();
 
-        console.log('🛠️ Para debuggear filtros, ejecuta: debugCommunityFilters()');
-        console.log('🧪 Para crear preguntas de prueba propias, ejecuta: createTestOwnQuestions()');
+        // console.log('🛠️ Para debuggear filtros, ejecuta: debugCommunityFilters()');
+        // console.log('🧪 Para crear preguntas de prueba propias, ejecuta: createTestOwnQuestions()');
 
     </script>
 
@@ -10002,14 +10002,14 @@ Generado desde Coach LIA IA - ${currentDate}
 
     <!-- Navegación de Videos Script - Modernizado -->
     <script>
-        console.log('🚀 SCRIPT DE NAVEGACIÓN CARGADO - Iniciando...');
-        console.log('🔍 Verificando que el script se ejecuta correctamente...');
+        // console.log('🚀 SCRIPT DE NAVEGACIÓN CARGADO - Iniciando...');
+        // console.log('🔍 Verificando que el script se ejecuta correctamente...');
         
         // Verificar que podemos acceder a los elementos básicos
         try {
-            console.log('🔍 document disponible:', !!document);
-            console.log('🔍 window disponible:', !!window);
-            console.log('🔍 getElementById disponible:', typeof document.getElementById);
+            // console.log('🔍 document disponible:', !!document);
+            // console.log('🔍 window disponible:', !!window);
+            // console.log('🔍 getElementById disponible:', typeof document.getElementById);
         } catch (error) {
             console.error('❌ Error verificando elementos básicos:', error);
         }
@@ -10021,7 +10021,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
         // Función simple de notificación
         function showNotification(message, type = 'info') {
-            console.log(`📢 Notificación [${type}]: ${message}`);
+            // console.log(`📢 Notificación [${type}]: ${message}`);
             
             // Crear notificación visual simple
             const notification = document.createElement('div');
@@ -10069,32 +10069,32 @@ Generado desde Coach LIA IA - ${currentDate}
             
             // Botones de navegación removidos
                 if (isLoaded) {
-                    console.log('✅ FontAwesome cargado correctamente');
+                    // console.log('✅ FontAwesome cargado correctamente');
                 } else {
-                    console.log('⚠️ FontAwesome no detectado, usando fallback CSS');
+                    // console.log('⚠️ FontAwesome no detectado, usando fallback CSS');
                 }
             
         }
 
         // Inicializar navegación cuando el DOM esté listo
-        console.log('📋 Configurando event listener para DOMContentLoaded...');
+        // console.log('📋 Configurando event listener para DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('📋 DOM cargado, iniciando inicialización de navegación...');
+            // console.log('📋 DOM cargado, iniciando inicialización de navegación...');
             setTimeout(() => {
-                console.log('⏰ Ejecutando inicialización después de timeout...');
+                // console.log('⏰ Ejecutando inicialización después de timeout...');
                 checkFontAwesome();
                 // Función de navegación removida
             }, 1000);
         });
 
         // También intentar ejecutar inmediatamente si el DOM ya está listo
-        console.log('📋 Estado del DOM:', document.readyState);
+        // console.log('📋 Estado del DOM:', document.readyState);
         if (document.readyState === 'loading') {
-            console.log('📋 DOM aún cargando, esperando...');
+            // console.log('📋 DOM aún cargando, esperando...');
         } else {
-            console.log('📋 DOM ya está listo, ejecutando inmediatamente...');
+            // console.log('📋 DOM ya está listo, ejecutando inmediatamente...');
             setTimeout(() => {
-                console.log('⏰ Ejecutando inicialización inmediata...');
+                // console.log('⏰ Ejecutando inicialización inmediata...');
                 checkFontAwesome();
                 // Función de navegación removida
             }, 500);
@@ -10103,7 +10103,7 @@ Generado desde Coach LIA IA - ${currentDate}
         // También intentar inicializar después de que se carguen los videos
         document.addEventListener('click', (e) => {
             if (e.target.closest('.video-item')) {
-                console.log('🎬 Video clickeado, verificando navegación...');
+                // console.log('🎬 Video clickeado, verificando navegación...');
                 setTimeout(() => {
                     // Re-inicializar navegación después de click en video
                     // Función de navegación removida
@@ -10113,7 +10113,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
         // Inicializar también cuando se cargue el módulo de videos
         if (window.module1VideosLoader) {
-            console.log('📹 Module1VideosLoader detectado, configurando navegación...');
+            // console.log('📹 Module1VideosLoader detectado, configurando navegación...');
             setTimeout(() => {
                 // Función de navegación removida
             }, 2000);
@@ -10161,7 +10161,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 this.totalVideos = 0;
                 this.videosArray = [];
                 
-                console.log('🎬 Sistema de navegación de videos inicializado');
+                // console.log('🎬 Sistema de navegación de videos inicializado');
             }
             
             init() {
@@ -10202,8 +10202,8 @@ Generado desde Coach LIA IA - ${currentDate}
                     // Escuchar cambios de video
                     this.setupVideoChangeListener();
                     
-                    console.log('✅ Sistema de navegación configurado');
-                    console.log('💡 Atajos de teclado: Alt + ← (anterior) | Alt + → (siguiente)');
+                    // console.log('✅ Sistema de navegación configurado');
+                    // console.log('💡 Atajos de teclado: Alt + ← (anterior) | Alt + → (siguiente)');
                     
                 } catch (error) {
                     console.error('❌ Error inicializando navegación:', error);
@@ -10238,7 +10238,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         const currentVideoId = window.module1VideosLoader.currentVideoId;
                         this.currentVideoIndex = this.videosArray.findIndex(v => v.id === currentVideoId);
                         
-                        console.log(`📊 Estado de navegación: Video ${this.currentVideoIndex + 1}/${this.totalVideos}`);
+                        // console.log(`📊 Estado de navegación: Video ${this.currentVideoIndex + 1}/${this.totalVideos}`);
                         
                     } else {
                         console.warn('⚠️ module1VideosLoader no disponible');
@@ -10277,7 +10277,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         this.nextBtn.title = `Siguiente Video: ${this.videosArray[this.currentVideoIndex + 1]?.video_title || ''}`;
                     }
                     
-                    console.log(`🎯 Navegación actualizada - Anterior: ${!this.prevBtn.disabled}, Siguiente: ${!this.nextBtn.disabled}`);
+                    // console.log(`🎯 Navegación actualizada - Anterior: ${!this.prevBtn.disabled}, Siguiente: ${!this.nextBtn.disabled}`);
                     
                 } catch (error) {
                     console.error('❌ Error actualizando estado de navegación:', error);
@@ -10287,7 +10287,7 @@ Generado desde Coach LIA IA - ${currentDate}
             navigateToPrevious() {
                 try {
                     if (this.currentVideoIndex <= 0) {
-                        console.log('⚠️ Ya estás en el primer video');
+                        // console.log('⚠️ Ya estás en el primer video');
                         return;
                     }
                     
@@ -10297,7 +10297,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         return;
                     }
                     
-                    console.log('⏮️ Navegando al video anterior:', prevVideo.video_title);
+                    // console.log('⏮️ Navegando al video anterior:', prevVideo.video_title);
                     
                     // Llamar a selectVideo del loader
                     if (window.module1VideosLoader) {
@@ -10318,7 +10318,7 @@ Generado desde Coach LIA IA - ${currentDate}
             navigateToNext() {
                 try {
                     if (this.currentVideoIndex >= this.totalVideos - 1) {
-                        console.log('⚠️ Ya estás en el último video');
+                        // console.log('⚠️ Ya estás en el último video');
                         return;
                     }
                     
@@ -10328,7 +10328,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         return;
                     }
                     
-                    console.log('⏭️ Navegando al siguiente video:', nextVideo.video_title);
+                    // console.log('⏭️ Navegando al siguiente video:', nextVideo.video_title);
                     
                     // Llamar a selectVideo del loader
                     if (window.module1VideosLoader) {
@@ -10373,7 +10373,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 if (typeof window.showNotification === 'function') {
                     window.showNotification(message, type, 2000);
                 } else {
-                    console.log(`📢 ${message}`);
+                    // console.log(`📢 ${message}`);
                 }
             }
         }
@@ -10382,16 +10382,16 @@ Generado desde Coach LIA IA - ${currentDate}
         let videoNavSystem = null;
         
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Inicializando sistema de navegación de videos...');
+            // console.log('🚀 Inicializando sistema de navegación de videos...');
             
             // Esperar a que module1VideosLoader esté listo
             const initNavigation = () => {
                 if (window.module1VideosLoader && window.module1VideosLoader.videos) {
                     videoNavSystem = new VideoNavigationSystem();
                     videoNavSystem.init();
-                    console.log('✅ Sistema de navegación inicializado correctamente');
+                    // console.log('✅ Sistema de navegación inicializado correctamente');
                 } else {
-                    console.log('⏳ Esperando a que module1VideosLoader esté listo...');
+                    // console.log('⏳ Esperando a que module1VideosLoader esté listo...');
                     setTimeout(initNavigation, 500);
                 }
             };
@@ -10402,7 +10402,7 @@ Generado desde Coach LIA IA - ${currentDate}
         // Exponer globalmente para debugging
         window.videoNavSystem = videoNavSystem;
         
-        console.log('✅ Script de navegación de videos cargado');
+        // console.log('✅ Script de navegación de videos cargado');
     </script>
 
     <!-- Sistema de Notas Estilo NotebookLM -->
@@ -10427,12 +10427,12 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para abrir el panel de notas
             window.openNotePanel = function(noteData = null) {
-                console.log('📝 Abriendo panel de notas...', noteData ? 'editando' : 'nueva');
+                // console.log('📝 Abriendo panel de notas...', noteData ? 'editando' : 'nueva');
                 
                 // Verificar si el nuevo editor está activo
                 const notesCreator = document.getElementById('notesCreatorSection');
                 if (notesCreator && notesCreator.style.display !== 'none') {
-                    console.log('⚠️ El nuevo editor ya está activo, no abriendo overlay');
+                    // console.log('⚠️ El nuevo editor ya está activo, no abriendo overlay');
                     return;
                 }
                 
@@ -10452,7 +10452,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     isEditing = true;
                     noteTitleInput.value = noteToEdit.title || 'Sin título';
                     noteEditor.innerHTML = noteToEdit.content || '';
-                    console.log('📝 Editando nota existente:', noteToEdit.title);
+                    // console.log('📝 Editando nota existente:', noteToEdit.title);
                 } else {
                     // Nueva nota
                     currentNote = {
@@ -10465,7 +10465,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     isEditing = false;
                     noteTitleInput.value = 'Nueva nota';
                     noteEditor.innerHTML = '';
-                    console.log('📝 Creando nueva nota');
+                    // console.log('📝 Creando nueva nota');
                 }
                 
                 // Enfocar el editor
@@ -10476,7 +10476,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para cerrar el panel de notas
             function closeNotePanel() {
-                console.log('📝 Cerrando panel de notas...');
+                // console.log('📝 Cerrando panel de notas...');
                 
                 // NO guardar automáticamente - solo cerrar
                 // El usuario debe presionar "Guardar" explícitamente
@@ -10500,10 +10500,10 @@ Generado desde Coach LIA IA - ${currentDate}
                 const title = noteTitleInput.value.trim();
                 const content = noteEditor.innerHTML.trim();
 
-                console.log('💾 [GUARDAR] Iniciando proceso de guardado...');
-                console.log('💾 [GUARDAR] currentNote:', currentNote);
-                console.log('💾 [GUARDAR] isEditing:', isEditing);
-                console.log('💾 [GUARDAR] window.currentEditingNote:', window.currentEditingNote);
+                // console.log('💾 [GUARDAR] Iniciando proceso de guardado...');
+                // console.log('💾 [GUARDAR] currentNote:', currentNote);
+                // console.log('💾 [GUARDAR] isEditing:', isEditing);
+                // console.log('💾 [GUARDAR] window.currentEditingNote:', window.currentEditingNote);
 
                 // Validar si la nota tiene contenido para guardar
                 const hasTitle = title && title !== '';
@@ -10511,7 +10511,7 @@ Generado desde Coach LIA IA - ${currentDate}
 
                 // Si no tiene título ni contenido, no guardar
                 if (!hasTitle && !hasContent) {
-                    console.log('📝 Nota vacía, no se guardará');
+                    // console.log('📝 Nota vacía, no se guardará');
                     showNotification('⚠️ La nota está vacía. Agrega contenido antes de guardar.', 'warning');
                     return;
                 }
@@ -10521,7 +10521,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 
                 if (currentNote && isEditing) {
                     // Actualizar nota existente
-                    console.log('✅ [GUARDAR] Actualizando nota existente:', currentNote.id);
+                    // console.log('✅ [GUARDAR] Actualizando nota existente:', currentNote.id);
                     noteToSave = {
                         ...currentNote,
                         title: hasTitle ? title : 'Sin título',
@@ -10530,7 +10530,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     };
                 } else {
                     // Crear nueva nota
-                    console.log('🆕 [GUARDAR] Creando nueva nota');
+                    // console.log('🆕 [GUARDAR] Creando nueva nota');
                     noteToSave = {
                         id: Date.now().toString(),
                         title: hasTitle ? title : 'Sin título',
@@ -10545,24 +10545,24 @@ Generado desde Coach LIA IA - ${currentDate}
                 
                 if (currentNote && isEditing) {
                     // Actualizar nota existente
-                    console.log('💾 [GUARDAR] Buscando nota existente para actualizar...');
+                    // console.log('💾 [GUARDAR] Buscando nota existente para actualizar...');
                     const index = notes.findIndex(note => note.id === currentNote.id);
                     if (index !== -1) {
-                        console.log('✅ [GUARDAR] Nota encontrada en índice:', index, 'actualizándola...');
+                        // console.log('✅ [GUARDAR] Nota encontrada en índice:', index, 'actualizándola...');
                         notes[index] = noteToSave;
                     } else {
                         console.error('❌ [GUARDAR] No se encontró la nota para actualizar');
                     }
                 } else {
                     // Agregar nueva nota
-                    console.log('🆕 [GUARDAR] Agregando nueva nota a la lista...');
+                    // console.log('🆕 [GUARDAR] Agregando nueva nota a la lista...');
                     notes.push(noteToSave);
                     currentNote = noteToSave;
                     isEditing = true;
                 }
                 
                 localStorage.setItem('lia_notes', JSON.stringify(notes));
-                console.log('💾 [GUARDAR] Nota guardada exitosamente:', noteToSave.title);
+                // console.log('💾 [GUARDAR] Nota guardada exitosamente:', noteToSave.title);
                 
                 // Mostrar notificación de éxito
                 showNotification('✅ Nota guardada exitosamente', 'success');
@@ -10573,16 +10573,16 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para actualizar la lista de notas
             function updateNotesList() {
-                console.log('🔄 Actualizando lista de notas...');
+                // console.log('🔄 Actualizando lista de notas...');
                 
                 // Verificar el estado actual del localStorage antes de actualizar
                 const currentNotes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                console.log('📝 Estado actual del localStorage:', currentNotes.length, 'notas');
+                // console.log('📝 Estado actual del localStorage:', currentNotes.length, 'notas');
                 
                 // Usar la función showAllNotes que ya maneja todo correctamente
                 showAllNotes();
                 
-                console.log('✅ Lista de notas actualizada');
+                // console.log('✅ Lista de notas actualizada');
             }
 
             // ===== FUNCIONES PARA BOTONES DE MENSAJES DE LIA =====
@@ -10608,7 +10608,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     
                     // Copiar al portapapeles
                     navigator.clipboard.writeText(textContent).then(() => {
-                        console.log('✅ Mensaje de LIA copiado al portapapeles');
+                        // console.log('✅ Mensaje de LIA copiado al portapapeles');
                         showNotification('¡Mensaje copiado al portapapeles!', 'success');
                     }).catch(err => {
                         console.error('❌ Error copiando mensaje:', err);
@@ -10664,7 +10664,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     // Actualizar la lista de notas
                     updateNotesList();
                     
-                    console.log('✅ Nota creada desde mensaje de LIA:', newNote.id);
+                    // console.log('✅ Nota creada desde mensaje de LIA:', newNote.id);
                     showNotification('¡Nota creada exitosamente!', 'success');
                     
                 } catch (error) {
@@ -10675,16 +10675,16 @@ Generado desde Coach LIA IA - ${currentDate}
 
             // Función para eliminar una nota
             window.deleteNote = function(noteId) {
-                console.log('🗑️ Iniciando eliminación de nota:', noteId, 'tipo:', typeof noteId);
+                // console.log('🗑️ Iniciando eliminación de nota:', noteId, 'tipo:', typeof noteId);
                 
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                console.log('📝 Notas antes de eliminar:', notes.length, notes.map(n => ({id: n.id, tipo: typeof n.id})));
+                // console.log('📝 Notas antes de eliminar:', notes.length, notes.map(n => ({id: n.id, tipo: typeof n.id})));
                 
                 // Convertir noteId a string para comparación más robusta
                 const noteIdStr = String(noteId);
                 const filteredNotes = notes.filter(note => String(note.id) !== noteIdStr);
                 
-                console.log('📝 Notas después de filtrar:', filteredNotes.length, 'eliminadas:', notes.length - filteredNotes.length);
+                // console.log('📝 Notas después de filtrar:', filteredNotes.length, 'eliminadas:', notes.length - filteredNotes.length);
                 
                 if (filteredNotes.length === notes.length) {
                     console.error('❌ No se encontró la nota para eliminar con ID:', noteId);
@@ -10692,11 +10692,11 @@ Generado desde Coach LIA IA - ${currentDate}
                 }
                 
                 localStorage.setItem('lia_notes', JSON.stringify(filteredNotes));
-                console.log('💾 Notas guardadas en localStorage:', filteredNotes.length);
+                // console.log('💾 Notas guardadas en localStorage:', filteredNotes.length);
                 
                 // Actualizar la lista inmediatamente
                 updateNotesList();
-                console.log('🗑️ Nota eliminada exitosamente:', noteId);
+                // console.log('🗑️ Nota eliminada exitosamente:', noteId);
             }
 
             // ===== SISTEMA DE BÚSQUEDA DE NOTAS =====
@@ -10710,28 +10710,28 @@ Generado desde Coach LIA IA - ${currentDate}
                     return;
                 }
 
-                console.log('🔗 Agregando event listeners a', notes.length, 'notas');
+                // console.log('🔗 Agregando event listeners a', notes.length, 'notas');
                 const noteItems = container.querySelectorAll('.note-item');
                 noteItems.forEach((item) => {
                     item.addEventListener('click', (event) => {
                         // Verificar si el clic fue en el botón de eliminar
                         if (event.target.closest('.note-delete-btn')) {
-                            console.log('🚫 Clic en botón de eliminar detectado, evitando apertura del modal');
+                            // console.log('🚫 Clic en botón de eliminar detectado, evitando apertura del modal');
                             return; // No hacer nada, dejar que el onclick del botón maneje la eliminación
                         }
                         const datasetId = item.getAttribute('data-note-id');
                         const noteData = notes.find((n) => String(n.id) === datasetId);
                         const idToUse = noteData ? noteData.id : datasetId;
                         
-                        console.log('🖱️ [NOTES] Click en nota:', { datasetId, noteData: !!noteData, idToUse });
+                        // console.log('🖱️ [NOTES] Click en nota:', { datasetId, noteData: !!noteData, idToUse });
 
                         // Función para intentar abrir la nota con reintentos
                         function tryOpenNote(noteId, retries = 0) {
-                            console.log(`🚀 [NOTES] Abriendo nota ${noteId} instantáneamente...`);
+                            // console.log(`🚀 [NOTES] Abriendo nota ${noteId} instantáneamente...`);
                             
                             // Verificar si chatOnline está disponible inmediatamente
                             if (window.chatOnline && typeof window.chatOnline.openNoteForEditing === 'function') {
-                                console.log('✅ [NOTES] chatOnline disponible, abriendo nota inmediatamente');
+                                // console.log('✅ [NOTES] chatOnline disponible, abriendo nota inmediatamente');
                                 try {
                                     window.chatOnline.openNoteForEditing(noteId);
                                     return; // Salir inmediatamente si funciona
@@ -10744,7 +10744,7 @@ Generado desde Coach LIA IA - ${currentDate}
                             
                             // Solo si chatOnline no está disponible, intentar rápidamente (máximo 3 intentos)
                             if (retries < 3) {
-                                console.log(`⏳ [NOTES] chatOnline no disponible, reintentando rápidamente... (${retries + 1}/3)`);
+                                // console.log(`⏳ [NOTES] chatOnline no disponible, reintentando rápidamente... (${retries + 1}/3)`);
                                 setTimeout(() => tryOpenNote(noteId, retries + 1), 50); // Solo 50ms de espera
                             } else {
                                 console.error('❌ [NOTES] chatOnline no disponible después de 3 intentos, usando fallback');
@@ -10754,7 +10754,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         
                         // Función de fallback para abrir nota manualmente
                         function openNoteFallback(noteId) {
-                            console.log('🚀 [NOTES] Abriendo nota usando fallback instantáneo...');
+                            // console.log('🚀 [NOTES] Abriendo nota usando fallback instantáneo...');
                             
                             // Buscar la nota en localStorage (optimizado)
                             const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
@@ -10768,13 +10768,13 @@ Generado desde Coach LIA IA - ${currentDate}
                             
                             // Usar openNotePanel si está disponible (más rápido)
                             if (typeof window.openNotePanel === 'function') {
-                                console.log('✅ [NOTES] Abriendo modal usando openNotePanel (instantáneo)');
+                                // console.log('✅ [NOTES] Abriendo modal usando openNotePanel (instantáneo)');
                                 window.openNotePanel(note);
                                 return;
                             }
                             
                             // Fallback directo sin delays
-                            console.log('✅ [NOTES] Abriendo modal overlay directamente (instantáneo)');
+                            // console.log('✅ [NOTES] Abriendo modal overlay directamente (instantáneo)');
                             const notePanelOverlay = document.getElementById('notePanelOverlay');
                             if (notePanelOverlay) {
                                 // Mostrar el modal inmediatamente
@@ -10794,7 +10794,7 @@ Generado desde Coach LIA IA - ${currentDate}
                                 // Enfocar el editor inmediatamente
                                 if (contentEditor) contentEditor.focus();
                                 
-                                console.log('✅ [NOTES] Modal abierto instantáneamente con datos de la nota:', note.title);
+                                // console.log('✅ [NOTES] Modal abierto instantáneamente con datos de la nota:', note.title);
                             } else {
                                 console.error('❌ [NOTES] Modal overlay no encontrado');
                                 alert('El editor de notas no está disponible. Por favor, recarga la página e intenta nuevamente.');
@@ -10805,7 +10805,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     });
                 });
                 
-                console.log('✅ Event listeners agregados correctamente');
+                // console.log('✅ Event listeners agregados correctamente');
             }
             
             // Función simple para crear HTML de nota con highlighting opcional
@@ -10876,7 +10876,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 
                 if (isVisible) {
                     // Ocultar búsqueda
-                    console.log('🔍 Ocultando búsqueda de notas...');
+                    // console.log('🔍 Ocultando búsqueda de notas...');
                     searchContainer.style.display = 'none';
                     notesSection.classList.remove('search-active');
                     searchBtn.classList.remove('active');
@@ -10890,10 +10890,10 @@ Generado desde Coach LIA IA - ${currentDate}
                     // Mostrar todas las notas inmediatamente
                     showAllNotes();
                     
-                    console.log('✅ Búsqueda de notas ocultada y notas restauradas');
+                    // console.log('✅ Búsqueda de notas ocultada y notas restauradas');
                 } else {
                     // Mostrar búsqueda
-                    console.log('🔍 Activando búsqueda de notas...');
+                    // console.log('🔍 Activando búsqueda de notas...');
                     searchContainer.style.display = 'block';
                     notesSection.classList.add('search-active');
                     searchBtn.classList.add('active');
@@ -10910,19 +10910,19 @@ Generado desde Coach LIA IA - ${currentDate}
                         }
                     }, 100);
                     
-                    console.log('✅ Búsqueda de notas activada');
+                    // console.log('✅ Búsqueda de notas activada');
                 }
             }
             
             // Función para buscar notas
             function searchNotes(query) {
-                console.log('🔍 Ejecutando búsqueda:', query);
+                // console.log('🔍 Ejecutando búsqueda:', query);
                 
                 // Siempre limpiar mensajes de resultados anteriores
                 hideSearchResultsInfo();
                 
                 if (!query || query.trim() === '') {
-                    console.log('🔍 Query vacío, mostrando todas las notas');
+                    // console.log('🔍 Query vacío, mostrando todas las notas');
                     showAllNotes();
                     return;
                 }
@@ -10935,7 +10935,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 
                 // Obtener todas las notas
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                console.log('📝 Total de notas en localStorage:', notes.length);
+                // console.log('📝 Total de notas en localStorage:', notes.length);
                 
                 // Filtrar notas que coincidan con la búsqueda
                 const filteredNotes = notes.filter(note => {
@@ -10946,16 +10946,16 @@ Generado desde Coach LIA IA - ${currentDate}
                     const titleMatch = title.includes(searchTerm);
                     const contentMatch = content.includes(searchTerm);
                     
-                    console.log(`📝 Nota "${note.title}": título=${titleMatch}, contenido=${contentMatch}`);
+                    // console.log(`📝 Nota "${note.title}": título=${titleMatch}, contenido=${contentMatch}`);
                     
                     return titleMatch || contentMatch;
                 });
                 
-                console.log(`🔍 Notas filtradas: ${filteredNotes.length} de ${notes.length}`);
+                // console.log(`🔍 Notas filtradas: ${filteredNotes.length} de ${notes.length}`);
                 
                 // Mostrar resultados
                 if (filteredNotes.length === 0) {
-                    console.log('🔍 No se encontraron resultados');
+                    // console.log('🔍 No se encontraron resultados');
                     notesList.innerHTML = `
                         <div class="no-search-results">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -10966,7 +10966,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         </div>
                     `;
                 } else {
-                    console.log('🔍 Mostrando resultados encontrados');
+                    // console.log('🔍 Mostrando resultados encontrados');
                     // Ordenar por fecha de actualización
                     const sortedNotes = filteredNotes.sort((a, b) => {
                         const dateA = new Date(a.updatedAt || a.timestamp || 0);
@@ -10981,12 +10981,12 @@ Generado desde Coach LIA IA - ${currentDate}
                 // Siempre mostrar información de resultados actualizada
                 updateSearchResultsInfo(filteredNotes.length, query);
                 
-                console.log(`✅ Búsqueda completada: "${query}" - ${filteredNotes.length} resultados`);
+                // console.log(`✅ Búsqueda completada: "${query}" - ${filteredNotes.length} resultados`);
             }
             
             // Función para mostrar todas las notas
             function showAllNotes() {
-                console.log('🔄 Mostrando todas las notas...');
+                // console.log('🔄 Mostrando todas las notas...');
                 const notesList = document.getElementById('notesList');
                 if (!notesList) {
                     console.error('❌ notesList no encontrado');
@@ -10994,10 +10994,10 @@ Generado desde Coach LIA IA - ${currentDate}
                 }
                 
                 const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                console.log('📝 Notas encontradas en localStorage:', notes.length);
+                // console.log('📝 Notas encontradas en localStorage:', notes.length);
                 
                 if (notes.length === 0) {
-                    console.log('📝 No hay notas, mostrando estado vacío');
+                    // console.log('📝 No hay notas, mostrando estado vacío');
                     notesList.innerHTML = `
                         <div class="empty-notes">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -11008,7 +11008,7 @@ Generado desde Coach LIA IA - ${currentDate}
                         </div>
                     `;
                 } else {
-                    console.log('📝 Mostrando', notes.length, 'notas');
+                    // console.log('📝 Mostrando', notes.length, 'notas');
                     // Ordenar por fecha de actualización
                     const sortedNotes = notes.sort((a, b) => {
                         const dateA = new Date(a.updatedAt || a.timestamp || 0);
@@ -11018,7 +11018,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     
                     notesList.innerHTML = sortedNotes.map(note => createSimpleNoteHTML(note)).join('');
                     attachNoteClickListeners(notesList, sortedNotes);
-                    console.log('✅ Todas las notas mostradas correctamente');
+                    // console.log('✅ Todas las notas mostradas correctamente');
                 }
                 
                 // Ocultar información de resultados
@@ -11027,7 +11027,7 @@ Generado desde Coach LIA IA - ${currentDate}
             
             // Función para actualizar información de resultados de búsqueda
             function updateSearchResultsInfo(count, query) {
-                console.log('📊 Actualizando info de resultados:', count, 'para:', query);
+                // console.log('📊 Actualizando info de resultados:', count, 'para:', query);
                 
                 const resultsInfo = document.getElementById('searchResultsInfo');
                 const resultsCount = document.getElementById('searchResultsCount');
@@ -11038,7 +11038,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     resultsInfo.style.display = 'block';
                     resultsInfo.classList.add('show');
                     
-                    console.log('✅ Info de resultados actualizada:', resultsCount.textContent);
+                    // console.log('✅ Info de resultados actualizada:', resultsCount.textContent);
                 } else {
                     console.error('❌ Elementos de info de resultados no encontrados');
                 }
@@ -11059,18 +11059,18 @@ Generado desde Coach LIA IA - ${currentDate}
                     resultsCount.textContent = '';
                 }
                 
-                console.log('🧹 Info de resultados ocultada y limpiada');
+                // console.log('🧹 Info de resultados ocultada y limpiada');
             }
             
             // Función para limpiar búsqueda
             function clearSearch() {
-                console.log('🧹 Limpiando búsqueda...');
+                // console.log('🧹 Limpiando búsqueda...');
                 const searchInput = document.getElementById('notesSearchInput');
                 if (searchInput) {
                     searchInput.value = '';
                     showAllNotes();
                     searchInput.focus();
-                    console.log('✅ Búsqueda limpiada correctamente');
+                    // console.log('✅ Búsqueda limpiada correctamente');
                 } else {
                     console.error('❌ Campo de búsqueda no encontrado para limpiar');
                 }
@@ -11179,7 +11179,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 const selection = window.getSelection();
                 const selectedText = selection.toString();
 
-                console.log('🔗 Insertando enlace:', { url, text, selectedText });
+                // console.log('🔗 Insertando enlace:', { url, text, selectedText });
 
                 try {
                     // Crear elemento de enlace
@@ -11208,9 +11208,9 @@ Generado desde Coach LIA IA - ${currentDate}
                             const linkHtml = linkElement.outerHTML;
                             document.execCommand('insertHTML', false, linkHtml);
                             inserted = true;
-                            console.log('✅ Enlace insertado con insertHTML');
+                            // console.log('✅ Enlace insertado con insertHTML');
                         } catch (e) {
-                            console.log('⚠️ insertHTML falló:', e);
+                            // console.log('⚠️ insertHTML falló:', e);
                         }
                     }
 
@@ -11219,9 +11219,9 @@ Generado desde Coach LIA IA - ${currentDate}
                         try {
                             document.execCommand('createLink', false, url);
                             inserted = true;
-                            console.log('✅ Enlace insertado con createLink');
+                            // console.log('✅ Enlace insertado con createLink');
                         } catch (e) {
-                            console.log('⚠️ createLink falló:', e);
+                            // console.log('⚠️ createLink falló:', e);
                         }
                     }
 
@@ -11245,9 +11245,9 @@ Generado desde Coach LIA IA - ${currentDate}
                                 range.insertNode(linkElement);
                             }
                             inserted = true;
-                            console.log('✅ Enlace insertado manualmente');
+                            // console.log('✅ Enlace insertado manualmente');
                         } catch (e) {
-                            console.log('⚠️ Inserción manual falló:', e);
+                            // console.log('⚠️ Inserción manual falló:', e);
                         }
                     }
 
@@ -11257,9 +11257,9 @@ Generado desde Coach LIA IA - ${currentDate}
                             noteEditor.appendChild(linkElement);
                             noteEditor.appendChild(document.createElement('br'));
                             inserted = true;
-                            console.log('✅ Enlace insertado al final como fallback');
+                            // console.log('✅ Enlace insertado al final como fallback');
                         } catch (e) {
-                            console.log('❌ Todos los métodos fallaron:', e);
+                            // console.log('❌ Todos los métodos fallaron:', e);
                         }
                     }
 
@@ -11289,7 +11289,7 @@ Generado desde Coach LIA IA - ${currentDate}
                     return;
                 }
 
-                console.log('📄 Generando PDF...', { title, content });
+                // console.log('📄 Generando PDF...', { title, content });
 
                 // Crear HTML para el PDF
                 const htmlContent = `
@@ -11437,7 +11437,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
 
-                console.log('✅ PDF generado exitosamente');
+                // console.log('✅ PDF generado exitosamente');
                 showNotification('✅ Nota convertida a PDF exitosamente', 'success');
             }
 
@@ -11576,7 +11576,7 @@ Generado desde Coach LIA IA - ${currentDate}
             // Botón de búsqueda
             if (searchNotesBtn) {
                 searchNotesBtn.addEventListener('click', toggleSearchNotes);
-                console.log('✅ Event listener de búsqueda configurado');
+                // console.log('✅ Event listener de búsqueda configurado');
             }
             
             // Input de búsqueda con debounce
@@ -11606,14 +11606,14 @@ Generado desde Coach LIA IA - ${currentDate}
             const saveNoteBtnOverlay = document.getElementById('saveNoteBtnOverlay');
             if (saveNoteBtnOverlay) {
                 saveNoteBtnOverlay.addEventListener('click', () => {
-                    console.log('💾 Guardando nota desde modal overlay...');
+                    // console.log('💾 Guardando nota desde modal overlay...');
                     saveCurrentNote();
                 });
             }
 
             if (convertToSourceBtn) {
                 convertToSourceBtn.addEventListener('click', () => {
-                    console.log('📄 Convertir en PDF...');
+                    // console.log('📄 Convertir en PDF...');
                     convertNoteToPDF();
                 });
             }
@@ -11682,7 +11682,7 @@ Generado desde Coach LIA IA - ${currentDate}
             // Cargar notas iniciales
             updateNotesList();
 
-            console.log('✅ Sistema de notas NotebookLM inicializado');
+            // console.log('✅ Sistema de notas NotebookLM inicializado');
         }
 
         // Inicializar sistema de notas cuando el DOM esté listo
@@ -11709,7 +11709,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 rightPanel.classList.remove('mobile-open');
                 mobileOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                console.log('📱 Panel izquierdo abierto');
+                // console.log('📱 Panel izquierdo abierto');
             }
 
             // Función para abrir panel derecho
@@ -11718,7 +11718,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 leftPanel.classList.remove('mobile-open');
                 mobileOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                console.log('📱 Panel derecho abierto');
+                // console.log('📱 Panel derecho abierto');
             }
 
             // Función para cerrar paneles
@@ -11727,7 +11727,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 rightPanel.classList.remove('mobile-open');
                 mobileOverlay.classList.remove('active');
                 document.body.style.overflow = 'auto';
-                console.log('📱 Paneles cerrados');
+                // console.log('📱 Paneles cerrados');
             }
 
             // Event listeners
@@ -11759,7 +11759,7 @@ Generado desde Coach LIA IA - ${currentDate}
                 }
             });
 
-            console.log('✅ Navegación mobile inicializada');
+            // console.log('✅ Navegación mobile inicializada');
         }
 
         // Inicializar navegación mobile cuando el DOM esté listo

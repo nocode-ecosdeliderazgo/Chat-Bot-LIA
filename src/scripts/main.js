@@ -755,12 +755,12 @@ function analyzeConversationContext(currentMessage) {
         analysis.suggestedContext = findRelevantContext(currentMessage, recentHistory);
     }
     
-    console.log('🧠 [CONTEXT] Análisis completado:', {
-        recentQuestions: analysis.recentUserQuestions.length,
-        recentActions: analysis.recentBotActions.length,
-        needsContext: analysis.needsContext,
-        hasContext: !!analysis.suggestedContext
-    });
+    // console.log('🧠 [CONTEXT] Análisis completado:', {
+    //     recentQuestions: analysis.recentUserQuestions.length,
+    //     recentActions: analysis.recentBotActions.length,
+    //     needsContext: analysis.needsContext,
+    //     hasContext: !!analysis.suggestedContext
+    // });
     
     return analysis;
 }
@@ -1042,12 +1042,12 @@ function updateConversationContext(botAction, userIntent, awaitingConfirmation =
     }
     
     saveConversationMemory();
-    console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
-        botAction,
-        userIntent,
-        awaitingConfirmation,
-        historyLength: conversationMemory.fullHistory.length
-    });
+    // console.log('📝 [CONTEXT] Contexto actualizado con memoria persistente:', {
+    //     botAction,
+    //     userIntent,
+    //     awaitingConfirmation,
+    //     historyLength: conversationMemory.fullHistory.length
+    // });
 }
 
 // Generación de respuestas personalizada con memoria conversacional persistente

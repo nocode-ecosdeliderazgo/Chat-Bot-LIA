@@ -105,7 +105,7 @@ class CommunityAPI {
         const finalOptions = { ...defaultOptions, ...options };
 
         try {
-            console.log(`🌐 API Request: ${finalOptions.method || 'GET'} ${url}`);
+            // console.log(`🌐 API Request: ${finalOptions.method || 'GET'} ${url}`);
             const response = await fetch(url, finalOptions);
             const data = await response.json();
 
@@ -304,7 +304,7 @@ class CommunityAPI {
     async incrementViews(questionId) {
         // Esta funcionalidad se puede implementar como un endpoint separado
         // Por ahora, solo registramos en consola
-        console.log(`👁️ Incrementando visualizaciones para pregunta: ${questionId}`);
+        // console.log(`👁️ Incrementando visualizaciones para pregunta: ${questionId}`);
     }
 
     /**
@@ -372,7 +372,7 @@ class CommunityAPI {
         // Almacenar como últimos parámetros válidos
         this.lastParams = { ...normalized };
 
-        console.log('[COMMUNITY-API] Parámetros normalizados:', normalized);
+        // console.log('[COMMUNITY-API] Parámetros normalizados:', normalized);
         return normalized;
     }
 
@@ -402,7 +402,7 @@ class CommunityAPI {
     searchWithDebounce(searchTerm, additionalParams = {}, callback = null) {
         const debouncedSearch = this.debounce('search', async (term, params, cb) => {
             try {
-                console.log('[COMMUNITY-API] Ejecutando búsqueda debounced:', term);
+                // console.log('[COMMUNITY-API] Ejecutando búsqueda debounced:', term);
 
                 const searchParams = this.normalizeParams({
                     search: term,
@@ -457,7 +457,7 @@ class CommunityAPI {
             queryParams.set('limit', normalizedParams.limit);
 
             const url = `${this.baseUrl}/questions?${queryParams.toString()}`;
-            console.log('[COMMUNITY-API] Solicitud normalizada:', url);
+            // console.log('[COMMUNITY-API] Solicitud normalizada:', url);
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -489,7 +489,7 @@ class CommunityAPI {
             return { questions: [] };
         }
 
-        console.log('[COMMUNITY-API] Reintentando con últimos parámetros:', this.lastParams);
+        // console.log('[COMMUNITY-API] Reintentando con últimos parámetros:', this.lastParams);
         return await this.getQuestionsNormalized(this.lastParams);
     }
 
@@ -499,7 +499,7 @@ class CommunityAPI {
     clearDebounceTimers() {
         this.debounceTimers.forEach(timer => clearTimeout(timer));
         this.debounceTimers.clear();
-        console.log('[COMMUNITY-API] Timers de debounce limpiados');
+        // console.log('[COMMUNITY-API] Timers de debounce limpiados');
     }
 }
 

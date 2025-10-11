@@ -94,7 +94,7 @@ class GrafanaStatisticsManager {
             }
         });
 
-        console.log('Contenedores de Grafana preparados con snapshots');
+        // console.log('Contenedores de Grafana preparados con snapshots');
     }
 
     setupIframeLoading() {
@@ -112,7 +112,7 @@ class GrafanaStatisticsManager {
                 // Manejar evento de carga exitosa
                 iframe.addEventListener('load', () => {
                     container.classList.remove('loading');
-                    console.log(`Panel ${iframeId} cargado exitosamente`);
+                    // console.log(`Panel ${iframeId} cargado exitosamente`);
                 });
                 
                 // Manejar errores de carga
@@ -177,7 +177,7 @@ class GrafanaStatisticsManager {
 
             if (window.supabase && typeof window.supabase.from === 'function') {
                 this.supabase = window.supabase;
-                console.log('✅ Supabase inicializado para análisis personalizado');
+                // console.log('✅ Supabase inicializado para análisis personalizado');
                 return true;
             } else {
                 console.warn('⚠️ Supabase no disponible para análisis personalizado');
@@ -217,7 +217,7 @@ class GrafanaStatisticsManager {
             }
 
             this.currentUser = user;
-            console.log('👤 Usuario cargado para análisis:', this.currentUser.id);
+            // console.log('👤 Usuario cargado para análisis:', this.currentUser.id);
 
             // Cargar respuestas del usuario
             await this.loadUserResponses();
@@ -235,7 +235,7 @@ class GrafanaStatisticsManager {
         if (!this.supabase || !this.currentUser) return;
 
         try {
-            console.log('📊 Cargando respuestas del usuario...');
+            // console.log('📊 Cargando respuestas del usuario...');
             const { data, error } = await this.supabase
                 .from('respuestas')
                 .select('*')
@@ -247,7 +247,7 @@ class GrafanaStatisticsManager {
             }
 
             this.userResponses = data || [];
-            console.log(`✅ ${this.userResponses.length} respuestas cargadas`);
+            // console.log(`✅ ${this.userResponses.length} respuestas cargadas`);
         } catch (error) {
             console.error('❌ Error en loadUserResponses:', error);
         }
@@ -257,7 +257,7 @@ class GrafanaStatisticsManager {
         if (!this.supabase || this.userResponses.length === 0) return;
 
         try {
-            console.log('❓ Cargando preguntas...');
+            // console.log('❓ Cargando preguntas...');
             const questionIds = this.userResponses.map(r => r.pregunta_id);
 
             const { data, error } = await this.supabase
@@ -271,7 +271,7 @@ class GrafanaStatisticsManager {
             }
 
             this.userQuestions = data || [];
-            console.log(`✅ ${this.userQuestions.length} preguntas cargadas`);
+            // console.log(`✅ ${this.userQuestions.length} preguntas cargadas`);
         } catch (error) {
             console.error('❌ Error en loadUserQuestions:', error);
         }
@@ -284,7 +284,7 @@ class GrafanaStatisticsManager {
                 return;
             }
 
-            console.log('🧠 Generando análisis personalizado...');
+            // console.log('🧠 Generando análisis personalizado...');
 
             // Calcular scores
             const scores = this.calculateUserScores();
@@ -976,13 +976,13 @@ class GrafanaStatisticsManager {
                 area: area || 'general'
             });
 
-            console.log(`🔍 Consultando BD: ${messageType}, score=${score}, área=${area}`);
+            // console.log(`🔍 Consultando BD: ${messageType}, score=${score}, área=${area}`);
 
             const response = await fetch(`/api/analysis-messages?${params}`);
             const result = await response.json();
 
             if (result.success && result.message) {
-                console.log(`✅ Mensaje encontrado en BD: ${result.message.title}`);
+                // console.log(`✅ Mensaje encontrado en BD: ${result.message.title}`);
 
                 // Procesar template con variables
                 const processedMessage = this.processMessageTemplate(
@@ -997,7 +997,7 @@ class GrafanaStatisticsManager {
                 return processedMessage;
             }
 
-            console.log(`⚠️ No se encontró mensaje en BD para ${messageType}`);
+            // console.log(`⚠️ No se encontró mensaje en BD para ${messageType}`);
             return null;
 
         } catch (error) {

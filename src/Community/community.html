@@ -496,31 +496,31 @@
 
     <!-- VERIFICACIÓN DE DEPENDENCIAS CRÍTICAS -->
     <script>
-    console.log('🔍 Verificando dependencias críticas...');
+    // console.log('🔍 Verificando dependencias críticas...');
 
     // Verificar que main.js no tenga errores
     try {
-        console.log('✅ main.js se ejecutó sin errores de sintaxis');
+        // console.log('✅ main.js se ejecutó sin errores de sintaxis');
     } catch (error) {
         console.error('❌ Error en main.js:', error);
     }
 
     // NUEVO: Verificar que CommunityDatabase esté disponible
     setTimeout(() => {
-        console.log('🔍 Estado de dependencias después de carga:');
-        console.log('📊 window.supabase:', window.supabase ? 'Disponible' : 'No disponible');
-        console.log('📊 window.supabaseInitialized:', window.supabaseInitialized);
-        console.log('📊 window.CommunityDatabase:', typeof window.CommunityDatabase);
+        // console.log('🔍 Estado de dependencias después de carga:');
+        // console.log('📊 window.supabase:', window.supabase ? 'Disponible' : 'No disponible');
+        // console.log('📊 window.supabaseInitialized:', window.supabaseInitialized);
+        // console.log('📊 window.CommunityDatabase:', typeof window.CommunityDatabase);
 
         if (typeof window.CommunityDatabase === 'function') {
-            console.log('✅ CommunityDatabase está disponible');
+            // console.log('✅ CommunityDatabase está disponible');
         } else {
             console.error('❌ CommunityDatabase NO está disponible');
             console.error('🔍 Verificar que community-database.js se cargue correctamente');
         }
 
         if (window.supabase && typeof window.supabase.createClient === 'function') {
-            console.log('✅ Supabase está disponible para community.js');
+            // console.log('✅ Supabase está disponible para community.js');
         } else {
             console.error('❌ Supabase NO está disponible para community.js');
         }

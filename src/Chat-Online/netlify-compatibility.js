@@ -3,7 +3,7 @@
 // Maneja problemas específicos de despliegue en Netlify
 // =====================================================
 
-console.log('🌐 Inicializando Netlify Compatibility Layer...');
+// console.log('🌐 Inicializando Netlify Compatibility Layer...');
 
 // Detectar entorno de Netlify
 const isNetlify = window.location.hostname.includes('netlify.app') || 
@@ -11,18 +11,18 @@ const isNetlify = window.location.hostname.includes('netlify.app') ||
                  document.querySelector('meta[name="generator"][content*="Netlify"]');
 
 if (isNetlify) {
-    console.log('🌐 Entorno Netlify detectado - aplicando correcciones...');
+    // console.log('🌐 Entorno Netlify detectado - aplicando correcciones...');
 }
 
 // Función para cargar scripts con fallback
 window.loadScriptWithFallback = function(src, callback, errorCallback) {
-    console.log(`📦 Intentando cargar script: ${src}`);
+    // console.log(`📦 Intentando cargar script: ${src}`);
     
     const script = document.createElement('script');
     script.src = src;
     
     script.onload = () => {
-        console.log(`✅ Script cargado exitosamente: ${src}`);
+        // console.log(`✅ Script cargado exitosamente: ${src}`);
         if (callback) callback();
     };
     
@@ -54,13 +54,13 @@ window.loadScriptWithFallback = function(src, callback, errorCallback) {
             }
             
             const altSrc = alternatePaths[attemptIndex++];
-            console.log(`🔄 Intentando ruta alternativa: ${altSrc}`);
+            // console.log(`🔄 Intentando ruta alternativa: ${altSrc}`);
             
             const altScript = document.createElement('script');
             altScript.src = altSrc;
             
             altScript.onload = () => {
-                console.log(`✅ Script cargado con ruta alternativa: ${altSrc}`);
+                // console.log(`✅ Script cargado con ruta alternativa: ${altSrc}`);
                 if (callback) callback();
             };
             
@@ -90,7 +90,7 @@ window.verifyComponents = function() {
         results[name] = isLoaded;
         if (!isLoaded) allLoaded = false;
         
-        console.log(`${isLoaded ? '✅' : '❌'} ${name}: ${typeof component}`);
+        // console.log(`${isLoaded ? '✅' : '❌'} ${name}: ${typeof component}`);
     }
     
     return { results, allLoaded };
@@ -103,12 +103,12 @@ window.waitForComponents = function(components, maxAttempts = 10, interval = 500
         
         const checkComponents = () => {
             attempts++;
-            console.log(`🔍 Verificación ${attempts}/${maxAttempts} de componentes...`);
+            // console.log(`🔍 Verificación ${attempts}/${maxAttempts} de componentes...`);
             
             const missing = components.filter(name => typeof window[name] === 'undefined');
             
             if (missing.length === 0) {
-                console.log('✅ Todos los componentes están disponibles');
+                // console.log('✅ Todos los componentes están disponibles');
                 resolve(true);
                 return;
             }
@@ -119,7 +119,7 @@ window.waitForComponents = function(components, maxAttempts = 10, interval = 500
                 return;
             }
             
-            console.log(`⏳ Esperando componentes: ${missing.join(', ')}`);
+            // console.log(`⏳ Esperando componentes: ${missing.join(', ')}`);
             setTimeout(checkComponents, interval);
         };
         
@@ -129,7 +129,7 @@ window.waitForComponents = function(components, maxAttempts = 10, interval = 500
 
 // Función de inicialización robusta para Netlify
 window.initializeWithNetlifyFallback = async function() {
-    console.log('🚀 Inicializando con fallbacks para Netlify...');
+    // console.log('🚀 Inicializando con fallbacks para Netlify...');
     
     // Esperar componentes críticos
     const criticalComponents = ['CourseProgressManagerV2', 'YouTubeProgressTracker'];
@@ -161,7 +161,7 @@ window.initializeWithNetlifyFallback = async function() {
 
 // Función para probar conectividad de API
 window.testApiConnectivity = async function() {
-    console.log('🔬 Probando conectividad de APIs...');
+    // console.log('🔬 Probando conectividad de APIs...');
     
     const testEndpoints = [
         '/api/users/demo-user/progress/550e8400-e29b-41d4-a716-446655440001',
@@ -172,7 +172,7 @@ window.testApiConnectivity = async function() {
     
     for (const endpoint of testEndpoints) {
         try {
-            console.log(`🔍 Probando: ${endpoint}`);
+            // console.log(`🔍 Probando: ${endpoint}`);
             const response = await fetch(endpoint, { method: 'GET' });
             
             results[endpoint] = {
@@ -187,7 +187,7 @@ window.testApiConnectivity = async function() {
                 results[endpoint].preview = text.substring(0, 100) + '...';
             }
             
-            console.log(`${response.ok ? '✅' : '❌'} ${endpoint}: ${response.status}`);
+            // console.log(`${response.ok ? '✅' : '❌'} ${endpoint}: ${response.status}`);
             
         } catch (error) {
             results[endpoint] = {
@@ -209,10 +209,10 @@ if (window.location.hostname.includes('netlify') || window.location.hostname ===
             if (hasErrors) {
                 console.warn('⚠️ Detectados problemas de conectividad de API:', results);
             } else {
-                console.log('✅ Todas las APIs responden correctamente');
+                // console.log('✅ Todas las APIs responden correctamente');
             }
         });
     }, 1000);
 }
 
-console.log('✅ Netlify Compatibility Layer inicializado');
+// console.log('✅ Netlify Compatibility Layer inicializado');

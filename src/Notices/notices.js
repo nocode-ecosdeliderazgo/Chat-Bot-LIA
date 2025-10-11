@@ -167,7 +167,7 @@ class NoticesPage {
             }
             }
         }catch(e){
-            // console.log('Error loading user data:', e);
+            // // console.log('Error loading user data:', e);
         }
 
         // Setup profile menu functionality
@@ -181,7 +181,7 @@ class NoticesPage {
             // console.error('[PROFILE] ❌ Elementos del menú de perfil no encontrados');
             return;
         }
-        // console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+        // // console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
 
         avatarBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -240,7 +240,7 @@ class NoticesPage {
 
     handleThemeChange() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
-        // console.log('🎨 Notice page theme changed to:', currentTheme);
+        // // console.log('🎨 Notice page theme changed to:', currentTheme);
         
         // Forzar re-aplicación de estilos del body
         this.forceBackgroundUpdate();
@@ -260,11 +260,11 @@ class NoticesPage {
         if (currentTheme === 'light') {
             // Aplicar fondo claro manualmente
             body.style.background = 'linear-gradient(160deg, #E6F3FF 0%, #D4E6F1 100%)';
-            // console.log('🎨 Forced light background application');
+            // // console.log('🎨 Forced light background application');
         } else {
             // Remover estilo inline para que use el CSS por defecto
             body.style.background = '';
-            // console.log('🎨 Restored dark background');
+            // // console.log('🎨 Restored dark background');
         }
         
         // Remover clase de transición después de un tiempo
@@ -308,7 +308,7 @@ class NoticesPage {
 
     // ===== DATA LOADING =====
     async loadNewsData() {
-        console.log('📡 Loading news data...');
+        // console.log('📡 Loading news data...');
         this.showLoading();
 
         try {
@@ -316,17 +316,17 @@ class NoticesPage {
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const apiUrl = isLocalhost ? '/api/news' : '/.netlify/functions/news';
             
-            console.log('🎯 API URL:', apiUrl);
+            // console.log('🎯 API URL:', apiUrl);
             
             // Intentar cargar desde API
             const response = await fetch(apiUrl);
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ API Response:', data);
+                // console.log('✅ API Response:', data);
                 this.allNews = data.news || [];
                 this.filteredNews = [...this.allNews];
-                console.log('📰 Loaded news:', this.allNews.length, 'articles');
+                // console.log('📰 Loaded news:', this.allNews.length, 'articles');
             } else {
                 console.warn('Error cargando noticias desde API:', response.status);
                 const errorText = await response.text();
@@ -705,16 +705,16 @@ class NoticesPage {
     }
 
     readNews(newsId) {
-        console.log('🗞️ readNews called with ID:', newsId);
+        // console.log('🗞️ readNews called with ID:', newsId);
         const news = this.allNews.find(n => n.id === newsId);
-        console.log('📰 Found news:', news);
+        // console.log('📰 Found news:', news);
         if (news) {
             // Si la noticia tiene vista detallada, abrir el modal
             if (news.hasDetailedView && news.detailedData) {
-                console.log('✅ Opening detailed modal for:', news.title);
+                // console.log('✅ Opening detailed modal for:', news.title);
                 this.openDetailedNewsModal(news);
             } else {
-                console.log('⚠️ No detailed view for news:', news.title);
+                // console.log('⚠️ No detailed view for news:', news.title);
                 this.showToast(`Leyendo: ${news.title}`, 'info');
                 // Here you would typically navigate to a news detail page
                 // or open a modal with the full article
@@ -725,7 +725,7 @@ class NoticesPage {
     }
 
     openDetailedNewsModal(news) {
-        console.log('🗞️ Abriendo modal detallado para:', news.title);
+        // console.log('🗞️ Abriendo modal detallado para:', news.title);
 
         const modal = document.getElementById('newsModal');
         if (!modal) {
@@ -733,16 +733,16 @@ class NoticesPage {
             return;
         }
 
-        console.log('📋 Modal found, updating content...');
+        // console.log('📋 Modal found, updating content...');
         // Actualizar el contenido del modal con los datos de la noticia
         this.updateModalContent(news);
 
         // Mostrar el modal
-        console.log('👁️ Making modal visible...');
+        // console.log('👁️ Making modal visible...');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        console.log('✅ Modal detallado abierto exitosamente');
+        // console.log('✅ Modal detallado abierto exitosamente');
     }
 
     updateModalContent(news) {
@@ -935,7 +935,7 @@ class NoticesPage {
 let noticesPage;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // console.log('DOM loaded - notices page initializing...');
+    // // console.log('DOM loaded - notices page initializing...');
     noticesPage = new NoticesPage();
     
     // Configuración inmediata del menú de perfil
@@ -948,7 +948,7 @@ function setupProfileMenuDirect() {
     const menu = document.getElementById('profileMenu');
     
     if(avatarBtn && menu) {
-        // console.log('Setting up profile menu in notices');
+        // // console.log('Setting up profile menu in notices');
         
         // Cargar datos del usuario
         try {
@@ -966,13 +966,13 @@ function setupProfileMenuDirect() {
                 }
             }
         } catch(e) {
-            // console.log('Error loading user data:', e);
+            // // console.log('Error loading user data:', e);
         }
         
         avatarBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
-            // console.log('Profile button clicked in notices');
+            // // console.log('Profile button clicked in notices');
             menu.classList.toggle('show');
         };
         
@@ -982,36 +982,36 @@ function setupProfileMenuDirect() {
             }
         };
     } else {
-        // console.log('Profile elements not found in notices');
+        // // console.log('Profile elements not found in notices');
     }
 }
 
 // Función inmediata para configurar el menú de perfil
 function setupProfileMenuImmediate() {
-    // console.log('Setting up profile menu immediately...');
+    // // console.log('Setting up profile menu immediately...');
     
     const avatarBtn = document.getElementById('headerProfileBtn');
     const menu = document.getElementById('profileMenu');
     
-    // console.log('Avatar button found:', avatarBtn);
-    // console.log('Profile menu found:', menu);
+    // // console.log('Avatar button found:', avatarBtn);
+    // // console.log('Profile menu found:', menu);
     
     if(avatarBtn && menu) {
-        // console.log('Both elements found, setting up click handler...');
+        // // console.log('Both elements found, setting up click handler...');
         
         // Remover eventos previos
         avatarBtn.onclick = null;
         
         // Configurar evento de click
         avatarBtn.addEventListener('click', function(e) {
-            // console.log('Profile button clicked!');
+            // // console.log('Profile button clicked!');
             e.preventDefault();
             e.stopPropagation();
             
             // Método directo - aplicar estilos según el tema actual
             if(menu.style.display === 'block') {
                 menu.style.display = 'none';
-                // console.log('Menu hidden');
+                // // console.log('Menu hidden');
             } else {
                 // Detectar el tema actual
                 const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light' || 
@@ -1051,7 +1051,7 @@ function setupProfileMenuImmediate() {
                 `;
                 
                 menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
-                // console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
+                // // console.log('Menu shown with theme-aware styles:', isLightTheme ? 'light' : 'dark');
             }
         });
         
@@ -1107,7 +1107,7 @@ function setupProfileMenuImmediate() {
                         `;
                         
                         menu.style.cssText = isLightTheme ? lightStyles : darkStyles;
-                        // console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
+                        // // console.log('Menu styles updated for theme:', isLightTheme ? 'light' : 'dark');
                     }
                 }
             });
@@ -1119,7 +1119,7 @@ function setupProfileMenuImmediate() {
             attributeFilter: ['data-theme']
         });
         
-        // console.log('Profile menu setup completed successfully!');
+        // // console.log('Profile menu setup completed successfully!');
     } else {
         // console.error('Profile elements not found!', {avatarBtn, menu});
     }
@@ -1144,13 +1144,13 @@ function loadUserDataIntoMenu() {
             }
         }
     } catch(e) {
-        // console.log('Error loading user data:', e);
+        // // console.log('Error loading user data:', e);
     }
 }
 
 // Función global para toggle del menú (backup)
 function toggleProfileMenu(event) {
-    // console.log('toggleProfileMenu backup called');
+    // // console.log('toggleProfileMenu backup called');
     const menu = document.getElementById('profileMenu');
     if(menu) {
         menu.classList.toggle('show');
@@ -1159,12 +1159,12 @@ function toggleProfileMenu(event) {
 
 // Función global para toggle del tema - conectada con el botón del menú
 window.toggleTheme = function() {
-    // console.log('🎨 Theme toggle called from notices');
+    // // console.log('🎨 Theme toggle called from notices');
     
     // Usar la función global de cambio de tema
     if (window.toggleGlobalTheme) {
         const newTheme = window.toggleGlobalTheme();
-        // console.log('🎨 Theme toggled via global function to:', newTheme);
+        // // console.log('🎨 Theme toggled via global function to:', newTheme);
     } else {
         // Fallback manual si el script global no está disponible
         const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -1177,7 +1177,7 @@ window.toggleTheme = function() {
         // Disparar evento personalizado
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
         
-        // console.log('🎨 Theme toggled via fallback to:', newTheme);
+        // // console.log('🎨 Theme toggled via fallback to:', newTheme);
     }
 };
 
@@ -1186,7 +1186,7 @@ window.toggleTheme = function() {
 
 // Función para abrir el modal con el diseño exacto
 function openNewsModal(newsId) {
-    // console.log('🗞️ Abriendo modal de noticia ID:', newsId);
+    // // console.log('🗞️ Abriendo modal de noticia ID:', newsId);
 
     const news = sampleNews[newsId];
     const modal = document.getElementById('newsModal');
@@ -1200,18 +1200,18 @@ function openNewsModal(newsId) {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
-    // console.log('✅ Modal de noticia abierto exitosamente');
+    // // console.log('✅ Modal de noticia abierto exitosamente');
 }
 
 // Función para cerrar el modal
 function closeNewsModal() {
-    // console.log('❌ Cerrando modal de noticia');
+    // // console.log('❌ Cerrando modal de noticia');
 
     const modal = document.getElementById('newsModal');
     if (modal) {
         modal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        // console.log('✅ Modal de noticia cerrado exitosamente');
+        // // console.log('✅ Modal de noticia cerrado exitosamente');
     }
 }
 
@@ -1252,7 +1252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // console.log('🎬 Event listeners del modal de noticias configurados');
+    // // console.log('🎬 Event listeners del modal de noticias configurados');
 });
 
 // Función para crear el header gráfico dinámicamente

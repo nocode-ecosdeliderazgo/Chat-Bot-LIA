@@ -36,7 +36,7 @@ class CommunityPage {
 
     async init() {
         try {
-            console.log('[COMMUNITY] 🚀 Iniciando sistema de comunidades...');
+            // console.log('[COMMUNITY] 🚀 Iniciando sistema de comunidades...');
 
             // NUEVO: Debug completo de autenticación
             await this.debugUserAuthentication();
@@ -54,7 +54,7 @@ class CommunityPage {
             }
 
             // Intentar inicializar Supabase UNA SOLA VEZ
-            console.log('[COMMUNITY] 🔄 Verificando Supabase...');
+            // console.log('[COMMUNITY] 🔄 Verificando Supabase...');
             const supabaseOk = await this.ensureSupabaseClient();
 
             if (!supabaseOk) {
@@ -64,22 +64,22 @@ class CommunityPage {
             }
 
             // Verificar sesión de Supabase para operaciones protegidas
-            console.log('[COMMUNITY] 🔍 Verificando sesión de Supabase...');
+            // console.log('[COMMUNITY] 🔍 Verificando sesión de Supabase...');
             this.hasValidSession = await window.hasCommunitySession();
 
             if (this.hasValidSession) {
-                console.log('[COMMUNITY] ✅ Sesión válida - habilitando funciones protegidas');
+                // console.log('[COMMUNITY] ✅ Sesión válida - habilitando funciones protegidas');
             } else {
-                console.log('[COMMUNITY] ⚠️ Sin sesión - modo solo lectura');
+                // console.log('[COMMUNITY] ⚠️ Sin sesión - modo solo lectura');
             }
 
             // Continuar con inicialización normal
-            console.log('[COMMUNITY] 🔄 Inicializando CommunityDatabase...');
+            // console.log('[COMMUNITY] 🔄 Inicializando CommunityDatabase...');
             this.db = new CommunityDatabase();
             await this.db.initialize();
             await this.loadCommunityData();
 
-            console.log('[COMMUNITY] ✅ Sistema de comunidades inicializado');
+            // console.log('[COMMUNITY] ✅ Sistema de comunidades inicializado');
 
         } catch (error) {
             console.error('[COMMUNITY] ❌ Error crítico en init:', error);
@@ -99,107 +99,107 @@ class CommunityPage {
 
     // NUEVA función para debug completo de autenticación
     async debugUserAuthentication() {
-        console.log('🔍 === DEBUG AUTENTICACIÓN DE USUARIO (COMMUNITY) ===');
+        // console.log('🔍 === DEBUG AUTENTICACIÓN DE USUARIO (COMMUNITY) ===');
 
         // Usar el nuevo sistema de autenticación
         if (window.CommunityAuth) {
-            console.log('✅ CommunityAuth disponible - ejecutando debug completo...');
+            // console.log('✅ CommunityAuth disponible - ejecutando debug completo...');
             const debugResult = await window.CommunityAuth.debugAuthState();
-            console.log('📊 Resultado debug CommunityAuth:', debugResult);
+            // console.log('📊 Resultado debug CommunityAuth:', debugResult);
             return debugResult;
         } else {
             console.error('❌ CommunityAuth NO disponible - usando debug legacy...');
         }
 
         // Verificar localStorage (donde funciona el menú de perfil)
-        console.log('📊 LocalStorage:');
+        // console.log('📊 LocalStorage:');
         const localStorageKeys = ['currentUser', 'userData', 'user', 'authToken', 'userSession', 'profile'];
         localStorageKeys.forEach(key => {
             const value = localStorage.getItem(key);
             if (value && value !== 'null' && value !== 'undefined') {
-                console.log(`  ✅ ${key}: Presente (${value.length} chars)`, value.substring(0, 100) + '...');
+                // console.log(`  ✅ ${key}: Presente (${value.length} chars)`, value.substring(0, 100) + '...');
 
                 // Intentar parsear para ver contenido
                 try {
                     const parsed = JSON.parse(value);
                     if (parsed && (parsed.email || parsed.id)) {
-                        console.log(`    📧 Email: ${parsed.email || 'No definido'}`);
-                        console.log(`    🆔 ID: ${parsed.id || parsed.user_id || 'No definido'}`);
+                        // console.log(`    📧 Email: ${parsed.email || 'No definido'}`);
+                        // console.log(`    🆔 ID: ${parsed.id || parsed.user_id || 'No definido'}`);
                     }
                 } catch (e) {
-                    console.log(`    ⚠️ No es JSON válido`);
+                    // console.log(`    ⚠️ No es JSON válido`);
                 }
             } else {
-                console.log(`  ❌ ${key}: Ausente o null`);
+                // console.log(`  ❌ ${key}: Ausente o null`);
             }
         });
 
         // Verificar sessionStorage
-        console.log('📊 SessionStorage:');
+        // console.log('📊 SessionStorage:');
         localStorageKeys.forEach(key => {
             const value = sessionStorage.getItem(key);
             if (value && value !== 'null') {
-                console.log(`  ✅ ${key}: Presente (${value.length} chars)`);
+                // console.log(`  ✅ ${key}: Presente (${value.length} chars)`);
             } else {
-                console.log(`  ❌ ${key}: Ausente`);
+                // console.log(`  ❌ ${key}: Ausente`);
             }
         });
 
         // Verificar variables globales
-        console.log('📊 Variables globales:');
-        console.log('  window.currentUser:', window.currentUser ? '✅ Presente' : '❌ Ausente');
-        console.log('  window.user:', window.user ? '✅ Presente' : '❌ Ausente');
-        console.log('  window.userData:', window.userData ? '✅ Presente' : '❌ Ausente');
+        // console.log('📊 Variables globales:');
+        // console.log('  window.currentUser:', window.currentUser ? '✅ Presente' : '❌ Ausente');
+        // console.log('  window.user:', window.user ? '✅ Presente' : '❌ Ausente');
+        // console.log('  window.userData:', window.userData ? '✅ Presente' : '❌ Ausente');
 
         // Verificar AuthUtils
-        console.log('📊 AuthUtils:');
+        // console.log('📊 AuthUtils:');
         if (window.AuthUtils) {
-            console.log('  ✅ AuthUtils disponible');
+            // console.log('  ✅ AuthUtils disponible');
             // Usar AuthUtils para debug completo
             window.AuthUtils.debugAuthenticationState();
         } else {
-            console.log('  ❌ AuthUtils NO disponible - Verificar carga de script');
+            // console.log('  ❌ AuthUtils NO disponible - Verificar carga de script');
         }
 
         // Verificar estado de Supabase
-        console.log('📊 Estado Supabase:');
-        console.log('  window.supabase:', window.supabase ? '✅ Disponible' : '❌ No disponible');
-        console.log('  window.supabaseInitialized:', window.supabaseInitialized);
+        // console.log('📊 Estado Supabase:');
+        // console.log('  window.supabase:', window.supabase ? '✅ Disponible' : '❌ No disponible');
+        // console.log('  window.supabaseInitialized:', window.supabaseInitialized);
 
         if (window.supabase && window.supabase.auth) {
-            console.log('  ✅ Supabase auth disponible - Verificando sesión...');
+            // console.log('  ✅ Supabase auth disponible - Verificando sesión...');
             window.supabase.auth.getSession().then(({ data: { session }, error }) => {
-                console.log('  📊 Supabase session:', session ? '✅ Presente' : '❌ Ausente');
-                console.log('  📊 Supabase session error:', error);
+                // console.log('  📊 Supabase session:', session ? '✅ Presente' : '❌ Ausente');
+                // console.log('  📊 Supabase session error:', error);
                 if (session?.user) {
-                    console.log('  📧 Supabase user email:', session.user.email);
+                    // console.log('  📧 Supabase user email:', session.user.email);
                 }
             }).catch(err => {
-                console.log('  ❌ Error obteniendo sesión Supabase:', err);
+                // console.log('  ❌ Error obteniendo sesión Supabase:', err);
             });
         } else {
-            console.log('  ❌ Supabase auth NO disponible');
+            // console.log('  ❌ Supabase auth NO disponible');
         }
 
-        console.log('🔍 === FIN DEBUG AUTENTICACIÓN (COMMUNITY) ===');
+        // console.log('🔍 === FIN DEBUG AUTENTICACIÓN (COMMUNITY) ===');
     }
 
     async ensureSupabaseClient() {
-        console.log('[COMMUNITY] 🔍 Verificando cliente Supabase...');
+        // console.log('[COMMUNITY] 🔍 Verificando cliente Supabase...');
 
         // UNA SOLA VERIFICACIÓN - NO REINTENTOS
         if (window.supabase && window.supabaseInitialized) {
-            console.log('[COMMUNITY] ✅ Supabase ya disponible');
+            // console.log('[COMMUNITY] ✅ Supabase ya disponible');
             return true;
         }
 
         // UN SOLO INTENTO DE INICIALIZACIÓN
         try {
-            console.log('[COMMUNITY] 🔄 Intentando inicializar Supabase (una sola vez)...');
+            // console.log('[COMMUNITY] 🔄 Intentando inicializar Supabase (una sola vez)...');
             await initializeSupabaseClient();
 
             if (window.supabase && window.supabaseInitialized) {
-                console.log('[COMMUNITY] ✅ Supabase inicializado exitosamente');
+                // console.log('[COMMUNITY] ✅ Supabase inicializado exitosamente');
                 return true;
             } else {
                 console.error('[COMMUNITY] ❌ Supabase no se inicializó correctamente');
@@ -272,7 +272,7 @@ class CommunityPage {
                 }
             }
         }catch(e){
-            console.log('Error loading user data:', e);
+            // console.log('Error loading user data:', e);
         }
         
         // Setup profile menu functionality
@@ -286,7 +286,7 @@ class CommunityPage {
             console.error('[PROFILE] âŒ Elementos del menÃº de perfil no encontrados');
             return;
         }
-        console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
+        // console.log('[PROFILE] ✅ Menú de perfil configurado correctamente');
         
         avatarBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -343,7 +343,7 @@ class CommunityPage {
 
     // ===== DATA LOADING =====
     async loadCommunityData() {
-        console.log('📊 ULTRATHINK: Cargando datos de comunidad con autenticación mejorada...');
+        // console.log('📊 ULTRATHINK: Cargando datos de comunidad con autenticación mejorada...');
         this.showLoading();
 
         try {
@@ -357,15 +357,15 @@ class CommunityPage {
             }
 
             // ULTRATHINK: Verificar estado de autenticación antes de cargar comunidades
-            console.log('🔍 ULTRATHINK: Verificando autenticación antes de cargar comunidades...');
+            // console.log('🔍 ULTRATHINK: Verificando autenticación antes de cargar comunidades...');
             const currentUser = await this.db.getCurrentUser();
-            console.log('👤 ULTRATHINK: Estado de autenticación:', currentUser ? currentUser.email : 'No autenticado');
+            // console.log('👤 ULTRATHINK: Estado de autenticación:', currentUser ? currentUser.email : 'No autenticado');
 
             // Obtener comunidades usando método ULTRATHINK híbrido
-            console.log('🏘️ ULTRATHINK: Cargando comunidades con método híbrido...');
+            // console.log('🏘️ ULTRATHINK: Cargando comunidades con método híbrido...');
             this.communities = await this.db.getCommunities();
-            console.log('🏘️ ULTRATHINK: Comunidades cargadas:', this.communities);
-            console.log('📊 ULTRATHINK: Número de comunidades encontradas:', this.communities.length);
+            // console.log('🏘️ ULTRATHINK: Comunidades cargadas:', this.communities);
+            // console.log('📊 ULTRATHINK: Número de comunidades encontradas:', this.communities.length);
 
             if (this.communities.length === 0) {
                 console.warn('⚠️ ULTRATHINK: No se encontraron comunidades - DIAGNÓSTICO COMPLETO:');
@@ -418,7 +418,7 @@ class CommunityPage {
             this.communityStats.totalPosts = hydrated.reduce((sum, item) => sum + (item.postCount || 0), 0);
 
             // Obtener estadísticas
-            console.log('📈 Estadísticas:', this.communityStats);
+            // console.log('📈 Estadísticas:', this.communityStats);
 
             const activeChip = document.querySelector('.discover-chip.active');
             const category = activeChip ? activeChip.dataset.category : 'all';
@@ -906,7 +906,7 @@ class CommunityPage {
 
     async requestAccess(communityId) {
         try {
-            console.log('[ACCESS] 🚀 Solicitando acceso a comunidad:', communityId);
+            // console.log('[ACCESS] 🚀 Solicitando acceso a comunidad:', communityId);
 
             // Verificar sesión de Supabase primero
             if (!(await window.hasCommunitySession())) {
@@ -915,7 +915,7 @@ class CommunityPage {
                 return;
             }
 
-            console.log('[ACCESS] 🚀 Solicitando acceso vía RPC...');
+            // console.log('[ACCESS] 🚀 Solicitando acceso vía RPC...');
 
             const { error } = await window.executeRPCWithAuth('rpc_request_access', {
                 p_community_id: communityId
@@ -926,7 +926,7 @@ class CommunityPage {
                 throw error;
             }
 
-            console.log('[ACCESS] ✅ Solicitud creada exitosamente via RPC');
+            // console.log('[ACCESS] ✅ Solicitud creada exitosamente via RPC');
             this.showToast('Solicitud enviada exitosamente', 'success');
             return true;
         } catch (error) {
@@ -946,7 +946,7 @@ class CommunityPage {
     }
 
     async openAccessRequestModal(community) {
-        console.log('[ACCESS] Abriendo modal para comunidad:', community.title);
+        // console.log('[ACCESS] Abriendo modal para comunidad:', community.title);
 
         // Verificar sesión de Supabase primero
         if (!(await window.hasCommunitySession())) {
@@ -1040,7 +1040,7 @@ class CommunityPage {
 
     async joinCommunity(communityId, communityName) {
         try {
-            console.log('[JOIN] 🚀 Intentando unirse a comunidad:', communityName);
+            // console.log('[JOIN] 🚀 Intentando unirse a comunidad:', communityName);
 
             // Verificar que tenemos acceso a la base de datos
             if (!this.db) {
@@ -1057,7 +1057,7 @@ class CommunityPage {
                 return;
             }
 
-            console.log('[JOIN] 🔍 Ejecutando joinCommunity con userId:', userId);
+            // console.log('[JOIN] 🔍 Ejecutando joinCommunity con userId:', userId);
 
             // Actualizar usuario en la instancia de base de datos
             await this.db.getCurrentUserWithAuthUtils();
@@ -1066,7 +1066,7 @@ class CommunityPage {
             const joinSuccess = await this.db.joinCommunity(communityId);
 
             if (joinSuccess) {
-                console.log('[JOIN] ✅ Usuario unido exitosamente a la comunidad');
+                // console.log('[JOIN] ✅ Usuario unido exitosamente a la comunidad');
 
                 // Mostrar notificación de éxito
                 this.showToast(`¡Te has unido exitosamente a ${communityName}!`, 'success');
@@ -1101,12 +1101,12 @@ class CommunityPage {
 
     async updateCommunityMemberCount(communityId) {
         try {
-            console.log('[COUNT] 📊 Actualizando contador de miembros para comunidad:', communityId);
+            // console.log('[COUNT] 📊 Actualizando contador de miembros para comunidad:', communityId);
 
             // Obtener nuevo conteo usando CommunityDatabase
             const newCount = await this.db.countCommunityMembers(communityId);
 
-            console.log('[COUNT] 📊 Nuevo conteo de miembros:', newCount);
+            // console.log('[COUNT] 📊 Nuevo conteo de miembros:', newCount);
 
             // Actualizar el contador en la tarjeta de comunidad
             const card = document.querySelector(`[data-community-id="${communityId}"]`)?.closest('.discover-card');
@@ -1114,7 +1114,7 @@ class CommunityPage {
                 const memberSpan = card.querySelector('.discover-meta span:first-child');
                 if (memberSpan) {
                     memberSpan.textContent = `${newCount} ${newCount === 1 ? 'Member' : 'Members'}`;
-                    console.log('[COUNT] ✅ Contador actualizado en la UI');
+                    // console.log('[COUNT] ✅ Contador actualizado en la UI');
                 }
             }
 
@@ -1140,7 +1140,7 @@ class CommunityPage {
                 actionsDiv.remove();
             }
 
-            console.log('[UI] ✅ Botón de unirse removido de la UI');
+            // console.log('[UI] ✅ Botón de unirse removido de la UI');
         }
     }
 
@@ -1185,7 +1185,7 @@ class CommunityPage {
     }
 
     showSupabaseError() {
-        console.log('[COMMUNITY] 📊 Mostrando error de Supabase al usuario...');
+        // console.log('[COMMUNITY] 📊 Mostrando error de Supabase al usuario...');
         this.communities = [];
         this.communityStats = { totalMembers: 0, totalPosts: 0 };
         this.renderDiscover('all', '');
@@ -1195,7 +1195,7 @@ class CommunityPage {
     }
 
     showScriptError(title, message) {
-        console.log('🚨 Mostrando error de script al usuario');
+        // console.log('🚨 Mostrando error de script al usuario');
 
         const discoverGrid = document.getElementById('discoverGrid');
         if (discoverGrid) {
@@ -1223,7 +1223,7 @@ class CommunityPage {
 
 // ===== THEME TOGGLE FUNCTIONS =====
 window.toggleTheme = function() {
-    console.log('ðŸŽ¨ Theme toggle called from community');
+    // console.log('ðŸŽ¨ Theme toggle called from community');
 
     // Agregar efecto de click al botÃ³n
     const themeToggle = document.getElementById('themeToggle');
@@ -1241,13 +1241,13 @@ window.toggleTheme = function() {
     // Usar la funciÃ³n global de cambio de tema
     if (window.toggleGlobalTheme) {
         window.toggleGlobalTheme();
-        console.log('ðŸŽ¨ Theme toggled via global function to:', newTheme);
+        // console.log('ðŸŽ¨ Theme toggled via global function to:', newTheme);
     } else {
         // Fallback manual si el script global no estÃ¡ disponible
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
-        console.log('ðŸŽ¨ Theme toggled via fallback to:', newTheme);
+        // console.log('ðŸŽ¨ Theme toggled via fallback to:', newTheme);
     }
 
     // Activar animaciÃ³n de transformaciÃ³n

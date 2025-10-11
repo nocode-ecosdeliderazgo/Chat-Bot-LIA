@@ -17,7 +17,7 @@ class ModulesVideosManager {
         this.youtubePlayer = null;
         this.videoInfo = null;
         
-        console.log('[ModulesVideosManager] ✨ Inicializando gestor de módulos y videos');
+        // console.log('[ModulesVideosManager] ✨ Inicializando gestor de módulos y videos');
     }
 
     /**
@@ -35,7 +35,7 @@ class ModulesVideosManager {
                 return false;
             }
 
-            console.log('[ModulesVideosManager] 🎯 Elementos del DOM encontrados');
+            // console.log('[ModulesVideosManager] 🎯 Elementos del DOM encontrados');
 
             // Cargar estructura completa del curso
             await this.loadCourseStructure();
@@ -47,7 +47,7 @@ class ModulesVideosManager {
             this.setupEventListeners();
 
             this.isInitialized = true;
-            console.log('[ModulesVideosManager] ✅ Sistema inicializado correctamente');
+            // console.log('[ModulesVideosManager] ✅ Sistema inicializado correctamente');
             return true;
 
         } catch (error) {
@@ -62,7 +62,7 @@ class ModulesVideosManager {
      */
     async loadCourseStructure() {
         try {
-            console.log('[ModulesVideosManager] 📡 Cargando estructura del curso...');
+            // console.log('[ModulesVideosManager] 📡 Cargando estructura del curso...');
 
             const response = await fetch(`/api/courses/${this.currentCourse}/full-structure?userId=${this.currentUser}`);
             
@@ -79,7 +79,7 @@ class ModulesVideosManager {
             this.modules = data.modules;
             this.courseData = data.course;
 
-            console.log('[ModulesVideosManager] ✅ Estructura del curso cargada:', {
+            // console.log('[ModulesVideosManager] ✅ Estructura del curso cargada:', {
                 modules: this.modules.length,
                 totalVideos: data.summary.total_videos
             });
@@ -106,7 +106,7 @@ class ModulesVideosManager {
             return;
         }
 
-        console.log('[ModulesVideosManager] 🎨 Renderizando módulos...');
+        // console.log('[ModulesVideosManager] 🎨 Renderizando módulos...');
 
         let modulesHTML = '';
 
@@ -162,7 +162,7 @@ class ModulesVideosManager {
         });
 
         this.modulesList.innerHTML = modulesHTML;
-        console.log('[ModulesVideosManager] ✅ Módulos renderizados correctamente');
+        // console.log('[ModulesVideosManager] ✅ Módulos renderizados correctamente');
     }
 
     /**
@@ -245,7 +245,7 @@ class ModulesVideosManager {
      * Toggle módulo (expandir/colapsar)
      */
     toggleModule(moduleId) {
-        console.log('[ModulesVideosManager] 🔄 Toggle módulo:', moduleId);
+        // console.log('[ModulesVideosManager] 🔄 Toggle módulo:', moduleId);
 
         const moduleItem = document.querySelector(`.module-item[data-module-id="${moduleId}"]`);
         const moduleToggle = document.querySelector(`.module-toggle[data-module-id="${moduleId}"]`);
@@ -277,7 +277,7 @@ class ModulesVideosManager {
      */
     async loadModuleVideos(moduleId) {
         try {
-            console.log('[ModulesVideosManager] 📡 Cargando videos del módulo:', moduleId);
+            // console.log('[ModulesVideosManager] 📡 Cargando videos del módulo:', moduleId);
 
             const response = await fetch(`/api/modules/${moduleId}/videos?userId=${this.currentUser}`);
             
@@ -303,7 +303,7 @@ class ModulesVideosManager {
                 videosContainer.innerHTML = this.renderVideos(data.videos, moduleId);
             }
 
-            console.log('[ModulesVideosManager] ✅ Videos del módulo cargados:', data.videos.length);
+            // console.log('[ModulesVideosManager] ✅ Videos del módulo cargados:', data.videos.length);
 
         } catch (error) {
             console.error('[ModulesVideosManager] 💥 Error cargando videos del módulo:', error);
@@ -315,7 +315,7 @@ class ModulesVideosManager {
      */
     async switchToVideo(videoId, moduleId) {
         try {
-            console.log('[ModulesVideosManager] 🎥 Cambiando a video:', { videoId, moduleId });
+            // console.log('[ModulesVideosManager] 🎥 Cambiando a video:', { videoId, moduleId });
 
             // Mostrar loading en el reproductor
             this.showVideoLoading();
@@ -358,7 +358,7 @@ class ModulesVideosManager {
             // Actualizar estados visuales
             this.updateVideoStates(videoId, moduleId);
 
-            console.log('[ModulesVideosManager] ✅ Video cambiado exitosamente');
+            // console.log('[ModulesVideosManager] ✅ Video cambiado exitosamente');
 
         } catch (error) {
             console.error('[ModulesVideosManager] 💥 Error cambiando video:', error);
@@ -509,7 +509,7 @@ class ModulesVideosManager {
             });
         }
 
-        console.log('[ModulesVideosManager] 👂 Event listeners configurados');
+        // console.log('[ModulesVideosManager] 👂 Event listeners configurados');
     }
 
     /**
@@ -606,4 +606,4 @@ class ModulesVideosManager {
 // Exponer la clase globalmente
 window.ModulesVideosManager = ModulesVideosManager;
 
-console.log('[ModulesVideosManager] 📦 Clase ModulesVideosManager cargada correctamente');
+// console.log('[ModulesVideosManager] 📦 Clase ModulesVideosManager cargada correctamente');

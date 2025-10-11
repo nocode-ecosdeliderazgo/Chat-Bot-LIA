@@ -69,7 +69,7 @@ class OTPService {
 
             const result = await pool.query(query, [userId, purpose, hash, expiresAt]);
 
-            console.log('🔐 OTP creado:', {
+            // console.log('🔐 OTP creado:', {
                 userId: userId,
                 purpose: purpose,
                 expiresAt: expiresAt,
@@ -145,7 +145,7 @@ class OTPService {
             // Marcar como usado
             await this.markAsUsed(pool, otpRecord.id);
 
-            console.log('✅ OTP verificado exitosamente:', {
+            // console.log('✅ OTP verificado exitosamente:', {
                 userId: userId,
                 purpose: purpose,
                 otpId: otpRecord.id

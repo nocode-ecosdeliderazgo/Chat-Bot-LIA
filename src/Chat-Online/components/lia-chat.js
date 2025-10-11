@@ -21,7 +21,7 @@ class LiaChat {
         this.setupContextualAnalysis();
         this.initializeWebSocket();
         
-        console.log('🤖 LIA Chat Component inicializado');
+        // console.log('🤖 LIA Chat Component inicializado');
     }
 
     /**
@@ -538,7 +538,7 @@ class LiaChat {
                 break;
                 
             default:
-                console.log('Acción no reconocida:', action.id);
+                // console.log('Acción no reconocida:', action.id);
         }
     }
 

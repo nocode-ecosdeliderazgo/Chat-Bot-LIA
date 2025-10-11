@@ -35,10 +35,10 @@ class GenAIQuestionnaire {
             if (typeof window.supabase !== 'undefined' && 
                 window.supabase && 
                 typeof window.supabase.from === 'function') {
-                console.log('✅ Supabase disponible después de', i + 1, 'intentos');
+                // console.log('✅ Supabase disponible después de', i + 1, 'intentos');
                 return;
             }
-            console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxAttempts}`);
+            // console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxAttempts}`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
         throw new Error('Supabase no disponible después de múltiples intentos');
@@ -46,7 +46,7 @@ class GenAIQuestionnaire {
     
     async init() {
         try {
-            console.log('🎯 Inicializando cuestionario GenAI...');
+            // console.log('🎯 Inicializando cuestionario GenAI...');
             
             // Esperar a que Supabase esté disponible
             await this.waitForSupabase();
@@ -66,7 +66,7 @@ class GenAIQuestionnaire {
             // Configurar eventos
             this.setupEventListeners();
             
-            console.log('✅ Cuestionario GenAI inicializado correctamente');
+            // console.log('✅ Cuestionario GenAI inicializado correctamente');
             
         } catch (error) {
             console.error('❌ Error inicializando cuestionario GenAI:', error);
@@ -79,7 +79,7 @@ class GenAIQuestionnaire {
             window.supabase && 
             typeof window.supabase.from === 'function') {
             this.supabase = window.supabase;
-            console.log('✅ Cliente Supabase asignado correctamente');
+            // console.log('✅ Cliente Supabase asignado correctamente');
             return;
         }
         
@@ -101,7 +101,7 @@ class GenAIQuestionnaire {
                 user = JSON.parse(userData);
                 userId = user.id;
                 userArea = user.type_rol || user.cargo_rol;
-                console.log('👤 Usuario desde userData:', { userId, userArea });
+                // console.log('👤 Usuario desde userData:', { userId, userArea });
             } catch (e) {
                 console.warn('Error parseando userData:', e);
             }
@@ -110,7 +110,7 @@ class GenAIQuestionnaire {
                 user = JSON.parse(currentUser);
                 userId = user.id;
                 userArea = user.type_rol || user.cargo_rol;
-                console.log('👤 Usuario desde currentUser:', { userId, userArea });
+                // console.log('👤 Usuario desde currentUser:', { userId, userArea });
             } catch (e) {
                 console.warn('Error parseando currentUser:', e);
             }
@@ -121,7 +121,7 @@ class GenAIQuestionnaire {
         const areaParam = urlParams.get('area') || urlParams.get('perfil');
         if (areaParam) {
             userArea = areaParam;
-            console.log('🔗 Área desde URL:', userArea);
+            // console.log('🔗 Área desde URL:', userArea);
         }
         
         // 3. Verificar si el usuario está autenticado
@@ -135,7 +135,7 @@ class GenAIQuestionnaire {
                     userId = authUser.id;
                     userArea = authUser.type_rol || authUser.cargo_rol;
                     user = authUser;
-                    console.log('👤 Usuario autenticado encontrado:', { userId, userArea });
+                    // console.log('👤 Usuario autenticado encontrado:', { userId, userArea });
                 }
             }
             
@@ -157,7 +157,7 @@ class GenAIQuestionnaire {
         // Actualizar UI
         await this.updateAreaBadge();
         
-        console.log('✅ Usuario cargado:', {
+        // console.log('✅ Usuario cargado:', {
             userId: this.currentUser.id,
             originalArea: userArea,
             genaiArea: this.genaiArea,
@@ -274,17 +274,17 @@ class GenAIQuestionnaire {
         };
         
         const mapping = areaMap[userArea] || { area_id: 2, exclusivo_rol_id: 1 }; // Por defecto Liderazgo
-        console.log('🔍 Mapeando área (CORREGIDO):', userArea, '→', mapping);
+        // console.log('🔍 Mapeando área (CORREGIDO):', userArea, '→', mapping);
         
         // Debug mejorado
         if (!areaMap[userArea]) {
             console.warn('⚠️ Área no encontrada en el mapeo:', userArea);
-            console.log('📋 ¿Quizás quisiste decir alguna de estas?');
+            // console.log('📋 ¿Quizás quisiste decir alguna de estas?');
             const suggestions = Object.keys(areaMap).filter(key => 
                 key.toLowerCase().includes(userArea.toLowerCase()) || 
                 userArea.toLowerCase().includes(key.toLowerCase())
             ).slice(0, 5);
-            suggestions.forEach(s => console.log(`   - ${s}`));
+            suggestions.forEach(s => // console.log(`   - ${s}`));
         }
         
         // Mostrar rol asignado para debugging
@@ -296,7 +296,7 @@ class GenAIQuestionnaire {
             8: 'Academia/Investigación',
             10: 'Diseño/Creativos'
         };
-        console.log(`   🎯 Tipo de preguntas asignadas: ${roleNames[mapping.exclusivo_rol_id] || 'Desconocido'}`);
+        // console.log(`   🎯 Tipo de preguntas asignadas: ${roleNames[mapping.exclusivo_rol_id] || 'Desconocido'}`);
         
         return mapping;
     }
@@ -339,7 +339,7 @@ class GenAIQuestionnaire {
         }
         
         try {
-            console.log(`🔍 Cargando preguntas para área ID: ${this.genaiArea}, rol ID: ${this.genaiRol}`);
+            // console.log(`🔍 Cargando preguntas para área ID: ${this.genaiArea}, rol ID: ${this.genaiRol}`);
             
             // Primero obtener el nombre del área para mostrar
             const { data: areaData, error: areaError } = await this.supabase
@@ -353,10 +353,10 @@ class GenAIQuestionnaire {
             }
             
             const areaName = areaData?.nombre || `Área ID ${this.genaiArea}`;
-            console.log(`📍 Área encontrada: ${areaName}`);
+            // console.log(`📍 Área encontrada: ${areaName}`);
             
             // Cargar preguntas de la tabla preguntas usando exclusivo_rol_id
-            console.log('🔍 Ejecutando consulta de preguntas...');
+            // console.log('🔍 Ejecutando consulta de preguntas...');
             const { data, error } = await this.supabase
                 .from('preguntas')
                 .select(`
@@ -379,7 +379,7 @@ class GenAIQuestionnaire {
                 .eq('section', 'Cuestionario')
                 .order('bloque, codigo');
             
-            console.log('📊 Resultado de la consulta:', { data, error });
+            // console.log('📊 Resultado de la consulta:', { data, error });
             
             if (error) {
                 console.error('❌ Error en consulta:', error);
@@ -411,7 +411,7 @@ class GenAIQuestionnaire {
             
             this.totalQuestions = this.questions.length;
             
-            console.log(`✅ ${this.totalQuestions} preguntas cargadas para ${areaName} (rol ${this.genaiRol}):`, {
+            // console.log(`✅ ${this.totalQuestions} preguntas cargadas para ${areaName} (rol ${this.genaiRol}):`, {
                 adopcion: this.questions.filter(q => q.block === 'Adopción').length,
                 conocimiento: this.questions.filter(q => q.block === 'Conocimiento').length
             });
@@ -445,7 +445,7 @@ class GenAIQuestionnaire {
         // Actualizar barra de progreso
         this.updateProgress();
         
-        console.log('✅ Interfaz del cuestionario renderizada');
+        // console.log('✅ Interfaz del cuestionario renderizada');
     }
     
     renderQuestionBlock(blockName, questions) {
@@ -580,7 +580,7 @@ class GenAIQuestionnaire {
             }
         });
         
-        console.log('✅ Event listeners configurados');
+        // console.log('✅ Event listeners configurados');
     }
     
     handleAnswerChange(e) {
@@ -601,7 +601,7 @@ class GenAIQuestionnaire {
         // Habilitar botón de envío si todas las preguntas están respondidas
         this.updateSubmitButton();
         
-        console.log('📝 Respuesta guardada:', { questionId, answer });
+        // console.log('📝 Respuesta guardada:', { questionId, answer });
     }
     
     updateProgress() {
@@ -639,7 +639,7 @@ class GenAIQuestionnaire {
         e.preventDefault();
         
         try {
-            console.log('🚀 Enviando cuestionario...');
+            // console.log('🚀 Enviando cuestionario...');
             
             // Mostrar loading
             this.setLoading(true);
@@ -650,7 +650,7 @@ class GenAIQuestionnaire {
             // Calcular scores
             const scores = this.calculateScores();
             
-            console.log('✅ Cuestionario completado, cambiando botón...');
+            // console.log('✅ Cuestionario completado, cambiando botón...');
             
             // Mostrar éxito
             this.showSuccess('Cuestionario completado exitosamente');
@@ -690,11 +690,11 @@ class GenAIQuestionnaire {
             // Cambiar evento del botón para redirigir
             submitBtn.onclick = (e) => {
                 e.preventDefault();
-                console.log('🚀 Redirigiendo a la página principal...');
+                // console.log('🚀 Redirigiendo a la página principal...');
                 window.location.href = '../estadisticas.html';
             };
             
-            console.log('✅ Botón cambiado a "Ir a Inicio"');
+            // console.log('✅ Botón cambiado a "Ir a Inicio"');
         }
     }
     
@@ -709,7 +709,7 @@ class GenAIQuestionnaire {
             };
         });
         
-        console.log('💾 Intentando guardar respuestas:', {
+        // console.log('💾 Intentando guardar respuestas:', {
             userId: this.currentUser.id,
             responseCount: responses.length,
             hasSupabase: !!this.supabase
@@ -717,7 +717,7 @@ class GenAIQuestionnaire {
         
         // Intentar guardar usando el servidor backend en lugar de Supabase directo
         try {
-            console.log('🔄 Intentando guardar a través del servidor backend...');
+            // console.log('🔄 Intentando guardar a través del servidor backend...');
             
             const response = await fetch('/api/save-responses', {
                 method: 'POST',
@@ -736,7 +736,7 @@ class GenAIQuestionnaire {
             }
             
             const result = await response.json();
-            console.log('✅ Respuestas guardadas a través del servidor:', result);
+            // console.log('✅ Respuestas guardadas a través del servidor:', result);
             
         } catch (serverError) {
             console.warn('⚠️ Error con servidor backend, intentando Supabase directo...', serverError);
@@ -754,7 +754,7 @@ class GenAIQuestionnaire {
                     throw new Error(`Error guardando respuestas: ${error.message}`);
                 }
                 
-                console.log(`✅ ${responses.length} respuestas guardadas en tabla respuestas`);
+                // console.log(`✅ ${responses.length} respuestas guardadas en tabla respuestas`);
                 
             } catch (supabaseError) {
                 console.error('❌ Error con Supabase directo:', supabaseError);
@@ -772,7 +772,7 @@ class GenAIQuestionnaire {
         let knowledgeCount = 0;
         let knowledgeCorrect = 0; // Contador de respuestas correctas en conocimiento
 
-        console.log('🎯 Iniciando cálculo de scores...');
+        // console.log('🎯 Iniciando cálculo de scores...');
 
         Object.values(this.responses).forEach(response => {
             const question = this.questions.find(q => q.id == response.questionId);
@@ -786,12 +786,12 @@ class GenAIQuestionnaire {
             if (question.block === 'Adopción') {
                 adoptionTotal += score;
                 adoptionCount++;
-                console.log(`📈 Adopción - P${question.id}: ${score} pts`);
+                // console.log(`📈 Adopción - P${question.id}: ${score} pts`);
             } else if (question.block === 'Conocimiento') {
                 knowledgeTotal += score;
                 knowledgeCount++;
                 if (score === 100) knowledgeCorrect++; // Contar respuestas correctas
-                console.log(`🧠 Conocimiento - P${question.id}: ${score === 100 ? 'CORRECTA' : 'INCORRECTA'} (${score} pts)`);
+                // console.log(`🧠 Conocimiento - P${question.id}: ${score === 100 ? 'CORRECTA' : 'INCORRECTA'} (${score} pts)`);
             }
         });
 
@@ -799,7 +799,7 @@ class GenAIQuestionnaire {
         const knowledgeScore = knowledgeCount > 0 ? (knowledgeTotal / knowledgeCount) : 0;
         const totalScore = (adoptionScore + knowledgeScore) / 2;
 
-        console.log('📊 Resumen de Scores:', {
+        // console.log('📊 Resumen de Scores:', {
             'Adopción': {
                 preguntas: adoptionCount,
                 promedio: Math.round(adoptionScore * 100) / 100
@@ -826,14 +826,14 @@ class GenAIQuestionnaire {
     calculateQuestionScore(question, answer) {
         // Para preguntas de conocimiento con respuesta_correcta definida
         if (question.block === 'Conocimiento' && question.respuesta_correcta) {
-            console.log(`📚 Evaluando pregunta de conocimiento ${question.id}: respuesta="${answer}", correcta="${question.respuesta_correcta}"`);
+            // console.log(`📚 Evaluando pregunta de conocimiento ${question.id}: respuesta="${answer}", correcta="${question.respuesta_correcta}"`);
 
             // Si la respuesta es correcta, dar puntuación máxima (100)
             // Si es incorrecta, dar puntuación mínima (0)
             const isCorrect = answer === question.respuesta_correcta;
             const score = isCorrect ? 100 : 0;
 
-            console.log(`✅ Pregunta ${question.id}: ${isCorrect ? 'CORRECTA' : 'INCORRECTA'} - Score: ${score}`);
+            // console.log(`✅ Pregunta ${question.id}: ${isCorrect ? 'CORRECTA' : 'INCORRECTA'} - Score: ${score}`);
             return score;
         }
 
@@ -861,7 +861,7 @@ class GenAIQuestionnaire {
                 console.warn(`⚠️ Sin score para respuesta "${answer}" en pregunta ${question.id}`);
                 return 0;
             }
-            console.log(`📊 Pregunta ${question.id} (${question.block}): respuesta="${answer}" - Score: ${score}`);
+            // console.log(`📊 Pregunta ${question.id} (${question.block}): respuesta="${answer}" - Score: ${score}`);
             return score;
         }
 
@@ -927,7 +927,7 @@ class GenAIQuestionnaire {
             successEl.textContent = message;
             successEl.style.display = 'block';
         }
-        console.log('✅ Éxito mostrado al usuario:', message);
+        // console.log('✅ Éxito mostrado al usuario:', message);
     }
 }
 
@@ -942,11 +942,11 @@ async function waitForSupabase() {
     
     while (attempts < maxAttempts) {
         if (typeof window.supabase !== 'undefined' && window.supabase) {
-            console.log('✅ Supabase detectado, inicializando cuestionario...');
+            // console.log('✅ Supabase detectado, inicializando cuestionario...');
             return true;
         }
         
-        console.log(`⏳ Esperando Supabase... (intento ${attempts + 1}/${maxAttempts})`);
+        // console.log(`⏳ Esperando Supabase... (intento ${attempts + 1}/${maxAttempts})`);
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
     }
@@ -958,7 +958,7 @@ async function waitForSupabase() {
 // Función de inicialización global actualizada
 async function initializeQuestionnaire() {
     try {
-        console.log('🚀 Iniciando cuestionario GenAI...');
+        // console.log('🚀 Iniciando cuestionario GenAI...');
         const questionnaire = await GenAIQuestionnaire.create();
         // Asignar globalmente si es necesario
         window.genaiQuestionnaire = questionnaire;

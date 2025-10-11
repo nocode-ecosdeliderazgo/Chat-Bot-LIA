@@ -627,7 +627,7 @@
     </script>
     <!-- Nota: Se omite 'integrity' porque el CDN puede rotar hashes; esto evitaba que el navegador bloquee la carga -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" 
-            onload="console.log('✅ Socket.IO script loaded successfully')"
+            onload="// console.log('✅ Socket.IO script loaded successfully')"
             onerror="console.error('❌ Failed to load Socket.IO from CDN')"></script>
             
     <!-- Zoom Video SDK - Mock para Desarrollo -->
@@ -637,23 +637,23 @@
         
         window.ZoomVideo = {
             createClient: function() {
-                console.log('🧪 Mock: Cliente de Zoom Video SDK creado');
+                // console.log('🧪 Mock: Cliente de Zoom Video SDK creado');
                 return {
                     join: async function(topic, signature, meetingNumber, userName, password) {
-                        console.log('🧪 Mock: Uniéndose a sesión', { topic, meetingNumber, userName });
+                        // console.log('🧪 Mock: Uniéndose a sesión', { topic, meetingNumber, userName });
                         
                         // Simular proceso de conexión
                         setTimeout(() => {
                             if (this.onConnectionChange) {
                                 this.onConnectionChange({ state: 'Connected' });
                             }
-                            console.log('🧪 Mock: Conexión establecida exitosamente');
+                            // console.log('🧪 Mock: Conexión establecida exitosamente');
                         }, 1500);
                         
                         return Promise.resolve();
                     },
                     leave: async function() {
-                        console.log('🧪 Mock: Saliendo de sesión');
+                        // console.log('🧪 Mock: Saliendo de sesión');
                         
                         // Simular desconexión
                         setTimeout(() => {
@@ -665,7 +665,7 @@
                         return Promise.resolve();
                     },
                     on: function(event, callback) {
-                        console.log('🧪 Mock: Event listener agregado para:', event);
+                        // console.log('🧪 Mock: Event listener agregado para:', event);
                         // Guardar callbacks para simular eventos
                         if (event === 'connection-change') {
                             this.onConnectionChange = callback;
@@ -680,7 +680,7 @@
                     getMediaStream: function() {
                         return {
                             startVideo: async function(options) {
-                                console.log('🧪 Mock: Iniciando video', options);
+                                // console.log('🧪 Mock: Iniciando video', options);
                                 // Simular video activado
                                 setTimeout(() => {
                                     const client = this;
@@ -691,19 +691,19 @@
                                 return Promise.resolve();
                             },
                             stopVideo: async function() {
-                                console.log('🧪 Mock: Deteniendo video');
+                                // console.log('🧪 Mock: Deteniendo video');
                                 return Promise.resolve();
                             },
                             muteAudio: async function() {
-                                console.log('🧪 Mock: Silenciando audio');
+                                // console.log('🧪 Mock: Silenciando audio');
                                 return Promise.resolve();
                             },
                             unmuteAudio: async function() {
-                                console.log('🧪 Mock: Activando audio');
+                                // console.log('🧪 Mock: Activando audio');
                                 return Promise.resolve();
                             },
                             renderVideo: async function(canvas, userId, width, height, x, y, quality) {
-                                console.log('🧪 Mock: Renderizando video', { userId, width, height });
+                                // console.log('🧪 Mock: Renderizando video', { userId, width, height });
                                 
                                 // Crear contenido visual simulado
                                 if (canvas) {
@@ -745,7 +745,7 @@
             }
         };
         
-        console.log('✅ Zoom Video SDK Mock inicializado correctamente');
+        // console.log('✅ Zoom Video SDK Mock inicializado correctamente');
     </script>
             
     <!-- Zoom Video Integration - Nuestro código -->
@@ -794,7 +794,7 @@
                     sidebarLeft.classList.remove('mobile-show');
                     studioRight.classList.remove('mobile-show');
                     
-                    console.log('📱 Vista principal móvil activada');
+                    // console.log('📱 Vista principal móvil activada');
                 }
                 
                 // Función para mostrar herramientas
@@ -810,7 +810,7 @@
                     sidebarLeft.classList.add('mobile-show');
                     studioRight.classList.remove('mobile-show');
                     
-                    console.log('📱 Vista herramientas móvil activada');
+                    // console.log('📱 Vista herramientas móvil activada');
                 }
                 
                 // Función para mostrar studio
@@ -826,7 +826,7 @@
                     studioRight.classList.add('mobile-show');
                     sidebarLeft.classList.remove('mobile-show');
                     
-                    console.log('📱 Vista studio móvil activada');
+                    // console.log('📱 Vista studio móvil activada');
                 }
                 
                 // Event listeners
@@ -863,7 +863,7 @@
                     }
                 });
                 
-                console.log('📱 Sistema de navegación móvil inicializado');
+                // console.log('📱 Sistema de navegación móvil inicializado');
             }
             
             // Inicializar navegación móvil
@@ -912,40 +912,40 @@
 
             // Sistema de toggle - solo visual para el chat en vivo
             function initializeToggleSystem() {
-                console.log('🔧 Inicializando sistema de toggle para el chat...');
+                // console.log('🔧 Inicializando sistema de toggle para el chat...');
                 
                 // Toggle Chat en Vivo
                 if (liveChatToggle) {
                     liveChatToggle.addEventListener('click', function() {
-                        console.log('📺 Chat en Vivo seleccionado');
+                        // console.log('📺 Chat en Vivo seleccionado');
                         
                         // Actualizar botones
                         liveChatToggle.classList.add('active');
                         liaChatToggle.classList.remove('active');
                         
                         // Aquí se puede agregar lógica específica para el chat en vivo
-                        console.log('✅ Chat en Vivo activado');
+                        // console.log('✅ Chat en Vivo activado');
                     });
                 }
 
                 // Toggle Chat con LIA (integrado en el chat en vivo)
                 if (liaChatToggle) {
                     liaChatToggle.addEventListener('click', function() {
-                        console.log('🤖 Chat con LIA seleccionado');
+                        // console.log('🤖 Chat con LIA seleccionado');
                         
                         // Actualizar botones
                         liaChatToggle.classList.add('active');
                         liveChatToggle.classList.remove('active');
                         
                         // Aquí se integrará LIA dentro del chat en vivo existente
-                        console.log('✅ Chat con LIA activado (integrado en chat en vivo)');
+                        // console.log('✅ Chat con LIA activado (integrado en chat en vivo)');
                     });
                 }
             }
 
             // Funcionalidad de colapsar/expandir paneles laterales
             function initializePanelCollapse() {
-                console.log('🔧 Inicializando colapso de paneles...');
+                // console.log('🔧 Inicializando colapso de paneles...');
                 
                 const collapseLeft = document.getElementById('collapseLeft');
                 const collapseRight = document.getElementById('collapseRight');
@@ -956,7 +956,7 @@
                 if (collapseLeft && sidebarLeft) {
                     collapseLeft.addEventListener('click', function() {
                         sidebarLeft.classList.toggle('collapsed');
-                        console.log('📱 Panel izquierdo:', sidebarLeft.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                        // console.log('📱 Panel izquierdo:', sidebarLeft.classList.contains('collapsed') ? 'colapsado' : 'expandido');
                     });
                 }
                 
@@ -964,14 +964,14 @@
                 if (collapseRight && studioRight) {
                     collapseRight.addEventListener('click', function() {
                         studioRight.classList.toggle('collapsed');
-                        console.log('📱 Panel derecho:', studioRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
+                        // console.log('📱 Panel derecho:', studioRight.classList.contains('collapsed') ? 'colapsado' : 'expandido');
                     });
                 }
             }
 
             // Funcionalidad de resizer para paneles
             function initializeResizers() {
-                console.log('🔧 Inicializando resizers...');
+                // console.log('🔧 Inicializando resizers...');
                 
                 const leftResizer = document.getElementById('leftResizer');
                 const rightResizer = document.getElementById('rightResizer');
@@ -995,7 +995,7 @@
                             const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + deltaX));
                             
                             sidebarLeft.style.width = newWidth + 'px';
-                            console.log('📏 Panel izquierdo:', newWidth + 'px');
+                            // console.log('📏 Panel izquierdo:', newWidth + 'px');
                         }
                         
                         function onMouseUp() {
@@ -1027,7 +1027,7 @@
                             const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + deltaX));
                             
                             studioRight.style.width = newWidth + 'px';
-                            console.log('📏 Panel derecho:', newWidth + 'px');
+                            // console.log('📏 Panel derecho:', newWidth + 'px');
                         }
                         
                         function onMouseUp() {
@@ -1045,7 +1045,7 @@
 
             // Funcionalidad de colapsar/expandir secciones
             function initializeCollapsibleSections() {
-                console.log('🔧 Inicializando secciones colapsibles...');
+                // console.log('🔧 Inicializando secciones colapsibles...');
                 
                 // Toggle para Chat en Vivo
                 const livestreamToggle = document.getElementById('livestreamToggle');
@@ -1056,7 +1056,7 @@
                         const isExpanded = livestreamToggle.getAttribute('aria-expanded') === 'true';
                         livestreamToggle.setAttribute('aria-expanded', !isExpanded);
                         livestreamContent.style.display = isExpanded ? 'none' : 'block';
-                        console.log('📺 Chat en Vivo:', isExpanded ? 'colapsado' : 'expandido');
+                        // console.log('📺 Chat en Vivo:', isExpanded ? 'colapsado' : 'expandido');
                     });
                 }
                 
@@ -1069,14 +1069,14 @@
                         const isExpanded = zoomToggle.getAttribute('aria-expanded') === 'true';
                         zoomToggle.setAttribute('aria-expanded', !isExpanded);
                         zoomContent.style.display = isExpanded ? 'none' : 'block';
-                        console.log('🎥 Zoom Session:', isExpanded ? 'colapsado' : 'expandido');
+                        // console.log('🎥 Zoom Session:', isExpanded ? 'colapsado' : 'expandido');
                     });
                 }
             }
 
             // Funcionalidad de Zoom Session (dentro del panel de herramientas)
             function initializeZoomSection() {
-                console.log('🎥 Inicializando sección de Zoom...');
+                // console.log('🎥 Inicializando sección de Zoom...');
                 
                 const zoomConnectBtn = document.getElementById('zoomConnectBtn');
                 const zoomStatus = document.getElementById('zoomStatus');
@@ -1086,7 +1086,7 @@
                 // Conectar con Zoom
                 if (zoomConnectBtn) {
                     zoomConnectBtn.addEventListener('click', function() {
-                        console.log('🔗 Conectando con Zoom...');
+                        // console.log('🔗 Conectando con Zoom...');
                         
                         // Cambiar texto del botón y estado
                         zoomConnectBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Conectando...';
@@ -1129,7 +1129,7 @@
                             zoomConnectBtn.innerHTML = '<i class="bx bx-video-off"></i> Desconectar';
                             zoomConnectBtn.disabled = false;
                             
-                            console.log('✅ Zoom conectado (demo)');
+                            // console.log('✅ Zoom conectado (demo)');
                         }, 2000);
                     });
                 }
@@ -1137,7 +1137,7 @@
 
             // Funcionalidad del Panel de Live Stream Principal (centro)
             function initializeLiveStreamMainPanel() {
-                console.log('📺 Inicializando panel de Live Stream principal...');
+                // console.log('📺 Inicializando panel de Live Stream principal...');
                 
                 const liveStreamMainConnectBtn = document.getElementById('liveStreamMainConnectBtn');
                 const liveStreamMainConnectBtnLarge = document.getElementById('liveStreamMainConnectBtnLarge');
@@ -1151,7 +1151,7 @@
                 // Iniciar Live Stream (botón pequeño)
                 if (liveStreamMainConnectBtn) {
                     liveStreamMainConnectBtn.addEventListener('click', function() {
-                        console.log('📺 Iniciando Live Stream (header)...');
+                        // console.log('📺 Iniciando Live Stream (header)...');
                         startLiveStream();
                     });
                 }
@@ -1159,7 +1159,7 @@
                 // Iniciar Live Stream (botón grande)
                 if (liveStreamMainConnectBtnLarge) {
                     liveStreamMainConnectBtnLarge.addEventListener('click', function() {
-                        console.log('📺 Iniciando Live Stream (placeholder)...');
+                        // console.log('📺 Iniciando Live Stream (placeholder)...');
                         startLiveStream();
                     });
                 }
@@ -1167,7 +1167,7 @@
                 // Detener Live Stream
                 if (liveStreamMainDisconnectBtn) {
                     liveStreamMainDisconnectBtn.addEventListener('click', function() {
-                        console.log('⏹️ Deteniendo Live Stream...');
+                        // console.log('⏹️ Deteniendo Live Stream...');
                         stopLiveStream();
                     });
                 }
@@ -1215,7 +1215,7 @@
                             liveStreamMainConnectBtnLarge.disabled = false;
                         }
                         
-                        console.log('✅ Live Stream iniciado (demo)');
+                        // console.log('✅ Live Stream iniciado (demo)');
                     }, 2000);
                 }
                 
@@ -1225,13 +1225,13 @@
                     if (liveStreamMainPlaceholder) liveStreamMainPlaceholder.style.display = 'flex';
                     if (liveStreamMainEmbedContainer) liveStreamMainEmbedContainer.style.display = 'none';
                     
-                    console.log('✅ Live Stream detenido');
+                    // console.log('✅ Live Stream detenido');
                 }
 
                 // Funcionalidad de colapso del panel
                 if (liveStreamMainCollapseBtn && liveStreamMainPanel) {
                     liveStreamMainCollapseBtn.addEventListener('click', function() {
-                        console.log('📺 Alternando colapso del panel Live Stream...');
+                        // console.log('📺 Alternando colapso del panel Live Stream...');
                         
                         const isCollapsed = liveStreamMainPanel.classList.contains('collapsed');
                         const liveStreamContent = liveStreamMainPanel.querySelector('.live-stream-main-content');
@@ -1263,7 +1263,7 @@
                                 }
                             }, 100);
                             
-                            console.log('📺 Panel Live Stream expandido');
+                            // console.log('📺 Panel Live Stream expandido');
                         } else {
                             // Ocultar contenido primero
                             if (liveStreamContent) {
@@ -1297,7 +1297,7 @@
                                 }
                             }, 150);
                             
-                            console.log('📺 Panel Live Stream colapsado');
+                            // console.log('📺 Panel Live Stream colapsado');
                         }
                         
                         // Forzar actualización del layout y expandir presentación
@@ -1310,15 +1310,15 @@
                                 // Cuando se colapsa Live Stream, expandir presentación
                                 presentationPanel.style.height = 'calc(100% - 76px)'; // 100% - 60px del panel colapsado - 16px de gap
                                 presentationPanel.style.minHeight = 'calc(100% - 76px)';
-                                console.log('📊 Presentación expandida automáticamente');
+                                // console.log('📊 Presentación expandida automáticamente');
                             } else if (presentationPanel && isCollapsed) {
                                 // Cuando se expande Live Stream, restaurar presentación
                                 presentationPanel.style.height = '50%';
                                 presentationPanel.style.minHeight = '300px';
-                                console.log('📊 Presentación restaurada a tamaño normal');
+                                // console.log('📊 Presentación restaurada a tamaño normal');
                             }
                             
-                            console.log('🔄 Layout actualizado');
+                            // console.log('🔄 Layout actualizado');
                         }, 10);
                     });
                 } else {
@@ -1327,7 +1327,7 @@
             }
 
             function initializePresentationMainPanel() {
-                console.log('📊 Inicializando panel de presentación principal...');
+                // console.log('📊 Inicializando panel de presentación principal...');
                 
                 const loadPresentationMainBtn = document.getElementById('loadPresentationMainBtn');
                 const presentationMainPrevBtn = document.getElementById('presentationMainPrevBtn');
@@ -1359,7 +1359,7 @@
                 
                 // Cargar presentación
                     loadPresentationMainBtn.addEventListener('click', function() {
-                    console.log('📤 Iniciando carga de presentación...');
+                    // console.log('📤 Iniciando carga de presentación...');
                         
                     try {
                         const input = document.createElement('input');
@@ -1371,11 +1371,11 @@
                             try {
                             const file = e.target.files[0];
                                 if (!file) {
-                                    console.log('❌ No se seleccionó ningún archivo');
+                                    // console.log('❌ No se seleccionó ningún archivo');
                                     return;
                                 }
                                 
-                                console.log('📄 Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'bytes');
+                                // console.log('📄 Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'bytes');
                                 
                                 // Validar tipo de archivo
                                 const allowedTypes = ['.pdf', '.ppt', '.pptx', '.key', '.odp'];
@@ -1410,13 +1410,13 @@
                                             // Eliminar cualquier iframe que pueda estar presente
                                             const existingIframes = embedContainer.querySelectorAll('iframe');
                                             existingIframes.forEach(iframe => {
-                                                console.log('🗑️ Eliminando iframe residual:', iframe);
+                                                // console.log('🗑️ Eliminando iframe residual:', iframe);
                                                 iframe.remove();
                                             });
                                             
                                             // Limpiar todo el contenido
                                             embedContainer.innerHTML = '';
-                                            console.log('🧹 Contenedor limpiado completamente');
+                                            // console.log('🧹 Contenedor limpiado completamente');
                                             
                                             // Asegurar que el contenedor tenga el fondo correcto
                                             embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
@@ -1474,18 +1474,18 @@
                                             setTimeout(() => {
                                                 embedContainer.style.display = 'block';
                                                 embedContainer.style.background = 'rgba(20, 30, 45, 0.95)';
-                                                console.log('🔄 DOM actualizado forzadamente');
+                                                // console.log('🔄 DOM actualizado forzadamente');
                                             }, 10);
                                             
-                                            console.log('✅ Presentación cargada directamente en el DOM (compatible con Brave)');
-                                            console.log('📄 Archivo procesado:', file.name);
-                                            console.log('📊 Contenido generado correctamente');
+                                            // console.log('✅ Presentación cargada directamente en el DOM (compatible con Brave)');
+                                            // console.log('📄 Archivo procesado:', file.name);
+                                            // console.log('📊 Contenido generado correctamente');
                                             
                                             // Verificar que el contenido se mostró correctamente
                                             setTimeout(() => {
                                                 const finalContent = document.getElementById('presentationContent');
                                                 if (finalContent && finalContent.innerHTML.includes(file.name)) {
-                                                    console.log('✅ Verificación exitosa: Contenido visible');
+                                                    // console.log('✅ Verificación exitosa: Contenido visible');
                                                 } else {
                                                     console.warn('⚠️ Verificación fallida: Contenido no visible');
                                                 }
@@ -1500,7 +1500,7 @@
                                         loadPresentationMainBtn.disabled = false;
                                         
                                         currentPresentation = file.name;
-                                        console.log('✅ Presentación cargada exitosamente:', file.name);
+                                        // console.log('✅ Presentación cargada exitosamente:', file.name);
                                         
                                     } catch (error) {
                                         console.error('❌ Error al procesar la presentación:', error);
@@ -1543,12 +1543,12 @@
                             if (presentationMainCounter) {
                             presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
                             }
-                            console.log(`⬅️ Diapositiva anterior: ${currentSlide}`);
+                            // console.log(`⬅️ Diapositiva anterior: ${currentSlide}`);
                             
                             // Actualizar contenido del iframe si existe
                             updateSlideContent(currentSlide);
                         } else {
-                            console.log('⚠️ Ya estás en la primera diapositiva');
+                            // console.log('⚠️ Ya estás en la primera diapositiva');
                         }
                     });
                 } else {
@@ -1562,12 +1562,12 @@
                             if (presentationMainCounter) {
                             presentationMainCounter.textContent = `${currentSlide} / ${totalSlides}`;
                             }
-                            console.log(`➡️ Diapositiva siguiente: ${currentSlide}`);
+                            // console.log(`➡️ Diapositiva siguiente: ${currentSlide}`);
                             
                             // Actualizar contenido del iframe si existe
                             updateSlideContent(currentSlide);
                         } else {
-                            console.log('⚠️ Ya estás en la última diapositiva');
+                            // console.log('⚠️ Ya estás en la última diapositiva');
                         }
                     });
                 } else {
@@ -1614,7 +1614,7 @@
                                 
                                 slideContent.innerHTML = slideContents[slideNumber - 1] || `<h2>Diapositiva ${slideNumber}</h2><p>Contenido de la diapositiva ${slideNumber}.</p>`;
                                 
-                                console.log(`✅ Diapositiva ${slideNumber} actualizada correctamente`);
+                                // console.log(`✅ Diapositiva ${slideNumber} actualizada correctamente`);
                             }
                         } catch (error) {
                             console.warn('⚠️ No se pudo actualizar el contenido de la presentación:', error);
@@ -1633,7 +1633,7 @@
                 // Funcionalidad de colapso del panel
                 if (presentationMainCollapseBtn && presentationMainPanel) {
                     presentationMainCollapseBtn.addEventListener('click', function() {
-                        console.log('📊 Alternando colapso del panel Presentación...');
+                        // console.log('📊 Alternando colapso del panel Presentación...');
                         
                         const isCollapsed = presentationMainPanel.classList.contains('collapsed');
                         const presentationContent = document.getElementById('presentationContent');
@@ -1659,7 +1659,7 @@
                                 }
                             }, 100);
                             
-                            console.log('📊 Panel Presentación expandido');
+                            // console.log('📊 Panel Presentación expandido');
                         } else {
                             // Ocultar contenido primero
                             if (embedContainer) {
@@ -1686,7 +1686,7 @@
                                 }
                             }, 150);
                             
-                            console.log('📊 Panel Presentación colapsado');
+                            // console.log('📊 Panel Presentación colapsado');
                         }
                         
                         // Forzar actualización del layout
@@ -1699,15 +1699,15 @@
                                 // Cuando se colapsa la presentación, expandir Live Stream
                                 liveStreamPanel.style.height = 'calc(100% - 76px)'; // 100% - 60px del panel colapsado - 16px de gap
                                 liveStreamPanel.style.minHeight = 'calc(100% - 76px)';
-                                console.log('📺 Live Stream expandido automáticamente');
+                                // console.log('📺 Live Stream expandido automáticamente');
                             } else if (liveStreamPanel && isCollapsed) {
                                 // Cuando se expande la presentación, restaurar Live Stream
                                 liveStreamPanel.style.height = '50%';
                                 liveStreamPanel.style.minHeight = '300px';
-                                console.log('📺 Live Stream restaurado a tamaño normal');
+                                // console.log('📺 Live Stream restaurado a tamaño normal');
                             }
                             
-                            console.log('🔄 Layout actualizado');
+                            // console.log('🔄 Layout actualizado');
                         }, 10);
                     });
                 } else {
@@ -1717,7 +1717,7 @@
 
             // Funcionalidad del Chat con LIA - LÓGICA COMPLETA
             function initializeLiaChat() {
-                console.log('🤖 Inicializando Chat con LIA - Lógica Completa...');
+                // console.log('🤖 Inicializando Chat con LIA - Lógica Completa...');
                 
                 // Estado del chat LIA
                 let liaChatState = {
@@ -1990,14 +1990,14 @@
                     const userInfo = await getCurrentUserInfo();
                     const questionType = classifyQuestion(userQuestion);
                     
-                    console.log('[LIA] 🚀 Iniciando generación de respuesta...');
-                    console.log('[LIA] 📝 Pregunta del usuario:', userQuestion);
-                    console.log('[LIA] 🏷️ Tipo de pregunta detectado:', questionType);
-                    console.log('[LIA] 👤 Información del usuario:', userInfo);
+                    // console.log('[LIA] 🚀 Iniciando generación de respuesta...');
+                    // console.log('[LIA] 📝 Pregunta del usuario:', userQuestion);
+                    // console.log('[LIA] 🏷️ Tipo de pregunta detectado:', questionType);
+                    // console.log('[LIA] 👤 Información del usuario:', userInfo);
                     
                     // Intentar usar la API de OpenAI para respuestas más inteligentes
                     try {
-                        console.log('[LIA] 🔄 Intentando conectar con API de OpenAI...');
+                        // console.log('[LIA] 🔄 Intentando conectar con API de OpenAI...');
                         
                         const apiResponse = await fetch('/api/openai', {
                             method: 'POST',
@@ -2012,27 +2012,27 @@
                             })
                         });
                         
-                        console.log('[LIA] 📡 Respuesta del servidor:', apiResponse.status, apiResponse.statusText);
+                        // console.log('[LIA] 📡 Respuesta del servidor:', apiResponse.status, apiResponse.statusText);
                         
                         if (apiResponse.ok) {
                             const data = await apiResponse.json();
-                            console.log('[LIA] ✅ Datos recibidos:', data);
+                            // console.log('[LIA] ✅ Datos recibidos:', data);
                             
                             if (data.response) {
-                                console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
-                                console.log('[LIA] 📊 Tokens utilizados:', data.usage?.total_tokens || 'No disponible');
-                                console.log('[LIA] 💰 Costo estimado:', data.cost || 'No disponible');
+                                // console.log('[LIA] 🎯 Respuesta de API obtenida exitosamente');
+                                // console.log('[LIA] 📊 Tokens utilizados:', data.usage?.total_tokens || 'No disponible');
+                                // console.log('[LIA] 💰 Costo estimado:', data.cost || 'No disponible');
                                 return data.response;
                             } else {
-                                console.log('[LIA] ⚠️ Respuesta vacía de la API');
+                                // console.log('[LIA] ⚠️ Respuesta vacía de la API');
                             }
                         } else {
                             const errorText = await apiResponse.text();
-                            console.log('[LIA] ❌ API respondió con error:', apiResponse.status, errorText);
+                            // console.log('[LIA] ❌ API respondió con error:', apiResponse.status, errorText);
                         }
                     } catch (error) {
-                        console.log('[LIA] 💥 Error al conectar con API:', error.message);
-                        console.log('[LIA] 🔍 Stack trace:', error.stack);
+                        // console.log('[LIA] 💥 Error al conectar con API:', error.message);
+                        // console.log('[LIA] 🔍 Stack trace:', error.stack);
                     }
                     
                     // Respuestas locales mejoradas como fallback
@@ -2543,7 +2543,7 @@
                 async function sendMessageToLia(message) {
                     if (!message.trim()) return;
                     
-                    console.log('💬 Enviando mensaje a LIA:', message);
+                    // console.log('💬 Enviando mensaje a LIA:', message);
                     
                     // Obtener usuario actual
                     const currentUser = getCurrentUser();
@@ -2553,7 +2553,7 @@
                         return;
                     }
                     
-                    console.log('[LIA] 👤 Usuario identificado:', currentUser.username || currentUser.email);
+                    // console.log('[LIA] 👤 Usuario identificado:', currentUser.username || currentUser.email);
                     
                     // Cancelar cualquier escritura del bot en curso
                     try {
@@ -2570,11 +2570,11 @@
                     
                     try {
                         // Generar respuesta personalizada
-                        console.log('[LIA] 🤖 Generando respuesta personalizada...');
+                        // console.log('[LIA] 🤖 Generando respuesta personalizada...');
                         const response = await generatePersonalizedResponse(message, currentUser.id);
                         
                         hideLiaTypingIndicator();
-                        console.log('[LIA] ✅ Respuesta personalizada generada exitosamente');
+                        // console.log('[LIA] ✅ Respuesta personalizada generada exitosamente');
                         
                         // Mostrar respuesta
                         addLiaBotMessage(response);
@@ -2602,7 +2602,7 @@
                         
                         // Desconectar del chat en vivo si está conectado
                         if (window.livestreamSocket && window.livestreamSocket.connected) {
-                            console.log('📡 Desconectando del chat en vivo...');
+                            // console.log('📡 Desconectando del chat en vivo...');
                             window.livestreamSocket.disconnect();
                         }
                         
@@ -2643,7 +2643,7 @@
                             if (statusText) statusText.textContent = 'Desconectado';
                         }
                         
-                        console.log('🤖 Modo Chat LIA activado');
+                        // console.log('🤖 Modo Chat LIA activado');
                         
                     } else if (mode === 'live') {
                         btnChatLIA.classList.remove('active');
@@ -2656,7 +2656,7 @@
                         if (liveTypeBtn) liveTypeBtn.classList.add('active');
                         
                         // Conectar al chat en vivo
-                        console.log('📡 Conectando al chat en vivo...');
+                        // console.log('📡 Conectando al chat en vivo...');
                         
                         // Cambiar placeholder y habilitar input inmediatamente
                         if (liaMessageInput) {
@@ -2689,7 +2689,7 @@
                                 
                                 // Configurar eventos del socket
                                 window.livestreamSocket.on('connect', () => {
-                                    console.log('📡 Conectado al chat en vivo');
+                                    // console.log('📡 Conectado al chat en vivo');
                                     
                                     // Habilitar input
                                     if (liaMessageInput) {
@@ -2727,7 +2727,7 @@
                                 });
                                 
                                 window.livestreamSocket.on('disconnect', () => {
-                                    console.log('📡 Desconectado del chat en vivo');
+                                    // console.log('📡 Desconectado del chat en vivo');
                                     
                                     // Deshabilitar input
                                     if (liaMessageInput) {
@@ -2788,7 +2788,7 @@
                             window.livestreamSocket.connect();
                         }
                         
-                        console.log('📡 Modo Chat en Vivo activado');
+                        // console.log('📡 Modo Chat en Vivo activado');
                     }
                 }
                 
@@ -2796,13 +2796,13 @@
                 function initializeLivestreamSocket() {
                     // Si ya existe y está conectado, no hacer nada
                     if (window.livestreamSocket && window.livestreamSocket.connected) {
-                        console.log('📡 Socket.IO ya está conectado');
+                        // console.log('📡 Socket.IO ya está conectado');
                         liaMessageInput.placeholder = 'Escribe un mensaje...';
                         return;
                     }
                     
                     // Inicializar conexión Socket.IO si no existe
-                    console.log('🔍 Verificando disponibilidad de Socket.IO:', typeof io);
+                    // console.log('🔍 Verificando disponibilidad de Socket.IO:', typeof io);
                     if (typeof io !== 'undefined' && io) {
                         try {
                             const ioOrigin = (typeof window !== 'undefined' && window.SOCKET_IO_ORIGIN) ? window.SOCKET_IO_ORIGIN : '';
@@ -2814,7 +2814,7 @@
                             
                             // Configurar eventos del socket
                             window.livestreamSocket.on('connect', () => {
-                                console.log('📡 Socket.IO conectado para chat en vivo');
+                                // console.log('📡 Socket.IO conectado para chat en vivo');
                                 
                                 // Habilitar input
                                 if (liaMessageInput) {
@@ -2832,7 +2832,7 @@
                             });
                             
                             window.livestreamSocket.on('disconnect', () => {
-                                console.log('📡 Socket.IO desconectado del chat en vivo');
+                                // console.log('📡 Socket.IO desconectado del chat en vivo');
                             });
                             
                             // Eventos de mensajes
@@ -2993,17 +2993,17 @@
                         this.classList.add('active');
                         
                         // Log para debugging
-                        console.log('🎯 Tipo de mensaje seleccionado:', this.dataset.type);
-                        console.log('🎯 Habilitando input y botón...');
+                        // console.log('🎯 Tipo de mensaje seleccionado:', this.dataset.type);
+                        // console.log('🎯 Habilitando input y botón...');
                         
                         // Habilitar input y botón de envío
                         if (liaMessageInput) {
                             liaMessageInput.disabled = false;
-                            console.log('✅ Input habilitado:', !liaMessageInput.disabled);
+                            // console.log('✅ Input habilitado:', !liaMessageInput.disabled);
                         }
                         if (liaSendBtn) {
                             liaSendBtn.disabled = false;
-                            console.log('✅ Botón habilitado:', !liaSendBtn.disabled);
+                            // console.log('✅ Botón habilitado:', !liaSendBtn.disabled);
                         }
                         
                         // Actualizar placeholder del input y configurar conexión
@@ -3013,14 +3013,14 @@
                             
                             // Desconectar del chat en vivo si está conectado
                             if (window.livestreamSocket && window.livestreamSocket.connected) {
-                                console.log('📡 Desconectando del chat en vivo para usar LIA...');
+                                // console.log('📡 Desconectando del chat en vivo para usar LIA...');
                                 window.livestreamSocket.disconnect();
                             }
                         } else if (messageType === 'live') {
                             liaMessageInput.placeholder = 'Conectando al chat en vivo...';
                             
                             // Inicializar conexión Socket.IO para chat en vivo
-                            console.log('📡 Inicializando conexión al chat en vivo...');
+                            // console.log('📡 Inicializando conexión al chat en vivo...');
                             initializeLivestreamSocket();
                         }
                     });
@@ -3104,12 +3104,12 @@
                 const liaTypeBtn = document.querySelector('.type-btn[data-type="lia"]');
                 if (liaTypeBtn) liaTypeBtn.classList.add('active');
                 
-                console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
-                console.log('🔧 VERSIÓN CORREGIDA - Timestamp:', new Date().toLocaleTimeString());
+                // console.log('✅ Chat inicializado - Usuario debe seleccionar tipo de mensaje');
+                // console.log('🔧 VERSIÓN CORREGIDA - Timestamp:', new Date().toLocaleTimeString());
             }
 
             // Inicializar todas las funcionalidades nuevas
-            console.log('🚀 Inicializando nuevas funcionalidades...');
+            // console.log('🚀 Inicializando nuevas funcionalidades...');
             initializePanelCollapse();
             initializeResizers();
             initializeCollapsibleSections();
@@ -3118,7 +3118,7 @@
             // initializeLiveStreamMainPanel(); // Eliminado - Solo Zoom Video SDK
             initializePresentationMainPanel();
             initializeLiaChat();
-            console.log('✅ Todas las funcionalidades inicializadas correctamente');
+            // console.log('✅ Todas las funcionalidades inicializadas correctamente');
         });
     </script>
 </body>

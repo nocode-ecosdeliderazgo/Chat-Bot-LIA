@@ -39,7 +39,7 @@ class CommunityIdentifier {
      * Inicializar el identificador de comunidades
      */
     async initialize() {
-        console.log('🏘️ Inicializando CommunityIdentifier...');
+        // console.log('🏘️ Inicializando CommunityIdentifier...');
 
         // Cargar comunidades desde múltiples fuentes
         await this.loadCommunities();
@@ -47,14 +47,14 @@ class CommunityIdentifier {
         // Identificar comunidad actual
         await this.identifyCurrentCommunity();
 
-        console.log('✅ CommunityIdentifier inicializado');
+        // console.log('✅ CommunityIdentifier inicializado');
     }
 
     /**
      * Cargar comunidades desde base de datos y localStorage
      */
     async loadCommunities() {
-        console.log('📊 Cargando comunidades...');
+        // console.log('📊 Cargando comunidades...');
 
         try {
             // MÉTODO 1: Desde localStorage (más rápido)
@@ -64,7 +64,7 @@ class CommunityIdentifier {
                 communities.forEach(community => {
                     this.communityMap.set(community.slug, community);
                 });
-                console.log(`✅ ${communities.length} comunidades cargadas desde localStorage`);
+                // console.log(`✅ ${communities.length} comunidades cargadas desde localStorage`);
             }
 
             // MÉTODO 2: Desde base de datos (más actualizado)
@@ -77,7 +77,7 @@ class CommunityIdentifier {
                     dbCommunities.forEach(community => {
                         this.communityMap.set(community.slug, community);
                     });
-                    console.log(`✅ ${dbCommunities.length} comunidades cargadas desde base de datos`);
+                    // console.log(`✅ ${dbCommunities.length} comunidades cargadas desde base de datos`);
                 } catch (dbError) {
                     console.warn('⚠️ Error cargando desde BD, usando localStorage:', dbError);
                 }
@@ -85,13 +85,13 @@ class CommunityIdentifier {
 
             // MÉTODO 3: Fallback hardcodeado
             if (this.communityMap.size === 0) {
-                console.log('🔄 Usando comunidades fallback hardcodeadas...');
+                // console.log('🔄 Usando comunidades fallback hardcodeadas...');
                 this.fallbackCommunities.forEach(community => {
                     this.communityMap.set(community.slug, community);
                 });
             }
 
-            console.log(`📊 Total comunidades disponibles: ${this.communityMap.size}`);
+            // console.log(`📊 Total comunidades disponibles: ${this.communityMap.size}`);
 
         } catch (error) {
             console.error('❌ Error cargando comunidades:', error);
@@ -107,21 +107,21 @@ class CommunityIdentifier {
      * Identificar la comunidad actual desde la URL
      */
     async identifyCurrentCommunity() {
-        console.log('🔍 Identificando comunidad actual...');
+        // console.log('🔍 Identificando comunidad actual...');
 
         try {
             // Obtener slug de la URL
             const urlParams = new URLSearchParams(window.location.search);
             const slug = urlParams.get('slug') || 'profesionales';
 
-            console.log(`🔍 Slug detectado en URL: ${slug}`);
+            // console.log(`🔍 Slug detectado en URL: ${slug}`);
 
             // Buscar la comunidad
             const community = this.communityMap.get(slug);
 
             if (community) {
                 this.currentCommunity = community;
-                console.log(`✅ Comunidad identificada: ${community.name} (ID: ${community.id})`);
+                // console.log(`✅ Comunidad identificada: ${community.name} (ID: ${community.id})`);
 
                 // Guardar en localStorage para uso posterior
                 localStorage.setItem('currentCommunity', JSON.stringify(community));
@@ -134,7 +134,7 @@ class CommunityIdentifier {
                 const fallback = this.communityMap.get('profesionales');
                 if (fallback) {
                     this.currentCommunity = fallback;
-                    console.log(`🔄 Usando fallback: ${fallback.name}`);
+                    // console.log(`🔄 Usando fallback: ${fallback.name}`);
                     return fallback;
                 }
 
@@ -200,7 +200,7 @@ class CommunityIdentifier {
      * Refrescar identificación (útil si cambia la URL)
      */
     async refresh() {
-        console.log('🔄 Refrescando identificación de comunidad...');
+        // console.log('🔄 Refrescando identificación de comunidad...');
         await this.identifyCurrentCommunity();
         return this.currentCommunity;
     }
@@ -209,22 +209,22 @@ class CommunityIdentifier {
      * Debug: mostrar información de la comunidad actual
      */
     debug() {
-        console.log('🔍 === DEBUG COMMUNITY IDENTIFIER ===');
-        console.log('📍 URL actual:', window.location.href);
-        console.log('🏷️ URL params:', window.location.search);
-        console.log('🏘️ Comunidades disponibles:', this.communityMap.size);
-        console.log('📍 Comunidad actual:', this.currentCommunity);
-        console.log('🆔 Community ID:', this.getCurrentCommunityId());
-        console.log('🏷️ Community Slug:', this.getCurrentCommunitySlug());
+        // console.log('🔍 === DEBUG COMMUNITY IDENTIFIER ===');
+        // console.log('📍 URL actual:', window.location.href);
+        // console.log('🏷️ URL params:', window.location.search);
+        // console.log('🏘️ Comunidades disponibles:', this.communityMap.size);
+        // console.log('📍 Comunidad actual:', this.currentCommunity);
+        // console.log('🆔 Community ID:', this.getCurrentCommunityId());
+        // console.log('🏷️ Community Slug:', this.getCurrentCommunitySlug());
 
         if (this.communityMap.size > 0) {
-            console.log('📋 Lista de comunidades:');
+            // console.log('📋 Lista de comunidades:');
             this.communityMap.forEach((community, slug) => {
-                console.log(`  - ${slug}: ${community.name} (${community.id})`);
+                // console.log(`  - ${slug}: ${community.name} (${community.id})`);
             });
         }
 
-        console.log('🔍 === FIN DEBUG ===');
+        // console.log('🔍 === FIN DEBUG ===');
 
         return {
             currentCommunity: this.currentCommunity,
@@ -242,4 +242,4 @@ window.CommunityIdentifier = CommunityIdentifier;
 // Crear instancia lista para usar
 window.communityIdentifier = new CommunityIdentifier();
 
-console.log('✅ CommunityIdentifier cargado y disponible globalmente');
+// console.log('✅ CommunityIdentifier cargado y disponible globalmente');

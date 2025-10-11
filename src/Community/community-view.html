@@ -35,7 +35,7 @@
                     if (community) {
                         // Actualizar título de la página inmediatamente
                         document.title = `Comunidad de ${community.name}`;
-                        console.log('🚀 Banner precargado desde localStorage:', community.name);
+                        // console.log('🚀 Banner precargado desde localStorage:', community.name);
                     }
                 } catch (error) {
                     console.warn('⚠️ Error precargando banner:', error);
@@ -1351,7 +1351,7 @@
                                 return;
                             }
                         } catch (e) {
-                            console.log('Error parsing avatar data:', e);
+                            // console.log('Error parsing avatar data:', e);
                         }
                     }
                     
@@ -1410,23 +1410,23 @@
 
                     // Si cambiamos a la pestaña de miembros, renderizar miembros
                     if (tab === 'members') {
-                        console.log('🎯 [TAB] Cambiando a pestaña de miembros, renderizando...');
+                        // console.log('🎯 [TAB] Cambiando a pestaña de miembros, renderizando...');
 
                         // Verificar si tenemos miembros cargados
                         if (window.members && window.members.length > 0) {
-                            console.log('✅ [TAB] Usando miembros de variable global:', window.members.length);
+                            // console.log('✅ [TAB] Usando miembros de variable global:', window.members.length);
                             const activeFilter = document.querySelector('.members-chip.active')?.dataset.filter || 'all';
                             const searchQuery = document.getElementById('viewSearch')?.value || '';
                             window.renderMembers(activeFilter, searchQuery);
                         } else if (window.communitySystem && window.communitySystem.members && window.communitySystem.members.length > 0) {
-                            console.log('✅ [TAB] Usando miembros de CommunitySystem:', window.communitySystem.members.length);
+                            // console.log('✅ [TAB] Usando miembros de CommunitySystem:', window.communitySystem.members.length);
                             window.members = [...window.communitySystem.members];
                             members = [...window.communitySystem.members]; // Sincronizar también con variable global
                             const activeFilter = document.querySelector('.members-chip.active')?.dataset.filter || 'all';
                             const searchQuery = document.getElementById('viewSearch')?.value || '';
                             window.renderMembers(activeFilter, searchQuery);
                         } else {
-                            console.log('⚠️ [TAB] No hay miembros cargados, intentando cargar desde CommunitySystem...');
+                            // console.log('⚠️ [TAB] No hay miembros cargados, intentando cargar desde CommunitySystem...');
                             if (window.communitySystem && typeof window.communitySystem.loadMembers === 'function') {
                                 await window.communitySystem.loadMembers();
                             }
@@ -1435,7 +1435,7 @@
                     
                     // Si es la pestaña de ligas, actualizar el display de puntos
                     if (tab === 'leagues') {
-                        console.log('🏆 Cambiando a pestaña ligas...');
+                        // console.log('🏆 Cambiando a pestaña ligas...');
                         
                         // Forzar actualización del display de ligas
                         if (window.pointsSystem) {
@@ -1446,7 +1446,7 @@
                         
                         // Cargar y mostrar la clasificación global
                         if (window.leagueFilterSystem) {
-                            console.log('🏆 Cargando clasificación global...');
+                            // console.log('🏆 Cargando clasificación global...');
                             await window.leagueFilterSystem.loadAllUsers();
                             window.leagueFilterSystem.updateLeaderboard();
                         }
@@ -1499,7 +1499,7 @@
                 try {
                     if (!window.supabase) return;
                     
-                    console.log('🧹 Iniciando limpieza de avatares corruptos...');
+                    // console.log('🧹 Iniciando limpieza de avatares corruptos...');
                     
                     // Buscar usuarios con URLs de avatar sospechosas
                     const { data: users, error } = await window.supabase
@@ -1515,7 +1515,7 @@
                     let cleanedCount = 0;
                     for (const user of users) {
                         if (!isValidImageUrl(user.profile_picture_url)) {
-                            console.log('🧹 Limpiando avatar corrupto para usuario:', user.id, 'URL:', user.profile_picture_url);
+                            // console.log('🧹 Limpiando avatar corrupto para usuario:', user.id, 'URL:', user.profile_picture_url);
                             
                             // Limpiar el avatar corrupto
                             const { error: updateError } = await window.supabase
@@ -1532,9 +1532,9 @@
                     }
                     
                     if (cleanedCount > 0) {
-                        console.log(`✅ Limpieza completada: ${cleanedCount} avatares corruptos eliminados`);
+                        // console.log(`✅ Limpieza completada: ${cleanedCount} avatares corruptos eliminados`);
                     } else {
-                        console.log('✅ No se encontraron avatares corruptos para limpiar');
+                        // console.log('✅ No se encontraron avatares corruptos para limpiar');
                     }
                     
                 } catch (error) {
@@ -1546,10 +1546,10 @@
             window.waitForSupabase = async function waitForSupabase(maxRetries = 10, delay = 1000) {
                 for (let i = 0; i < maxRetries; i++) {
                     if (window.supabase && window.supabaseInitialized) {
-                        console.log('✅ Supabase está disponible');
+                        // console.log('✅ Supabase está disponible');
                         return true;
                     }
-                    console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxRetries}`);
+                    // console.log(`⏳ Esperando Supabase... intento ${i + 1}/${maxRetries}`);
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
                 return false;
@@ -1557,13 +1557,13 @@
 
             // Función SIMPLIFICADA para cargar posts desde la API
             async function loadPostsFromDatabase() {
-                console.log('🚀 [SIMPLE] Cargando posts desde API...');
+                // console.log('🚀 [SIMPLE] Cargando posts desde API...');
                 try {
                     // Obtener community ID desde URL
                     const urlParams = new URLSearchParams(window.location.search);
                     const communitySlug = urlParams.get('slug') || 'profesionales';
 
-                    console.log('🏠 Community slug:', communitySlug);
+                    // console.log('🏠 Community slug:', communitySlug);
 
                     // Mapeo simple de slugs conocidos (CORREGIDO profesionales ID)
                     const communityMap = {
@@ -1579,17 +1579,17 @@
                         return;
                     }
 
-                    console.log('📊 Cargando posts de communityId:', communityId);
+                    // console.log('📊 Cargando posts de communityId:', communityId);
 
                     // ESPERAR A QUE SUPABASE ESTÉ DISPONIBLE
-                    console.log('⏳ Verificando disponibilidad de Supabase...');
+                    // console.log('⏳ Verificando disponibilidad de Supabase...');
                     const supabaseReady = await window.waitForSupabase();
 
                     if (!supabaseReady) {
                         throw new Error('Supabase no se pudo inicializar después de múltiples intentos');
                     }
 
-                    console.log('📡 Haciendo consulta directa a Supabase...');
+                    // console.log('📡 Haciendo consulta directa a Supabase...');
 
                     const { data: dbPosts, error } = await window.supabase
                         .from('community_posts')
@@ -1610,14 +1610,14 @@
                         throw new Error(`Supabase error: ${error.message}`);
                     }
 
-                    console.log('📊 Posts obtenidos de Supabase:', dbPosts);
-                    console.log('📊 Cantidad de posts encontrados:', dbPosts ? dbPosts.length : 0);
+                    // console.log('📊 Posts obtenidos de Supabase:', dbPosts);
+                    // console.log('📊 Cantidad de posts encontrados:', dbPosts ? dbPosts.length : 0);
 
                     // Log para verificar que está funcionando correctamente
-                    console.log(`✅ Posts cargados para ${communitySlug}: ${dbPosts ? dbPosts.length : 0} encontrados`);
+                    // console.log(`✅ Posts cargados para ${communitySlug}: ${dbPosts ? dbPosts.length : 0} encontrados`);
 
                     if (!dbPosts || dbPosts.length === 0) {
-                        console.log('⚠️ No se encontraron posts para esta comunidad');
+                        // console.log('⚠️ No se encontraron posts para esta comunidad');
                         posts = [];
                         // Re-renderizar con array vacío para mostrar estado vacío
                         renderPosts('all');
@@ -1653,7 +1653,7 @@
                         }
 
                         // Cargar reacciones desde la base de datos
-                        console.log('👍 Cargando reacciones para post:', post.id);
+                        // console.log('👍 Cargando reacciones para post:', post.id);
                         let reactions = {like:0, love:0, wow:0, laugh:0, sad:0, angry:0};
                         let userReacted = null;
 
@@ -1663,9 +1663,9 @@
                                 .select('reaction_type, user_id')
                                 .eq('post_id', post.id);
 
-                            console.log('🔍 [REACTIONS DEBUG] Post ID:', post.id);
-                            console.log('  - Reactions query result:', reactionsData);
-                            console.log('  - Reactions query error:', reactionsError);
+                            // console.log('🔍 [REACTIONS DEBUG] Post ID:', post.id);
+                            // console.log('  - Reactions query result:', reactionsData);
+                            // console.log('  - Reactions query error:', reactionsError);
 
                             if (!reactionsError && reactionsData) {
                                 // Contar reacciones por tipo
@@ -1684,23 +1684,23 @@
                                     }
                                 }
 
-                                console.log('✅ Reacciones cargadas para post', post.id, ':', reactions);
-                                console.log('  - Datos de reacciones:', reactionsData);
-                                console.log('  - Total de likes:', reactions.like);
-                                console.log('  - User reacted:', userReacted);
+                                // console.log('✅ Reacciones cargadas para post', post.id, ':', reactions);
+                                // console.log('  - Datos de reacciones:', reactionsData);
+                                // console.log('  - Total de likes:', reactions.like);
+                                // console.log('  - User reacted:', userReacted);
                             } else {
-                                console.log('⚠️ No se encontraron reacciones para post', post.id, 'Error:', reactionsError);
-                                console.log('  - Error details:', reactionsError?.message);
-                                console.log('  - Error code:', reactionsError?.code);
+                                // console.log('⚠️ No se encontraron reacciones para post', post.id, 'Error:', reactionsError);
+                                // console.log('  - Error details:', reactionsError?.message);
+                                // console.log('  - Error code:', reactionsError?.code);
                             }
                         } catch (error) {
                             console.warn('⚠️ Error cargando reacciones para post', post.id, ':', error);
-                            console.log('  - Error details:', error.message);
-                            console.log('  - Error stack:', error.stack);
+                            // console.log('  - Error details:', error.message);
+                            // console.log('  - Error stack:', error.stack);
                         }
 
                         // Cargar comentarios desde la base de datos
-                        console.log('💬 Cargando comentarios para post:', post.id);
+                        // console.log('💬 Cargando comentarios para post:', post.id);
                         let comments = [];
                         try {
                             const { data: commentsData, error: commentsError } = await window.supabase
@@ -1735,11 +1735,11 @@
                                     };
                                 });
                                 
-                                console.log('✅ Comentarios cargados para post', post.id, ':', comments.length, 'comentarios');
-                                console.log('  - Datos de comentarios:', commentsData);
-                                console.log('  - Comentarios mapeados:', comments);
+                                // console.log('✅ Comentarios cargados para post', post.id, ':', comments.length, 'comentarios');
+                                // console.log('  - Datos de comentarios:', commentsData);
+                                // console.log('  - Comentarios mapeados:', comments);
                             } else {
-                                console.log('⚠️ No se encontraron comentarios para post', post.id, 'Error:', commentsError);
+                                // console.log('⚠️ No se encontraron comentarios para post', post.id, 'Error:', commentsError);
                             }
                         } catch (error) {
                             console.warn('⚠️ Error cargando comentarios para post', post.id, ':', error);
@@ -1798,18 +1798,18 @@
                         postObject.totalReactions = totalReactions;
 
                         // Log de debug para verificar datos
-                        console.log('🔍 [POST OBJECT DEBUG] Post ID:', post.id);
-                        console.log('  - User:', postObject.user);
-                        console.log('  - Reactions:', postObject.reactions);
-                        console.log('  - Total reactions:', totalReactions);
-                        console.log('  - Comments array:', postObject.comments);
-                        console.log('  - Comments length:', postObject.comments?.length || 0);
-                        console.log('  - Like count:', postObject.reactions?.like || 0);
+                        // console.log('🔍 [POST OBJECT DEBUG] Post ID:', post.id);
+                        // console.log('  - User:', postObject.user);
+                        // console.log('  - Reactions:', postObject.reactions);
+                        // console.log('  - Total reactions:', totalReactions);
+                        // console.log('  - Comments array:', postObject.comments);
+                        // console.log('  - Comments length:', postObject.comments?.length || 0);
+                        // console.log('  - Like count:', postObject.reactions?.like || 0);
 
                         return postObject;
                     }));
 
-                    console.log('✅ Posts convertidos para UI:', posts);
+                    // console.log('✅ Posts convertidos para UI:', posts);
 
                     // Re-renderizar posts
                     renderPosts('all');
@@ -1818,10 +1818,10 @@
                     updateStats();
 
                     // Forzar actualización de contadores después de cargar
-                    console.log('🔄 [INITIAL LOAD] Forzando actualización de contadores...');
+                    // console.log('🔄 [INITIAL LOAD] Forzando actualización de contadores...');
                     setTimeout(() => {
                         updateCounters();
-                        console.log('✅ [INITIAL LOAD] Contadores actualizados después de carga inicial');
+                        // console.log('✅ [INITIAL LOAD] Contadores actualizados después de carga inicial');
                     }, 500);
 
                 } catch (error) {
@@ -1858,7 +1858,7 @@
                  if (realPosts.length !== posts.length) {
                      posts = realPosts;
                      savePosts();
-                     console.log('Datos falsos limpiados, manteniendo solo posts reales');
+                     // console.log('Datos falsos limpiados, manteniendo solo posts reales');
                  }
              }
              
@@ -1868,7 +1868,7 @@
                  if (savedPosts) {
                      try {
                          posts = JSON.parse(savedPosts);
-                         console.log('Posts cargados desde localStorage:', posts);
+                         // console.log('Posts cargados desde localStorage:', posts);
                      } catch (e) {
                          console.error('Error cargando posts:', e);
                          posts = [];
@@ -1884,7 +1884,7 @@
              function savePosts() {
                  try {
                      localStorage.setItem('communityPosts', JSON.stringify(posts));
-                     console.log('Posts guardados en localStorage');
+                     // console.log('Posts guardados en localStorage');
                  } catch (e) {
                      console.error('Error guardando posts:', e);
                  }
@@ -1926,12 +1926,12 @@
              
              // Cargar posts al iniciar (NUEVO: priorizar base de datos)
              async function initializePosts() {
-                 console.log('🚀 Inicializando carga de posts...');
+                 // console.log('🚀 Inicializando carga de posts...');
 
                  try {
                      // 1. Intentar cargar desde base de datos primero
                      await loadPostsFromDatabase();
-                     console.log('✅ Posts cargados desde base de datos');
+                     // console.log('✅ Posts cargados desde base de datos');
                  } catch (error) {
                      console.warn('⚠️ Error cargando desde BD, usando localStorage como fallback:', error);
                      // 2. Fallback a localStorage si falla la BD
@@ -1950,7 +1950,7 @@
                  // 6. Actualizar estadísticas iniciales
                  updateStats();
 
-                 console.log('✅ Inicialización de posts completada');
+                 // console.log('✅ Inicialización de posts completada');
              }
 
             // Llamar función de inicialización
@@ -1998,18 +1998,18 @@
             const composerInput = document.getElementById('composerInput');
             const publishPostBtn = document.getElementById('publishPostBtn');
             function renderPosts(category='all'){
-                console.log('Renderizando posts para categoría:', category);
-                console.log('Posts disponibles:', posts);
+                // console.log('Renderizando posts para categoría:', category);
+                // console.log('Posts disponibles:', posts);
                 const list = document.getElementById('postsList');
                 const filtered = category==='all' ? posts : posts.filter(p=>p.category===category);
-                console.log('Posts filtrados:', filtered);
+                // console.log('Posts filtrados:', filtered);
                 list.innerHTML = filtered.map(p=>{
-                    console.log('🔍 [COUNTER DEBUG] Post:', p.user);
-                    console.log('  - Reactions object:', p.reactions);
-                    console.log('  - Like count:', p.reactions?.like || 0);
-                    console.log('  - Comments array:', p.comments);
-                    console.log('  - Comments length:', p.comments?.length || 0);
-                    console.log('  - Comments count in template:', p.comments ? p.comments.length : 0);
+                    // console.log('🔍 [COUNTER DEBUG] Post:', p.user);
+                    // console.log('  - Reactions object:', p.reactions);
+                    // console.log('  - Like count:', p.reactions?.like || 0);
+                    // console.log('  - Comments array:', p.comments);
+                    // console.log('  - Comments length:', p.comments?.length || 0);
+                    // console.log('  - Comments count in template:', p.comments ? p.comments.length : 0);
                     return `
                     <div class="post" data-open-post="${p.id}">
                         <div class="post-header">
@@ -2093,7 +2093,7 @@
                         // Comparar como string ya que los IDs de BD son UUIDs
                         const post = posts.find(p=>p.id==id || p.id===Number(id));
 
-                        console.log('🔍 [REACTION] Buscando post con ID:', id, 'Posts disponibles:', posts.length);
+                        // console.log('🔍 [REACTION] Buscando post con ID:', id, 'Posts disponibles:', posts.length);
 
                         if (!post) {
                             console.error('❌ [REACTION] Post no encontrado para ID:', id);
@@ -2170,7 +2170,7 @@
                 list.querySelectorAll('[data-action="comment"]').forEach(el=>{
                     el.addEventListener('click', async ()=>{
                         const id = el.getAttribute('data-id');
-                        console.log('💬 [COMMENT] Abriendo modal para post ID:', id);
+                        // console.log('💬 [COMMENT] Abriendo modal para post ID:', id);
                         openPostModal(id);
                     });
                 });
@@ -2407,32 +2407,32 @@
             });
             
             function handleAttachmentType(type) {
-                console.log('Manejando tipo de adjunto:', type);
+                // console.log('Manejando tipo de adjunto:', type);
                 switch(type) {
                     case 'image':
-                        console.log('Abriendo selector de imagen');
+                        // console.log('Abriendo selector de imagen');
                         document.getElementById('attachImage').click();
                         break;
                     case 'document':
-                        console.log('Abriendo selector de documento');
+                        // console.log('Abriendo selector de documento');
                         document.getElementById('attachDocument').click();
                         break;
                     case 'link':
-                        console.log('Abriendo modal de enlace');
+                        // console.log('Abriendo modal de enlace');
                         document.getElementById('linkModal').classList.add('show');
                         break;
                     case 'youtube':
-                        console.log('Abriendo modal de YouTube');
+                        // console.log('Abriendo modal de YouTube');
                         document.getElementById('youtubeModal').classList.add('show');
                         break;
                     case 'poll':
-                        console.log('Abriendo modal de encuesta');
+                        // console.log('Abriendo modal de encuesta');
                         document.getElementById('pollModal').classList.add('show');
                         break;
                 }
             }
             document.getElementById('attachImage').addEventListener('change', async (e)=>{
-                console.log('Archivo de imagen/video seleccionado:', e.target.files?.[0]);
+                // console.log('Archivo de imagen/video seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
 
@@ -2441,7 +2441,7 @@
                     return;
                 }
 
-                console.log('Procesando archivo:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
+                // console.log('Procesando archivo:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
 
                 try {
                     // Mostrar indicador de carga
@@ -2455,7 +2455,7 @@
                     // Subir archivo al bucket de Supabase Storage
                     const uploadResult = await uploadFileToStorage(file, folder);
 
-                    console.log('Archivo subido exitosamente, agregando adjunto');
+                    // console.log('Archivo subido exitosamente, agregando adjunto');
 
                     // Agregar a adjuntos pendientes con la URL del storage
                     pendingAttachments.push({
@@ -2485,7 +2485,7 @@
             // Remover esta línea ya que no existe el input attachPdf
             
             document.getElementById('attachDocument').addEventListener('change', async (e)=>{
-                console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
+                // console.log('Archivo de documento seleccionado:', e.target.files?.[0]);
                 const file = e.target.files?.[0];
                 if(!file) return;
 
@@ -2494,7 +2494,7 @@
                     return;
                 }
 
-                console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
+                // console.log('Procesando documento:', file.name, 'Tamaño:', bytesToMB(file.size), 'MB');
 
                 try {
                     // Mostrar indicador de carga
@@ -2503,7 +2503,7 @@
                     // Subir archivo al bucket de Supabase Storage
                     const uploadResult = await uploadFileToStorage(file, 'documents/');
 
-                    console.log('Documento subido exitosamente, agregando adjunto');
+                    // console.log('Documento subido exitosamente, agregando adjunto');
 
                     // Agregar a adjuntos pendientes con la URL del storage
                     pendingAttachments.push({
@@ -2533,7 +2533,7 @@
                         throw new Error('Supabase client no está disponible');
                     }
 
-                    console.log('🔄 [UPLOAD] Iniciando subida en modo público (sin autenticación requerida)');
+                    // console.log('🔄 [UPLOAD] Iniciando subida en modo público (sin autenticación requerida)');
 
                     // MODO PÚBLICO: Verificar autenticación de forma opcional
                     let userInfo = 'anónimo';
@@ -2541,12 +2541,12 @@
                         const { data: { session }, error: authError } = await window.supabase.auth.getSession();
                         if (!authError && session?.user) {
                             userInfo = session.user.email || session.user.id;
-                            console.log('✅ Usuario autenticado encontrado:', userInfo);
+                            // console.log('✅ Usuario autenticado encontrado:', userInfo);
                         } else {
-                            console.log('ℹ️ Subiendo como usuario anónimo (bucket público)');
+                            // console.log('ℹ️ Subiendo como usuario anónimo (bucket público)');
                         }
                     } catch (authError) {
-                        console.log('ℹ️ Error verificando sesión (continuando en modo público):', authError.message);
+                        // console.log('ℹ️ Error verificando sesión (continuando en modo público):', authError.message);
                     }
 
                     // Generar nombre único para el archivo
@@ -2555,9 +2555,9 @@
                     const fileExtension = file.name.split('.').pop();
                     const fileName = `${folder}${timestamp}_${randomId}.${fileExtension}`;
 
-                    console.log(`📤 Subiendo archivo ${file.name} como ${fileName} al bucket community-thinks...`);
-                    console.log(`📊 Tamaño del archivo: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-                    console.log(`👤 Usuario: ${userInfo}`);
+                    // console.log(`📤 Subiendo archivo ${file.name} como ${fileName} al bucket community-thinks...`);
+                    // console.log(`📊 Tamaño del archivo: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+                    // console.log(`👤 Usuario: ${userInfo}`);
 
                     // Verificar que el bucket existe
                     try {
@@ -2569,7 +2569,7 @@
                             if (!bucket) {
                                 throw new Error('Bucket community-thinks no encontrado');
                             }
-                            console.log('✅ Bucket community-thinks verificado');
+                            // console.log('✅ Bucket community-thinks verificado');
                         }
                     } catch (bucketError) {
                         console.warn('⚠️ No se pudo verificar bucket, continuando:', bucketError.message);
@@ -2601,14 +2601,14 @@
                         }
                     }
 
-                    console.log('✅ Archivo subido exitosamente al path:', data.path);
+                    // console.log('✅ Archivo subido exitosamente al path:', data.path);
 
                     // Obtener URL pública del archivo
                     const { data: urlData } = window.supabase.storage
                         .from('community-thinks')
                         .getPublicUrl(fileName);
 
-                    console.log('✅ URL pública generada:', urlData.publicUrl);
+                    // console.log('✅ URL pública generada:', urlData.publicUrl);
 
                     return {
                         url: urlData.publicUrl,
@@ -2622,7 +2622,7 @@
             }
 
             function youtubeEmbed(url){
-                console.log('🔍 Validando URL de YouTube:', url);
+                // console.log('🔍 Validando URL de YouTube:', url);
                 
                 // Limpiar URL de espacios y caracteres extraños
                 const cleanUrl = url.trim();
@@ -2645,20 +2645,20 @@
                 
                 for (let i = 0; i < patterns.length; i++) {
                     const pattern = patterns[i];
-                    console.log(`🧪 Probando patrón ${i + 1}:`, pattern);
+                    // console.log(`🧪 Probando patrón ${i + 1}:`, pattern);
                     const match = cleanUrl.match(pattern);
-                    console.log('🎯 Resultado del match:', match);
+                    // console.log('🎯 Resultado del match:', match);
                     
                     if (match && match[1]) {
                         const videoId = match[1];
                         const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                        console.log('✅ URL válida encontrada. Video ID:', videoId);
-                        console.log('🎬 URL de embed generada:', embedUrl);
+                        // console.log('✅ URL válida encontrada. Video ID:', videoId);
+                        // console.log('🎬 URL de embed generada:', embedUrl);
                         return embedUrl;
                     }
                 }
                 
-                console.log('❌ No se encontró un patrón válido para la URL');
+                // console.log('❌ No se encontró un patrón válido para la URL');
                 return null;
             }
 
@@ -2730,7 +2730,7 @@
                 
                 // Si ya está en progreso, ignorar
                 if (reactionInProgress.has(reactionKey)) {
-                    console.log('⚠️ [REACTION] Reacción ya en progreso, ignorando:', reactionKey);
+                    // console.log('⚠️ [REACTION] Reacción ya en progreso, ignorando:', reactionKey);
                     return;
                 }
                 
@@ -2738,7 +2738,7 @@
                 reactionInProgress.add(reactionKey);
                 
                 try {
-                    console.log('👍 [REACTION] Aplicando reacción:', { postId, reactionType });
+                    // console.log('👍 [REACTION] Aplicando reacción:', { postId, reactionType });
                     
                     const supabaseReady = await window.waitForSupabase();
                     if (!supabaseReady) {
@@ -2835,7 +2835,7 @@
                     // Actualizar contadores en tiempo real
                     updateReactionCounters(postId);
                     
-                    console.log('✅ [REACTION] Reacción aplicada exitosamente');
+                    // console.log('✅ [REACTION] Reacción aplicada exitosamente');
                 } catch (error) {
                     console.error('❌ [REACTION] Error aplicando reacción:', error);
                     if (typeof notifications !== 'undefined') {
@@ -2850,7 +2850,7 @@
             // Remover reacción
             async function removeReaction(postId, reactionType) {
                 try {
-                    console.log('👍 [REACTION] Removiendo reacción:', { postId, reactionType });
+                    // console.log('👍 [REACTION] Removiendo reacción:', { postId, reactionType });
                     
                     const supabaseReady = await window.waitForSupabase();
                     if (!supabaseReady) {
@@ -2883,7 +2883,7 @@
                     // Re-renderizar posts
                     renderPosts('all');
                     
-                    console.log('✅ [REACTION] Reacción removida exitosamente');
+                    // console.log('✅ [REACTION] Reacción removida exitosamente');
                 } catch (error) {
                     console.error('❌ [REACTION] Error removiendo reacción:', error);
                     if (typeof notifications !== 'undefined') {
@@ -2899,7 +2899,7 @@
                 const userEl = document.getElementById('modalPostUser');
                 const post = posts.find(p=>p.id==id || p.id===Number(id));
 
-                console.log('💬 [MODAL] Buscando post con ID:', id, 'Encontrado:', !!post);
+                // console.log('💬 [MODAL] Buscando post con ID:', id, 'Encontrado:', !!post);
 
                 // Preservar contadores antes de abrir el modal
                 preserveCountersOnModalOpen(id);
@@ -2917,7 +2917,7 @@
                 userEl.textContent = title;
 
                 // Cargar comentarios desde la base de datos
-                console.log('💬 Cargando comentarios desde BD para post:', id);
+                // console.log('💬 Cargando comentarios desde BD para post:', id);
                 let comments = [];
                 try {
                     const { data: commentsData, error } = await window.supabase
@@ -2950,7 +2950,7 @@
                                         userName = userData.display_name || userData.first_name || userData.username || 'Usuario';
                                     }
                                 } catch (userError) {
-                                    console.log('⚠️ No se pudieron obtener datos del usuario para comentario:', userError);
+                                    // console.log('⚠️ No se pudieron obtener datos del usuario para comentario:', userError);
                                 }
                             }
 
@@ -2963,19 +2963,19 @@
                                 avatarUrl: userData?.profile_picture_url || null
                             };
                         }));
-                        console.log('✅ Comentarios cargados desde BD:', comments.length);
+                        // console.log('✅ Comentarios cargados desde BD:', comments.length);
                         
                         // Actualizar el contador en el post principal
                         const postInMainView = posts.find(p => p.id === id);
                         if (postInMainView) {
                             postInMainView.comments = comments;
-                            console.log('🔄 Actualizando contador de comentarios en vista principal:', comments.length);
+                            // console.log('🔄 Actualizando contador de comentarios en vista principal:', comments.length);
                             
                             // Actualizar el contador en el DOM
                             const commentCountEl = document.querySelector(`[data-id="${id}"] .comment-count`);
                             if (commentCountEl) {
                                 commentCountEl.textContent = comments.length;
-                                console.log('✅ Contador de comentarios actualizado en DOM:', comments.length);
+                                // console.log('✅ Contador de comentarios actualizado en DOM:', comments.length);
                             }
                             
                             // También actualizar el contador de reacciones si es necesario
@@ -2983,7 +2983,7 @@
                             if (reactionCountEl && postInMainView.reactions) {
                                 const totalReactions = postInMainView.totalReactions || Object.values(postInMainView.reactions || {}).reduce((sum, count) => sum + count, 0);
                                 reactionCountEl.textContent = totalReactions;
-                                console.log('✅ Contador de reacciones actualizado en DOM:', totalReactions);
+                                // console.log('✅ Contador de reacciones actualizado en DOM:', totalReactions);
                             }
                         }
                     }
@@ -3025,7 +3025,7 @@
                     if(!txt) return;
 
                     try {
-                        console.log('💬 [MODAL] Creando comentario en BD...');
+                        // console.log('💬 [MODAL] Creando comentario en BD...');
 
                         // Obtener usuario actual de manera consistente
                         const userResult = await getCurrentUserForCommunity();
@@ -3082,7 +3082,7 @@
                             notifications.error('Error al crear comentario: ' + error.message);
 
                             // Fallback a localStorage
-                            console.log('⚠️ [MODAL] Usando fallback a localStorage...');
+                            // console.log('⚠️ [MODAL] Usando fallback a localStorage...');
                             if (!post.comments) post.comments = [];
                             post.comments.push({
                                 id: Date.now(),
@@ -3098,7 +3098,7 @@
                             return;
                         }
 
-                        console.log('✅ [MODAL] Comentario creado:', newComment);
+                        // console.log('✅ [MODAL] Comentario creado:', newComment);
 
                         // Obtener datos del usuario si es necesario
                         let userName = currentUser?.name || 'Usuario';
@@ -3116,7 +3116,7 @@
                                     userName = userData.display_name || userData.first_name || userData.username || userName;
                                 }
                             } catch (userError) {
-                                console.log('⚠️ No se pudieron obtener datos adicionales del usuario:', userError);
+                                // console.log('⚠️ No se pudieron obtener datos adicionales del usuario:', userError);
                                 // Usar el nombre que ya tenemos
                             }
                         }
@@ -3223,7 +3223,7 @@
                     publishPostBtn.classList.toggle('enabled', ok);
                 });
                 publishPostBtn.addEventListener('click', async ()=>{
-                    console.log('Botón de publicar clickeado');
+                    // console.log('Botón de publicar clickeado');
 
                     // Verificar autenticación primero
                     const isAuthenticated = await checkAuthenticationForPosts();
@@ -3236,13 +3236,13 @@
 
                     const txt = composerInput.value.trim();
                     if(!txt) {
-                        console.log('Texto vacío, no se puede publicar');
+                        // console.log('Texto vacío, no se puede publicar');
                         notifications.warning('Escribe algo antes de publicar.');
                         return;
                     }
 
-                    console.log('Creando publicación con texto:', txt);
-                    console.log('Adjuntos pendientes:', pendingAttachments);
+                    // console.log('Creando publicación con texto:', txt);
+                    // console.log('Adjuntos pendientes:', pendingAttachments);
 
                     try {
                         // Deshabilitar botón durante el proceso
@@ -3250,7 +3250,7 @@
                         publishPostBtn.textContent = 'Publicando...';
 
                         // Usar CommunitySystem que ya está cargado y funciona con el banner
-                        console.log('🏠 Obteniendo comunidad desde CommunitySystem...');
+                        // console.log('🏠 Obteniendo comunidad desde CommunitySystem...');
 
                         let currentCommunity = null;
                         let communityId = null;
@@ -3259,12 +3259,12 @@
                         if (window.communitySystem && window.communitySystem.currentCommunity) {
                             currentCommunity = window.communitySystem.currentCommunity;
                             communityId = currentCommunity.id;
-                            console.log(`✅ Comunidad obtenida desde CommunitySystem: ${currentCommunity.name} (ID: ${communityId})`);
+                            // console.log(`✅ Comunidad obtenida desde CommunitySystem: ${currentCommunity.name} (ID: ${communityId})`);
                         }
 
                         // MÉTODO 2: Usar datos del localStorage (mismo que usa el banner)
                         if (!communityId) {
-                            console.log('🔄 CommunitySystem no disponible, usando localStorage...');
+                            // console.log('🔄 CommunitySystem no disponible, usando localStorage...');
                             const urlParams = new URLSearchParams(window.location.search);
                             const communitySlug = urlParams.get('slug') || 'profesionales';
 
@@ -3274,14 +3274,14 @@
                                 currentCommunity = communities.find(c => c.slug === communitySlug);
                                 if (currentCommunity) {
                                     communityId = currentCommunity.id;
-                                    console.log(`✅ Comunidad obtenida desde localStorage: ${currentCommunity.name} (ID: ${communityId})`);
+                                    // console.log(`✅ Comunidad obtenida desde localStorage: ${currentCommunity.name} (ID: ${communityId})`);
                                 }
                             }
                         }
 
                         // MÉTODO 3: Fallback hardcodeado para comunidades conocidas
                         if (!communityId) {
-                            console.log('🔄 Usando fallback hardcodeado...');
+                            // console.log('🔄 Usando fallback hardcodeado...');
                             const urlParams = new URLSearchParams(window.location.search);
                             const communitySlug = urlParams.get('slug') || 'profesionales';
 
@@ -3295,7 +3295,7 @@
                             if (hardcodedCommunities[communitySlug]) {
                                 currentCommunity = hardcodedCommunities[communitySlug];
                                 communityId = currentCommunity.id;
-                                console.log(`✅ Comunidad obtenida desde fallback: ${currentCommunity.name} (ID: ${communityId})`);
+                                // console.log(`✅ Comunidad obtenida desde fallback: ${currentCommunity.name} (ID: ${communityId})`);
                             }
                         }
 
@@ -3327,7 +3327,7 @@
 
                         // Si CommunityDatabase no funciona, intentar obtener usuario directamente
                         if (!currentUser) {
-                            console.log('🔄 Intentando obtener usuario directamente de Supabase...');
+                            // console.log('🔄 Intentando obtener usuario directamente de Supabase...');
                             try {
                                 const { data: { session } } = await window.supabase.auth.getSession();
                                 if (session && session.user) {
@@ -3336,7 +3336,7 @@
                                         email: session.user.email,
                                         display_name: session.user.user_metadata?.full_name || session.user.email
                                     };
-                                    console.log('✅ Usuario obtenido directamente de Supabase:', currentUser.email);
+                                    // console.log('✅ Usuario obtenido directamente de Supabase:', currentUser.email);
                                 }
                             } catch (directError) {
                                 console.warn('⚠️ Error obteniendo usuario directamente:', directError);
@@ -3364,7 +3364,7 @@
                         }
 
                         // Crear publicación en la base de datos
-                        console.log('🚀 Guardando publicación en base de datos...');
+                        // console.log('🚀 Guardando publicación en base de datos...');
                         let createdPost = null;
 
                         try {
@@ -3410,7 +3410,7 @@
                                 }
 
                                 createdPost = data;
-                                console.log('✅ Post creado usando método directo');
+                                // console.log('✅ Post creado usando método directo');
                             } else {
                                 throw new Error('No hay sesión válida para crear post');
                             }
@@ -3420,11 +3420,11 @@
                             throw new Error('No se pudo crear la publicación en la base de datos');
                         }
 
-                        console.log('✅ Publicación guardada en base de datos:', createdPost);
+                        // console.log('✅ Publicación guardada en base de datos:', createdPost);
 
                         // Agregar puntos por publicar
                         if (window.pointsSystem) {
-                            console.log('🎯 Adding points for publication...');
+                            // console.log('🎯 Adding points for publication...');
                             await window.pointsSystem.addPoints(null, 'publish');
                         }
 
@@ -3439,12 +3439,12 @@
                         document.getElementById('attachmentsPreview').innerHTML='';
 
                         // Recargar posts desde la base de datos
-                        console.log('🔄 Recargando posts desde base de datos...');
+                        // console.log('🔄 Recargando posts desde base de datos...');
                         await loadPostsFromDatabase();
 
                         // Mostrar confirmación
                         notifications.success('¡Publicación creada exitosamente!');
-                        console.log('✅ Publicación completada');
+                        // console.log('✅ Publicación completada');
 
                     } catch (error) {
                         console.error('❌ Error creando publicación:', error);
@@ -3458,7 +3458,7 @@
                         notifications.error('No se pudo crear la publicación. Inténtalo de nuevo.');
 
                         // Como fallback, usar el método anterior de localStorage
-                        console.log('⚠️ Usando fallback a localStorage...');
+                        // console.log('⚠️ Usando fallback a localStorage...');
                         const newPost = {
                             id: Date.now(),
                             user:'Tú',
@@ -3488,19 +3488,19 @@
             }
             // Función auxiliar para obtener el usuario actual de manera consistente
             async function getCurrentUserForCommunity() {
-                console.log('🔍 Obteniendo usuario actual para operaciones de comunidad...');
+                // console.log('🔍 Obteniendo usuario actual para operaciones de comunidad...');
 
                 let currentUser = null;
                 let userId = null;
 
                 // MÉTODO 1: Usar PointsSystem si está disponible (más confiable)
                 if (window.pointsSystem) {
-                    console.log('🎯 Obteniendo usuario desde PointsSystem...');
+                    // console.log('🎯 Obteniendo usuario desde PointsSystem...');
                     try {
                         currentUser = await window.pointsSystem.getCurrentUser();
                         if (currentUser && currentUser.id) {
                             userId = currentUser.id;
-                            console.log('✅ Usuario obtenido desde PointsSystem:', currentUser.name);
+                            // console.log('✅ Usuario obtenido desde PointsSystem:', currentUser.name);
                             return { user: currentUser, id: userId };
                         }
                     } catch (error) {
@@ -3510,7 +3510,7 @@
 
                 // MÉTODO 2: Fallback a Supabase Auth
                 if (!userId && window.supabase) {
-                    console.log('🔄 Fallback a Supabase Auth...');
+                    // console.log('🔄 Fallback a Supabase Auth...');
                     try {
                         const { data: { session } } = await window.supabase.auth.getSession();
                         if (session && session.user) {
@@ -3520,7 +3520,7 @@
                                 name: session.user.user_metadata?.full_name || session.user.email || 'Usuario',
                                 email: session.user.email
                             };
-                            console.log('✅ Usuario obtenido desde Supabase session');
+                            // console.log('✅ Usuario obtenido desde Supabase session');
                             return { user: currentUser, id: userId };
                         }
                     } catch (error) {
@@ -3534,13 +3534,13 @@
 
             // Función para verificar autenticación antes de operaciones de base de datos
             async function checkAuthenticationForPosts() {
-                console.log('🔐 Verificando autenticación para posts...');
+                // console.log('🔐 Verificando autenticación para posts...');
                 try {
                     // MÉTODO 1: Verificar sesión de Supabase directamente (más confiable)
                     if (window.supabase && window.supabase.auth) {
                         const { data: { session }, error } = await window.supabase.auth.getSession();
                         if (session && session.user) {
-                            console.log('✅ Usuario autenticado vía Supabase session:', session.user.email);
+                            // console.log('✅ Usuario autenticado vía Supabase session:', session.user.email);
                             return true;
                         }
                     }
@@ -3553,7 +3553,7 @@
                             if (data && data !== 'null' && data !== 'undefined') {
                                 const user = JSON.parse(data);
                                 if (user && (user.id || user.user_id || user.email)) {
-                                    console.log(`✅ Usuario autenticado vía localStorage.${source}:`, user.email || user.id);
+                                    // console.log(`✅ Usuario autenticado vía localStorage.${source}:`, user.email || user.id);
                                     return true;
                                 }
                             }
@@ -3566,7 +3566,7 @@
                     if (window.CommunityAuth) {
                         const authResult = await window.CommunityAuth.getCurrentUserId();
                         if (authResult) {
-                            console.log('✅ Usuario autenticado vía CommunityAuth:', authResult);
+                            // console.log('✅ Usuario autenticado vía CommunityAuth:', authResult);
                             return true;
                         }
                     }
@@ -3574,7 +3574,7 @@
                     // MÉTODO 4: Verificar si puede acceder a comunidades (si está aquí, probablemente esté autenticado)
                     if (window.location.search.includes('slug=') && !window.location.search.includes('profesionales')) {
                         // Si está accediendo a una comunidad por invitación, debe estar autenticado
-                        console.log('✅ Usuario autenticado (acceso a comunidad por invitación)');
+                        // console.log('✅ Usuario autenticado (acceso a comunidad por invitación)');
                         return true;
                     }
 
@@ -3590,18 +3590,18 @@
 
             // Inicializar carga de posts
             async function initializePosts() {
-                console.log('🚀 Inicializando sistema de posts...');
+                // console.log('🚀 Inicializando sistema de posts...');
 
                 // Verificar si CommunitySystem ya cargó la comunidad
                 if (window.communitySystem && window.communitySystem.currentCommunity) {
-                    console.log('✅ CommunitySystem ya tiene la comunidad cargada:', window.communitySystem.currentCommunity.name);
+                    // console.log('✅ CommunitySystem ya tiene la comunidad cargada:', window.communitySystem.currentCommunity.name);
                 } else {
-                    console.log('⚠️ CommunitySystem no disponible aún, el banner se encargará de cargar la comunidad');
+                    // console.log('⚠️ CommunitySystem no disponible aún, el banner se encargará de cargar la comunidad');
                 }
 
                 // Intentar cargar desde base de datos primero
                 try {
-                    console.log('📊 Intentando cargar posts desde base de datos...');
+                    // console.log('📊 Intentando cargar posts desde base de datos...');
                     await loadPostsFromDatabase();
                 } catch (error) {
                     console.warn('⚠️ Error cargando desde BD, usando localStorage:', error);
@@ -3616,7 +3616,7 @@
 
                 // Habilitar formulario por defecto (ya que el usuario puede acceder a la página)
                 if (composerInput && publishPostBtn) {
-                    console.log('✅ Habilitando formulario de posts (usuario tiene acceso a la página)');
+                    // console.log('✅ Habilitando formulario de posts (usuario tiene acceso a la página)');
                     composerInput.disabled = false;
                     publishPostBtn.disabled = true; // Se habilita cuando escriban algo
                     publishPostBtn.textContent = 'Publicar';
@@ -3638,10 +3638,10 @@
 
             // Función de prueba para verificar contadores
             window.testCounters = function() {
-                console.log('🧪 [TEST] Verificando contadores...');
-                console.log('Posts cargados:', posts.length);
+                // console.log('🧪 [TEST] Verificando contadores...');
+                // console.log('Posts cargados:', posts.length);
                 posts.forEach((post, index) => {
-                    console.log(`Post ${index + 1}:`, {
+                    // console.log(`Post ${index + 1}:`, {
                         id: post.id,
                         user: post.user,
                         reactions: post.reactions,
@@ -3654,7 +3654,7 @@
 
             // Función para forzar actualización de contadores
             window.updateCounters = function() {
-                console.log('🔄 [UPDATE] Actualizando contadores en el DOM...');
+                // console.log('🔄 [UPDATE] Actualizando contadores en el DOM...');
                 posts.forEach(post => {
                     const reactionCountEl = document.querySelector(`[data-id="${post.id}"] .reaction-count`);
                     const commentCountEl = document.querySelector(`[data-id="${post.id}"] .comment-count`);
@@ -3662,20 +3662,20 @@
                     if (reactionCountEl) {
                         const totalReactions = post.totalReactions || Object.values(post.reactions || {}).reduce((sum, count) => sum + count, 0);
                         reactionCountEl.textContent = totalReactions;
-                        console.log(`✅ Actualizado contador de reacciones para post ${post.id}: ${totalReactions}`);
+                        // console.log(`✅ Actualizado contador de reacciones para post ${post.id}: ${totalReactions}`);
                     }
                     
                     if (commentCountEl) {
                         const commentCount = post.comments?.length || 0;
                         commentCountEl.textContent = commentCount;
-                        console.log(`✅ Actualizado contador de comentarios para post ${post.id}: ${commentCount}`);
+                        // console.log(`✅ Actualizado contador de comentarios para post ${post.id}: ${commentCount}`);
                     }
                 });
             };
 
             // Función para actualizar contadores después de cerrar modal
             window.updateCountersAfterModal = function() {
-                console.log('🔄 [MODAL CLOSE] Actualizando contadores después de cerrar modal...');
+                // console.log('🔄 [MODAL CLOSE] Actualizando contadores después de cerrar modal...');
                 setTimeout(() => {
                     updateCounters();
                 }, 100);
@@ -3683,20 +3683,20 @@
 
     // Función para preservar contadores al abrir modal
     window.preserveCountersOnModalOpen = function(postId) {
-        console.log('🔄 [MODAL OPEN] Preservando contadores para post:', postId);
+        // console.log('🔄 [MODAL OPEN] Preservando contadores para post:', postId);
         const post = posts.find(p => p.id === postId);
         if (post) {
             // Asegurar que el total de reacciones esté calculado
             if (!post.totalReactions) {
                 post.totalReactions = Object.values(post.reactions || {}).reduce((sum, count) => sum + count, 0);
             }
-            console.log('✅ Contadores preservados - Total reacciones:', post.totalReactions, 'Comentarios:', post.comments?.length || 0);
+            // console.log('✅ Contadores preservados - Total reacciones:', post.totalReactions, 'Comentarios:', post.comments?.length || 0);
         }
     };
 
     // Función para actualizar contadores en tiempo real
     window.updateReactionCounters = function(postId) {
-        console.log('🔄 [REALTIME] Actualizando contadores para post:', postId);
+        // console.log('🔄 [REALTIME] Actualizando contadores para post:', postId);
         const post = posts.find(p => p.id === postId);
         if (!post) {
             console.error('❌ [REALTIME] Post no encontrado:', postId);
@@ -3707,7 +3707,7 @@
         const reactionCountEl = document.querySelector(`[data-id="${postId}"] .reaction-count`);
         if (reactionCountEl) {
             reactionCountEl.textContent = post.totalReactions || 0;
-            console.log('✅ [REALTIME] Contador de reacciones actualizado:', post.totalReactions);
+            // console.log('✅ [REALTIME] Contador de reacciones actualizado:', post.totalReactions);
         }
 
         // Actualizar texto del botón según la reacción
@@ -3734,30 +3734,30 @@
             }
         }
 
-        console.log('✅ [REALTIME] Contadores actualizados para post:', postId);
+        // console.log('✅ [REALTIME] Contadores actualizados para post:', postId);
     };
 
             // Función de debug específica para verificar datos de posts
             window.debugPostData = function() {
-                console.log('🔍 [DEBUG] Verificando datos de posts...');
-                console.log('Total de posts:', posts.length);
+                // console.log('🔍 [DEBUG] Verificando datos de posts...');
+                // console.log('Total de posts:', posts.length);
                 
                 posts.forEach((post, index) => {
-                    console.log(`\n📝 Post ${index + 1} (ID: ${post.id}):`);
-                    console.log('  - User:', post.user);
-                    console.log('  - Reactions object:', post.reactions);
-                    console.log('  - Like count:', post.reactions?.like || 0);
-                    console.log('  - Comments array:', post.comments);
-                    console.log('  - Comments length:', post.comments?.length || 0);
+                    // console.log(`\n📝 Post ${index + 1} (ID: ${post.id}):`);
+                    // console.log('  - User:', post.user);
+                    // console.log('  - Reactions object:', post.reactions);
+                    // console.log('  - Like count:', post.reactions?.like || 0);
+                    // console.log('  - Comments array:', post.comments);
+                    // console.log('  - Comments length:', post.comments?.length || 0);
                     
                     // Verificar elementos en el DOM
                     const reactionCountEl = document.querySelector(`[data-id="${post.id}"] .reaction-count`);
                     const commentCountEl = document.querySelector(`[data-id="${post.id}"] .comment-count`);
                     
-                    console.log('  - DOM reaction count element:', reactionCountEl);
-                    console.log('  - DOM reaction count text:', reactionCountEl?.textContent);
-                    console.log('  - DOM comment count element:', commentCountEl);
-                    console.log('  - DOM comment count text:', commentCountEl?.textContent);
+                    // console.log('  - DOM reaction count element:', reactionCountEl);
+                    // console.log('  - DOM reaction count text:', reactionCountEl?.textContent);
+                    // console.log('  - DOM comment count element:', commentCountEl);
+                    // console.log('  - DOM comment count text:', commentCountEl?.textContent);
                 });
             };
 
@@ -3767,19 +3767,19 @@
 
             // Función para inicializar miembros
             async function initializeMembers() {
-                console.log('🚀 [MEMBERS] Inicializando sistema de miembros...');
+                // console.log('🚀 [MEMBERS] Inicializando sistema de miembros...');
 
                 try {
                     // Intentar cargar desde base de datos
                     await loadMembersFromDatabase();
-                    console.log('✅ [MEMBERS] Miembros cargados desde base de datos');
+                    // console.log('✅ [MEMBERS] Miembros cargados desde base de datos');
                 } catch (error) {
                     console.warn('⚠️ [MEMBERS] Error cargando desde BD, usando array vacío:', error);
                     window.members.length = 0;
                     window.renderMembers('all', '');
                 }
 
-                console.log('✅ [MEMBERS] Inicialización de miembros completada');
+                // console.log('✅ [MEMBERS] Inicialización de miembros completada');
             }
 
             // NO cargar miembros aquí - el CommunitySystem se encargará
@@ -3787,7 +3787,7 @@
 
             // Función para cargar miembros desde la base de datos
             async function loadMembersFromDatabase() {
-                console.log('🚀 [MEMBERS] Cargando miembros desde BD...');
+                // console.log('🚀 [MEMBERS] Cargando miembros desde BD...');
                 try {
                     // Obtener community ID desde URL
                     const urlParams = new URLSearchParams(window.location.search);
@@ -3807,7 +3807,7 @@
                         return;
                     }
 
-                    console.log('👥 [MEMBERS] Cargando miembros de communityId:', communityId);
+                    // console.log('👥 [MEMBERS] Cargando miembros de communityId:', communityId);
 
                     // Esperar a que Supabase esté disponible
                     const supabaseReady = await window.waitForSupabase();
@@ -3839,11 +3839,11 @@
                         throw new Error(`Supabase error al cargar miembros: ${error.message}`);
                     }
 
-                    console.log('👥 [MEMBERS] Miembros obtenidos de Supabase:', dbMembers);
-                    console.log('👥 [MEMBERS] Cantidad de miembros encontrados:', dbMembers ? dbMembers.length : 0);
+                    // console.log('👥 [MEMBERS] Miembros obtenidos de Supabase:', dbMembers);
+                    // console.log('👥 [MEMBERS] Cantidad de miembros encontrados:', dbMembers ? dbMembers.length : 0);
 
                     if (!dbMembers || dbMembers.length === 0) {
-                        console.log('⚠️ [MEMBERS] No se encontraron miembros para esta comunidad');
+                        // console.log('⚠️ [MEMBERS] No se encontraron miembros para esta comunidad');
                         window.members.length = 0;
                         return;
                     }
@@ -3879,7 +3879,7 @@
                         };
                     });
 
-                    console.log('✅ [MEMBERS] Miembros convertidos para UI:', members);
+                    // console.log('✅ [MEMBERS] Miembros convertidos para UI:', members);
 
                     // Re-renderizar miembros
                     const activeChip = document.querySelector('.members-chip.active');
@@ -3948,14 +3948,14 @@
             // Ejecutar simulación de actividad cada 2 minutos
             setInterval(simulateCommunityActivity, 120000);
             window.renderMembers = function renderMembers(filter='all', q=''){
-                console.log('🎨 [RENDER] renderMembers llamada con:', { filter, q });
-                console.log('🔍 [RENDER] Variable members:', {
+                // console.log('🎨 [RENDER] renderMembers llamada con:', { filter, q });
+                // console.log('🔍 [RENDER] Variable members:', {
                     exists: typeof members !== 'undefined',
                     isArray: Array.isArray(members),
                     length: members?.length || 0,
                     value: members
                 });
-                console.log('🔍 [RENDER] window.members:', {
+                // console.log('🔍 [RENDER] window.members:', {
                     exists: typeof window.members !== 'undefined',
                     isArray: Array.isArray(window.members),
                     length: window.members?.length || 0,
@@ -3963,7 +3963,7 @@
                 });
 
                 const list = document.getElementById('membersList');
-                console.log('🔍 [RENDER] membersList container:', list);
+                // console.log('🔍 [RENDER] membersList container:', list);
 
                 let data = [...members];
                 
@@ -3981,8 +3981,8 @@
                     return a.name.localeCompare(b.name);
                 });
 
-                console.log('🔍 [RENDER] data después de ordenar:', data);
-                console.log('🔍 [RENDER] Generando HTML...');
+                // console.log('🔍 [RENDER] data después de ordenar:', data);
+                // console.log('🔍 [RENDER] Generando HTML...');
                 
                 list.innerHTML = data.map(m=>`
                     <div class="member-card" data-user-id="${m.id || m.user_id}" style="cursor: pointer;">
@@ -4017,9 +4017,9 @@
                     </div>
                 `).join('');
 
-                console.log('✅ [RENDER] HTML asignado al contenedor');
-                console.log('🔍 [RENDER] list.innerHTML length:', list.innerHTML?.length || 0);
-                console.log('🔍 [RENDER] Cantidad de miembros renderizados:', data.length);
+                // console.log('✅ [RENDER] HTML asignado al contenedor');
+                // console.log('🔍 [RENDER] list.innerHTML length:', list.innerHTML?.length || 0);
+                // console.log('🔍 [RENDER] Cantidad de miembros renderizados:', data.length);
                 
                 // Mostrar contador de miembros
                 const onlineCount = data.filter(m => m.online).length;
@@ -4480,7 +4480,7 @@
                         oscillator.start(audioContext.currentTime);
                         oscillator.stop(audioContext.currentTime + 0.1);
                     } catch (e) {
-                        console.log('Audio not supported');
+                        // console.log('Audio not supported');
                     }
                 }
 
@@ -4603,7 +4603,7 @@
                             this.messages = JSON.parse(saved);
                             this.messages.forEach(msg => this.renderMessage(msg));
                         } catch (e) {
-                            console.log('Error loading messages:', e);
+                            // console.log('Error loading messages:', e);
                         }
                     }
                 }
@@ -4658,23 +4658,23 @@
 
                 if (confirmLink) {
                 confirmLink.addEventListener('click', () => {
-                        console.log('Botón confirmar enlace clickeado');
+                        // console.log('Botón confirmar enlace clickeado');
                     const url = linkInput.value.trim();
-                        console.log('URL ingresada:', url);
+                        // console.log('URL ingresada:', url);
                     if (url) {
                             try {
                                 // Validar URL
                                 new URL(url);
-                                console.log('URL válida, agregando adjunto');
+                                // console.log('URL válida, agregando adjunto');
                         pendingAttachments.push({ type: 'link', url });
                         addPreviewLink(url);
                         closeLinkModalFunc();
                                                          } catch (e) {
-                                 console.log('URL inválida:', e);
+                                 // console.log('URL inválida:', e);
                                  notifications.error('Por favor ingresa una URL válida (ej: https://ejemplo.com)');
                              }
                          } else {
-                             console.log('URL vacía');
+                             // console.log('URL vacía');
                              notifications.warning('Por favor ingresa una URL');
                          }
                     });
@@ -4707,23 +4707,23 @@
                 if (confirmYoutube) {
                 confirmYoutube.addEventListener('click', () => {
                     const ytUrl = youtubeInput.value.trim();
-                    console.log('🚀 Botón YouTube confirmado. URL ingresada:', ytUrl);
+                    // console.log('🚀 Botón YouTube confirmado. URL ingresada:', ytUrl);
                     
                     if (ytUrl) {
                         const embed = youtubeEmbed(ytUrl);
-                        console.log('🎥 Resultado de youtubeEmbed:', embed);
+                        // console.log('🎥 Resultado de youtubeEmbed:', embed);
                         
                         if (embed) {
-                            console.log('✅ URL válida, agregando adjunto');
+                            // console.log('✅ URL válida, agregando adjunto');
                             pendingAttachments.push({ type: 'video', embed, isYoutube: true });
                             addPreviewYoutube(embed);
                             closeYoutubeModalFunc();
                         } else {
-                            console.log('❌ URL inválida, mostrando error');
+                            // console.log('❌ URL inválida, mostrando error');
                             notifications.error('Enlace de YouTube inválido. Asegúrate de que sea una URL válida de YouTube');
                         }
                     } else {
-                        console.log('⚠️ URL vacía');
+                        // console.log('⚠️ URL vacía');
                         notifications.warning('Por favor ingresa una URL de YouTube');
                     }
                 });
@@ -4797,7 +4797,7 @@
             
             // Verificar que los elementos existan (solo en desarrollo)
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.log('Elementos de publicación:', {
+                // console.log('Elementos de publicación:', {
                     composerInput: !!document.getElementById('composerInput'),
                     publishPostBtn: !!document.getElementById('publishPostBtn'),
                     attachMenuBtn: !!document.getElementById('attachMenuBtn'),
@@ -5013,9 +5013,9 @@
             }
 
             async init() {
-                console.log('🚀 Inicializando sistema de comunidad...');
-                console.log('🔍 URL actual:', window.location.href);
-                console.log('🔍 Slug de la URL:', new URLSearchParams(window.location.search).get('slug'));
+                // console.log('🚀 Inicializando sistema de comunidad...');
+                // console.log('🔍 URL actual:', window.location.href);
+                // console.log('🔍 Slug de la URL:', new URLSearchParams(window.location.search).get('slug'));
                 
                 await this.db.initialize();
                 
@@ -5023,7 +5023,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const communitySlug = urlParams.get('slug') || 'general';
                 
-                console.log('🔍 Slug a cargar:', communitySlug);
+                // console.log('🔍 Slug a cargar:', communitySlug);
                 
                 // OPTIMIZACIÓN: Cargar banner primero, luego el resto en paralelo
                 await this.loadBannerOnly(communitySlug);
@@ -5031,16 +5031,16 @@
                 // Cargar el resto de datos en paralelo (no críticos para el banner)
                 this.loadRemainingData(communitySlug);
                 
-                console.log('✅ Sistema de comunidad inicializado');
+                // console.log('✅ Sistema de comunidad inicializado');
             }
 
             // OPTIMIZACIÓN: Función para cargar solo los datos del banner (rápida)
             async loadBannerOnly(slug) {
-                console.log(`🚀 Cargando banner de comunidad: ${slug}`);
+                // console.log(`🚀 Cargando banner de comunidad: ${slug}`);
                 this.currentCommunity = await this.db.getCommunityBySlugWithFallback(slug);
                 
                 if (this.currentCommunity) {
-                    console.log('✅ Comunidad cargada para banner:', this.currentCommunity);
+                    // console.log('✅ Comunidad cargada para banner:', this.currentCommunity);
                     
                     // Actualizar banner inmediatamente con datos básicos
                     this.updateBannerBasic();
@@ -5054,7 +5054,7 @@
 
             // OPTIMIZACIÓN: Función para cargar datos restantes en paralelo
             async loadRemainingData(slug) {
-                console.log('🔄 Cargando datos restantes en paralelo...');
+                // console.log('🔄 Cargando datos restantes en paralelo...');
                 
                 // Cargar posts y miembros en paralelo
                 const [postsResult, membersResult] = await Promise.allSettled([
@@ -5067,7 +5067,7 @@
                     this.updateBannerWithMemberCount();
                 }
                 
-                console.log('✅ Datos restantes cargados');
+                // console.log('✅ Datos restantes cargados');
             }
 
             // OPTIMIZACIÓN: Actualizar banner con datos básicos (sin conteo de miembros)
@@ -5091,11 +5091,11 @@
                 
                 // Cargar imagen del banner desde image_url de la base de datos
                 if (bannerImage && this.currentCommunity.image_url) {
-                    console.log('🖼️ Cargando imagen del banner:', this.currentCommunity.image_url);
+                    // console.log('🖼️ Cargando imagen del banner:', this.currentCommunity.image_url);
                     bannerImage.style.backgroundImage = `url(${this.currentCommunity.image_url})`;
                     bannerImage.style.display = 'block';
                 } else if (bannerImage) {
-                    console.log('⚠️ No hay image_url disponible para la comunidad');
+                    // console.log('⚠️ No hay image_url disponible para la comunidad');
                     bannerImage.style.display = 'none';
                 }
                 
@@ -5104,7 +5104,7 @@
                     bannerContainer.classList.add('banner-loaded');
                 }
                 
-                console.log('✅ Banner actualizado con datos de Supabase');
+                // console.log('✅ Banner actualizado con datos de Supabase');
             }
 
             // OPTIMIZACIÓN: Actualizar banner con conteo de miembros (después de cargar)
@@ -5118,33 +5118,33 @@
             }
 
             async loadCommunity(slug) {
-                console.log(`🏘️ Cargando comunidad: ${slug}`);
+                // console.log(`🏘️ Cargando comunidad: ${slug}`);
                 this.currentCommunity = await this.db.getCommunityBySlugWithFallback(slug);
                 
                 if (this.currentCommunity) {
-                    console.log('✅ Comunidad cargada:', this.currentCommunity);
+                    // console.log('✅ Comunidad cargada:', this.currentCommunity);
                     
                     // Calcular el número real de miembros (igual que en community.js)
                     let memberCount = 0;
-                    console.log('🔍 Calculando número real de miembros...');
-                    console.log('🔍 Community ID:', this.currentCommunity.id);
-                    console.log('🔍 countCommunityMembers disponible:', typeof this.db.countCommunityMembers === 'function');
-                    console.log('🔍 getCommunityMembers disponible:', typeof this.db.getCommunityMembers === 'function');
-                    console.log('🔍 Supabase disponible:', !!this.db.supabase);
+                    // console.log('🔍 Calculando número real de miembros...');
+                    // console.log('🔍 Community ID:', this.currentCommunity.id);
+                    // console.log('🔍 countCommunityMembers disponible:', typeof this.db.countCommunityMembers === 'function');
+                    // console.log('🔍 getCommunityMembers disponible:', typeof this.db.getCommunityMembers === 'function');
+                    // console.log('🔍 Supabase disponible:', !!this.db.supabase);
                     
                     try {
                         if (typeof this.db.countCommunityMembers === 'function') {
-                            console.log('🔍 Usando countCommunityMembers...');
-                            console.log('🔍 Community ID que se está pasando:', this.currentCommunity.id);
-                            console.log('🔍 Tipo de Community ID:', typeof this.currentCommunity.id);
+                            // console.log('🔍 Usando countCommunityMembers...');
+                            // console.log('🔍 Community ID que se está pasando:', this.currentCommunity.id);
+                            // console.log('🔍 Tipo de Community ID:', typeof this.currentCommunity.id);
                             memberCount = await this.db.countCommunityMembers(this.currentCommunity.id);
-                            console.log('🔍 Resultado countCommunityMembers:', memberCount);
+                            // console.log('🔍 Resultado countCommunityMembers:', memberCount);
                         } else if (typeof this.db.getCommunityMembers === 'function') {
-                            console.log('🔍 Usando getCommunityMembers...');
+                            // console.log('🔍 Usando getCommunityMembers...');
                             const members = await this.db.getCommunityMembers(this.currentCommunity.id);
-                            console.log('🔍 Miembros obtenidos:', members);
+                            // console.log('🔍 Miembros obtenidos:', members);
                             memberCount = Array.isArray(members) ? members.length : 0;
-                            console.log('🔍 Número calculado de miembros:', memberCount);
+                            // console.log('🔍 Número calculado de miembros:', memberCount);
                         } else {
                             console.warn('⚠️ Ningún método de conteo disponible');
                             memberCount = this.currentCommunity.member_count || 0;
@@ -5152,36 +5152,36 @@
                     } catch (memberError) {
                         console.warn('[COMMUNITY-VIEW] Error obteniendo miembros:', memberError);
                         memberCount = this.currentCommunity.member_count || 0; // Fallback a BD
-                        console.log('🔍 Usando fallback member_count:', memberCount);
+                        // console.log('🔍 Usando fallback member_count:', memberCount);
                     }
                     
-                    console.log('🔍 Número final de miembros:', memberCount);
+                    // console.log('🔍 Número final de miembros:', memberCount);
                     
                     // Actualizar el banner de la comunidad
                     const bannerTitle = document.getElementById('communityBannerTitle');
                     const bannerDesc = document.getElementById('communityBannerDesc');
                     const bannerMeta = document.getElementById('communityBannerMeta');
                     
-                    console.log('🔍 Elementos del banner encontrados:');
-                    console.log('  - bannerTitle:', !!bannerTitle);
-                    console.log('  - bannerDesc:', !!bannerDesc);
-                    console.log('  - bannerMeta:', !!bannerMeta);
+                    // console.log('🔍 Elementos del banner encontrados:');
+                    // console.log('  - bannerTitle:', !!bannerTitle);
+                    // console.log('  - bannerDesc:', !!bannerDesc);
+                    // console.log('  - bannerMeta:', !!bannerMeta);
                     
                     if (bannerTitle) {
                         bannerTitle.textContent = this.currentCommunity.name;
-                        console.log('✅ Título actualizado:', this.currentCommunity.name);
+                        // console.log('✅ Título actualizado:', this.currentCommunity.name);
                     }
                     if (bannerDesc) {
                         bannerDesc.textContent = this.currentCommunity.description || 'Descripción de la comunidad';
-                        console.log('✅ Descripción actualizada:', this.currentCommunity.description);
+                        // console.log('✅ Descripción actualizada:', this.currentCommunity.description);
                     }
                     if (bannerMeta) {
                         const accessType = this.currentCommunity.access_type || 'Free';
                         const bannerText = `• ${memberCount} Members • ${accessType}`;
                         bannerMeta.textContent = bannerText;
-                        console.log('✅ Banner actualizado:', bannerText);
-                        console.log('🔍 Elemento bannerMeta después de actualizar:', bannerMeta);
-                        console.log('🔍 Texto del elemento:', bannerMeta.textContent);
+                        // console.log('✅ Banner actualizado:', bannerText);
+                        // console.log('🔍 Elemento bannerMeta después de actualizar:', bannerMeta);
+                        // console.log('🔍 Texto del elemento:', bannerMeta.textContent);
                     } else {
                         console.warn('⚠️ Elemento bannerMeta no encontrado');
                     }
@@ -5196,7 +5196,7 @@
             async loadPosts() {
                 if (!this.currentCommunity) return;
                 
-                console.log('📝 Cargando publicaciones...');
+                // console.log('📝 Cargando publicaciones...');
                 this.posts = await this.db.getPosts(this.currentCommunity.id);
                 this.renderPosts();
             }
@@ -5204,18 +5204,18 @@
             async loadMembers() {
                 if (!this.currentCommunity) return;
                 
-                console.log('👥 [CommunitySystem] Cargando miembros desde BD...');
-                console.log('🔍 [CommunitySystem] Community ID:', this.currentCommunity?.id);
-                console.log('🔍 [CommunitySystem] Community Name:', this.currentCommunity?.name);
+                // console.log('👥 [CommunitySystem] Cargando miembros desde BD...');
+                // console.log('🔍 [CommunitySystem] Community ID:', this.currentCommunity?.id);
+                // console.log('🔍 [CommunitySystem] Community Name:', this.currentCommunity?.name);
 
                 try {
                     // Esperar a que Supabase esté disponible
-                    console.log('⏳ [CommunitySystem] Esperando que Supabase esté disponible...');
+                    // console.log('⏳ [CommunitySystem] Esperando que Supabase esté disponible...');
                     const supabaseReady = await window.waitForSupabase();
                     if (!supabaseReady) {
                         throw new Error('Supabase no disponible para CommunitySystem');
                     }
-                    console.log('✅ [CommunitySystem] Supabase disponible, iniciando consulta...');
+                    // console.log('✅ [CommunitySystem] Supabase disponible, iniciando consulta...');
 
                     // Consultar miembros con datos de usuario
                     const { data: dbMembers, error } = await window.supabase
@@ -5237,7 +5237,7 @@
                         .eq('is_active', true)
                         .order('joined_at', { ascending: false });
 
-                    console.log('📊 [CommunitySystem] Resultado de consulta:', {
+                    // console.log('📊 [CommunitySystem] Resultado de consulta:', {
                         data: dbMembers,
                         error: error,
                         length: dbMembers?.length || 0
@@ -5248,11 +5248,11 @@
                         throw new Error(`Error cargando miembros: ${error.message}`);
                     }
 
-                    console.log('👥 [CommunitySystem] Miembros obtenidos:', dbMembers?.length || 0);
+                    // console.log('👥 [CommunitySystem] Miembros obtenidos:', dbMembers?.length || 0);
 
                     if (!dbMembers || dbMembers.length === 0) {
-                        console.log('⚠️ [CommunitySystem] No se encontraron miembros para la comunidad');
-                        console.log('🔍 [CommunitySystem] Verificando si existen miembros sin filtros...');
+                        // console.log('⚠️ [CommunitySystem] No se encontraron miembros para la comunidad');
+                        // console.log('🔍 [CommunitySystem] Verificando si existen miembros sin filtros...');
 
                         // Verificar si hay miembros sin el filtro is_active
                         const { data: allMembers } = await window.supabase
@@ -5260,7 +5260,7 @@
                             .select('id, is_active, role')
                             .eq('community_id', this.currentCommunity.id);
 
-                        console.log('📋 [CommunitySystem] Todos los miembros de la comunidad:', allMembers);
+                        // console.log('📋 [CommunitySystem] Todos los miembros de la comunidad:', allMembers);
 
                         this.members = [];
                         // Sincronizar con variable global
@@ -5290,13 +5290,13 @@
                     window.members.length = 0; // Limpiar array existente
                     window.members.push(...this.members); // Llenar con nuevos datos
 
-                    console.log('🔄 [CommunitySystem] Sincronización completada:');
-                    console.log('  - this.members.length:', this.members.length);
-                    console.log('  - window.members.length:', window.members.length);
-                    console.log('  - members.length:', members.length);
-                    console.log('  - Datos de miembros:', this.members);
+                    // console.log('🔄 [CommunitySystem] Sincronización completada:');
+                    // console.log('  - this.members.length:', this.members.length);
+                    // console.log('  - window.members.length:', window.members.length);
+                    // console.log('  - members.length:', members.length);
+                    // console.log('  - Datos de miembros:', this.members);
 
-                    console.log(`✅ [CommunitySystem] ${this.members.length} miembros procesados`);
+                    // console.log(`✅ [CommunitySystem] ${this.members.length} miembros procesados`);
 
                     // Renderizar miembros inmediatamente después de cargarlos
                 this.renderMembers();
@@ -5313,7 +5313,7 @@
             async createPost(content, title = null, attachmentUrl = null, attachmentType = null) {
                 if (!this.currentCommunity) return null;
                 
-                console.log('📝 Creando nueva publicación...');
+                // console.log('📝 Creando nueva publicación...');
                 const post = await this.db.createPost(
                     this.currentCommunity.id,
                     content,
@@ -5341,7 +5341,7 @@
             }
 
             async createComment(postId, content) {
-                console.log('💬 Creando nuevo comentario...');
+                // console.log('💬 Creando nuevo comentario...');
                 const comment = await this.db.createComment(postId, content);
                 
                 if (comment) {
@@ -5363,7 +5363,7 @@
             }
 
             async toggleReaction(postId, reactionType = 'like') {
-                console.log(`👍 Alternando reacción: ${reactionType}`);
+                // console.log(`👍 Alternando reacción: ${reactionType}`);
                 const success = await this.db.toggleReaction(postId, null, reactionType);
                 
                 if (success) {
@@ -5385,13 +5385,13 @@
             }
 
             async loadComments(postId) {
-                console.log(`💬 Cargando comentarios para post ${postId}...`);
+                // console.log(`💬 Cargando comentarios para post ${postId}...`);
                 this.comments[postId] = await this.db.getComments(postId);
                 this.renderComments(postId);
             }
 
             async loadReactions(postId) {
-                console.log(`👍 Cargando reacciones para post ${postId}...`);
+                // console.log(`👍 Cargando reacciones para post ${postId}...`);
                 this.reactions[postId] = await this.db.getReactions(postId);
                 this.renderReactions(postId);
             }
@@ -5562,16 +5562,16 @@
             }
 
             renderMembers() {
-                console.log('🎨 [CommunitySystem] Renderizando miembros...');
-                console.log('🔍 [CommunitySystem] this.members:', this.members);
-                console.log('🔍 [CommunitySystem] window.members:', window.members);
+                // console.log('🎨 [CommunitySystem] Renderizando miembros...');
+                // console.log('🔍 [CommunitySystem] this.members:', this.members);
+                // console.log('🔍 [CommunitySystem] window.members:', window.members);
 
                 // Usar la función renderMembers global que ya está funcionando
                 if (typeof window.renderMembers === 'function') {
-                    console.log('✅ [CommunitySystem] Función renderMembers global encontrada');
+                    // console.log('✅ [CommunitySystem] Función renderMembers global encontrada');
                     const activeFilter = document.querySelector('.members-chip.active')?.dataset.filter || 'all';
                     const searchQuery = document.getElementById('viewSearch')?.value || '';
-                    console.log('🎯 [CommunitySystem] Llamando renderMembers con:', { activeFilter, searchQuery });
+                    // console.log('🎯 [CommunitySystem] Llamando renderMembers con:', { activeFilter, searchQuery });
                     window.renderMembers(activeFilter, searchQuery);
                 } else {
                     console.warn('⚠️ [CommunitySystem] Función renderMembers global no disponible, renderizando directamente');
@@ -5661,17 +5661,17 @@
 
             showPostMenu(postId) {
                 // Implementar menú de opciones del post
-                console.log('Mostrando menú del post:', postId);
+                // console.log('Mostrando menú del post:', postId);
             }
 
             sharePost(postId) {
                 // Implementar compartir post
-                console.log('Compartiendo post:', postId);
+                // console.log('Compartiendo post:', postId);
             }
 
             showNotification(message, type = 'info') {
                 // Implementar sistema de notificaciones
-                console.log(`${type.toUpperCase()}: ${message}`);
+                // console.log(`${type.toUpperCase()}: ${message}`);
             }
         }
 
@@ -5684,15 +5684,15 @@
             }
 
             async init() {
-                console.log('🎯 Inicializando sistema de puntos...');
+                // console.log('🎯 Inicializando sistema de puntos...');
                 await this.loadUsers();
                 await this.getCurrentUser();
                 this.updateLeagueDisplay();
-                console.log('✅ Sistema de puntos inicializado');
+                // console.log('✅ Sistema de puntos inicializado');
             }
 
             async refreshPointsFromDatabase() {
-                console.log('🔄 Refreshing points from database...');
+                // console.log('🔄 Refreshing points from database...');
                 if (this.currentUser && this.currentUser.id) {
                     try {
                         const { data: userData, error } = await window.supabase
@@ -5702,7 +5702,7 @@
                             .single();
                         
                         if (!error && userData) {
-                            console.log('✅ Points refreshed from database:', userData.points);
+                            // console.log('✅ Points refreshed from database:', userData.points);
                             this.currentUser.points = userData.points || 0;
                             this.updateLeagueDisplay();
                             return true;
@@ -5717,16 +5717,16 @@
             }
 
             async loadUsers() {
-                console.log('👥 Cargando usuarios...');
+                // console.log('👥 Cargando usuarios...');
                 try {
                     if (window.supabase) {
-                        console.log('🔗 Intentando cargar usuarios desde Supabase...');
+                        // console.log('🔗 Intentando cargar usuarios desde Supabase...');
                         const { data, error } = await window.supabase
                             .from('users')
                             .select('id, username, display_name, first_name, points');
                         
                         if (!error && data && data.length > 0) {
-                            console.log('✅ Usuarios cargados desde Supabase:', data);
+                            // console.log('✅ Usuarios cargados desde Supabase:', data);
                             // Formatear usuarios para compatibilidad
                             this.users = data.map(user => ({
                                 id: user.id,
@@ -5748,11 +5748,11 @@
                                 }
                             });
                         } else {
-                            console.log('⚠️ No se pudieron cargar usuarios desde Supabase, usando localStorage');
+                            // console.log('⚠️ No se pudieron cargar usuarios desde Supabase, usando localStorage');
                             this.loadFromLocalStorage();
                         }
                     } else {
-                        console.log('⚠️ Supabase no disponible, usando localStorage');
+                        // console.log('⚠️ Supabase no disponible, usando localStorage');
                         this.loadFromLocalStorage();
                     }
                 } catch (error) {
@@ -5762,7 +5762,7 @@
             }
 
             loadFromLocalStorage() {
-                console.log('📦 Cargando usuarios desde localStorage...');
+                // console.log('📦 Cargando usuarios desde localStorage...');
                 const users = JSON.parse(localStorage.getItem('communityUsers') || '[]');
                 if (users.length === 0) {
                     // Los usuarios ahora se cargan solo desde la base de datos
@@ -5771,14 +5771,14 @@
                 } else {
                     this.users = users;
                 }
-                console.log('✅ Usuarios cargados desde localStorage:', this.users);
+                // console.log('✅ Usuarios cargados desde localStorage:', this.users);
             }
 
             async saveUsers() {
-                console.log('🔄 PointsSystem.saveUsers() called');
-                console.log('Current users:', this.users);
+                // console.log('🔄 PointsSystem.saveUsers() called');
+                // console.log('Current users:', this.users);
                 localStorage.setItem('communityUsers', JSON.stringify(this.users));
-                console.log('✅ Saved to localStorage');
+                // console.log('✅ Saved to localStorage');
                 
                 // Guardar estadísticas por separado
                 const stats = this.users.map(user => ({
@@ -5788,14 +5788,14 @@
                     reactions: user.reactions
                 }));
                 localStorage.setItem('communityUsersStats', JSON.stringify(stats));
-                console.log('✅ Stats saved to localStorage');
+                // console.log('✅ Stats saved to localStorage');
 
                 try {
                     if (window.supabase) {
-                        console.log('🔗 Supabase client available, attempting to save...');
+                        // console.log('🔗 Supabase client available, attempting to save...');
                         for (const user of this.users) {
                             if (user.id) {
-                                console.log(`📝 Updating user ${user.name} (ID: ${user.id}) with ${user.points} points`);
+                                // console.log(`📝 Updating user ${user.name} (ID: ${user.id}) with ${user.points} points`);
                                 const { data, error } = await window.supabase
                                     .from('users')
                                     .update({ points: user.points })
@@ -5804,23 +5804,23 @@
                                 if (error) {
                                     console.error(`❌ Error updating user ${user.name}:`, error);
                                 } else {
-                                    console.log(`✅ Points updated in Supabase for user ${user.name}: ${user.points} points`);
-                                    console.log('Supabase response:', data);
+                                    // console.log(`✅ Points updated in Supabase for user ${user.name}: ${user.points} points`);
+                                    // console.log('Supabase response:', data);
                                 }
                             } else {
-                                console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
+                                // console.log(`⚠️ User ${user.name} has no Supabase ID, skipping database update`);
                             }
                         }
                         // New logic for current user without ID but with localStorage data
                         if (this.currentUser && !this.currentUser.id) {
-                            console.log('🔄 Attempting to sync current user with Supabase...');
+                            // console.log('🔄 Attempting to sync current user with Supabase...');
                             const userData = localStorage.getItem('userData');
                             const currentUser = localStorage.getItem('currentUser');
                             let userInfo = null;
                             if (userData) { try { userInfo = JSON.parse(userData); } catch (e) { console.error('Error parsing userData:', e); } }
                             else if (currentUser) { try { userInfo = JSON.parse(currentUser); } catch (e) { console.error('Error parsing currentUser:', e); } }
                             if (userInfo && userInfo.id) {
-                                console.log(`📝 Updating current user in Supabase (ID: ${userInfo.id}) with ${this.currentUser.points} points`);
+                                // console.log(`📝 Updating current user in Supabase (ID: ${userInfo.id}) with ${this.currentUser.points} points`);
                                 const { data, error } = await window.supabase
                                     .from('users')
                                     .update({ points: this.currentUser.points })
@@ -5828,14 +5828,14 @@
                                     .select();
                                 if (error) { console.error(`❌ Error updating current user in Supabase:`, error); }
                                 else {
-                                    console.log(`✅ Current user points updated in Supabase: ${this.currentUser.points} points`);
-                                    console.log('Supabase response:', data);
+                                    // console.log(`✅ Current user points updated in Supabase: ${this.currentUser.points} points`);
+                                    // console.log('Supabase response:', data);
                                     this.currentUser.id = userInfo.id; // Update local ID
                                 }
                             }
                         }
                     } else {
-                        console.log('⚠️ Supabase client not available');
+                        // console.log('⚠️ Supabase client not available');
                     }
                 } catch (error) {
                     console.error('❌ Error saving users to Supabase:', error);
@@ -5843,16 +5843,16 @@
             }
 
             async getCurrentUser() {
-                console.log('🔄 PointsSystem.getCurrentUser() called');
+                // console.log('🔄 PointsSystem.getCurrentUser() called');
                 
                 try {
                     // Primero intentar obtener usuario autenticado de Supabase
                     if (window.supabase) {
-                        console.log('🔗 Checking Supabase authentication...');
+                        // console.log('🔗 Checking Supabase authentication...');
                         const { data: { user }, error } = await window.supabase.auth.getUser();
                         
                         if (!error && user) {
-                            console.log('✅ Authenticated user found:', user);
+                            // console.log('✅ Authenticated user found:', user);
                             
                             // Obtener datos completos del usuario desde la base de datos
                             const { data: userData, error: userError } = await window.supabase
@@ -5862,7 +5862,7 @@
                                 .single();
                             
                             if (!userError && userData) {
-                                console.log('✅ User data from database:', userData);
+                                // console.log('✅ User data from database:', userData);
                                 
                                 // Buscar si ya existe en la lista local
                                 let localUser = this.users.find(u => u.id === userData.id);
@@ -5884,23 +5884,23 @@
                                 
                                 // IMPORTANTE: Asignar al currentUser
                                 this.currentUser = localUser;
-                                console.log('👤 Current user (from database):', this.currentUser);
+                                // console.log('👤 Current user (from database):', this.currentUser);
                                 return this.currentUser;
                             } else {
                                 console.error('❌ Error getting user data from database:', userError);
                             }
                         } else {
-                            console.log('⚠️ No authenticated user found in Supabase');
+                            // console.log('⚠️ No authenticated user found in Supabase');
                         }
                     } else {
-                        console.log('⚠️ Supabase client not available');
+                        // console.log('⚠️ Supabase client not available');
                     }
                 } catch (error) {
                     console.error('❌ Error getting current user from Supabase:', error);
                 }
                 
                 // Fallback: usar datos del localStorage
-                console.log('🔄 Falling back to localStorage...');
+                // console.log('🔄 Falling back to localStorage...');
                 const userData = localStorage.getItem('userData');
                 const currentUser = localStorage.getItem('currentUser');
                 
@@ -5920,7 +5920,7 @@
                 }
                 
                 if (userInfo && userInfo.id) {
-                    console.log('👤 User info from localStorage:', userInfo);
+                    // console.log('👤 User info from localStorage:', userInfo);
                     
                     // Buscar si ya existe en la lista local
                     let localUser = this.users.find(u => u.id === userInfo.id);
@@ -5938,7 +5938,7 @@
                     
                     // IMPORTANTE: Asignar al currentUser
                     this.currentUser = localUser;
-                    console.log('👤 Current user (from localStorage):', this.currentUser);
+                    // console.log('👤 Current user (from localStorage):', this.currentUser);
                     return this.currentUser;
                 }
                 
@@ -5959,19 +5959,19 @@
                 
                 // IMPORTANTE: Asignar al currentUser
                 this.currentUser = user;
-                console.log('👤 Current user (generic fallback):', this.currentUser);
+                // console.log('👤 Current user (generic fallback):', this.currentUser);
                 return this.currentUser;
             }
 
             async addPoints(userName, action, extraPoints = 0) {
-                console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
+                // console.log('🎯 PointsSystem.addPoints called:', { userName, action, extraPoints });
                 let user = this.currentUser;
                 if (!user) {
-                    console.log('⚠️ No current user found, getting current user...');
+                    // console.log('⚠️ No current user found, getting current user...');
                     user = await this.getCurrentUser();
                     this.currentUser = user;
                 }
-                console.log('👤 User to add points to:', user);
+                // console.log('👤 User to add points to:', user);
                 if (!user) { console.error('❌ No user found to add points to'); return 0; }
 
                 let pointsToAdd = 0;
@@ -5996,10 +5996,10 @@
                 }
 
                 user.points += pointsToAdd;
-                console.log(`💰 Added ${pointsToAdd} points for ${action}. User now has ${user.points} points`);
-                console.log('💾 Saving users to database...');
+                // console.log(`💰 Added ${pointsToAdd} points for ${action}. User now has ${user.points} points`);
+                // console.log('💾 Saving users to database...');
                 await this.saveUsers();
-                console.log('✅ Points updated, user now has:', user.points, 'points');
+                // console.log('✅ Points updated, user now has:', user.points, 'points');
                 this.updateLeagueDisplay();
                 return pointsToAdd;
             }
@@ -6033,11 +6033,11 @@
 
             updateLeagueDisplay() {
                 if (!this.currentUser) {
-                    console.log('⚠️ No current user for league display update');
+                    // console.log('⚠️ No current user for league display update');
                     return;
                 }
                 
-                console.log('🏆 Updating league display for user:', this.currentUser);
+                // console.log('🏆 Updating league display for user:', this.currentUser);
                 
                 const league = this.getLeague(this.currentUser.points);
                 const progress = this.getProgressToNextLeague(this.currentUser.points);
@@ -6053,13 +6053,13 @@
                 if (leagueElement) {
                     leagueElement.textContent = league.name;
                     leagueElement.style.color = league.color;
-                    console.log('✅ League element updated:', league.name);
+                    // console.log('✅ League element updated:', league.name);
                 }
                 
                 // Actualizar nombre del usuario
                 if (userNameElement && this.currentUser.name) {
                     userNameElement.textContent = this.currentUser.name;
-                    console.log('✅ User name updated:', this.currentUser.name);
+                    // console.log('✅ User name updated:', this.currentUser.name);
                 }
                 
                 // Actualizar imagen de la liga
@@ -6076,18 +6076,18 @@
                     
                     leagueImageElement.src = leagueImagePath;
                     leagueImageElement.alt = `Liga ${league.name}`;
-                    console.log('✅ League image updated:', leagueImagePath);
+                    // console.log('✅ League image updated:', leagueImagePath);
                 }
                 
                 if (progressElement) {
                     progressElement.style.width = `${progress.progress}%`;
                     progressElement.setAttribute('aria-valuenow', progress.progress);
-                    console.log('✅ Progress element updated:', progress.progress + '%');
+                    // console.log('✅ Progress element updated:', progress.progress + '%');
                 }
                 
                 if (pointsElement) {
                     pointsElement.textContent = `${this.currentUser.points} puntos`;
-                    console.log('✅ Points element updated:', this.currentUser.points);
+                    // console.log('✅ Points element updated:', this.currentUser.points);
                 }
                 
                 if (progressTextElement) {
@@ -6096,10 +6096,10 @@
                     } else {
                         progressTextElement.textContent = '¡Liga máxima alcanzada!';
                     }
-                    console.log('✅ Progress text updated');
+                    // console.log('✅ Progress text updated');
                 }
                 
-                console.log('✅ League display update completed');
+                // console.log('✅ League display update completed');
             }
         }
 
@@ -6112,15 +6112,15 @@
             }
 
             async init() {
-                console.log('🏆 Inicializando sistema de filtros de liga...');
+                // console.log('🏆 Inicializando sistema de filtros de liga...');
                 await this.loadAllUsers();
                 this.setupEventListeners();
                 this.updateLeaderboard();
-                console.log('✅ Sistema de filtros de liga inicializado');
+                // console.log('✅ Sistema de filtros de liga inicializado');
             }
 
             async loadAllUsers() {
-                console.log('👥 Cargando todos los usuarios para clasificación...');
+                // console.log('👥 Cargando todos los usuarios para clasificación...');
                 
                 if (!window.supabase) {
                     console.error('❌ Supabase no está disponible');
@@ -6128,7 +6128,7 @@
                 }
 
                 try {
-                    console.log('🔍 Haciendo consulta a la tabla users...');
+                    // console.log('🔍 Haciendo consulta a la tabla users...');
                     
                     // Consulta directa a la tabla users - igual que para obtener tu información
                     const { data: users, error } = await window.supabase
@@ -6136,7 +6136,7 @@
                         .select('id, username, display_name, first_name, email, points')
                         .order('points', { ascending: false });
 
-                    console.log('📊 Respuesta de Supabase:', { users, error });
+                    // console.log('📊 Respuesta de Supabase:', { users, error });
 
                     if (error) {
                         console.error('❌ Error en consulta Supabase:', error);
@@ -6144,7 +6144,7 @@
                     }
 
                     if (users && users.length > 0) {
-                        console.log(`✅ Encontrados ${users.length} usuarios en la base de datos`);
+                        // console.log(`✅ Encontrados ${users.length} usuarios en la base de datos`);
                         
                         this.allUsers = users.map(user => {
                             const userData = {
@@ -6153,14 +6153,14 @@
                                 points: user.points || 0,
                                 league: this.getUserLeague(user.points || 0)
                             };
-                            console.log('👤 Usuario procesado:', userData);
+                            // console.log('👤 Usuario procesado:', userData);
                             return userData;
                         });
                         
-                        console.log(`✅ Cargados ${this.allUsers.length} usuarios desde Supabase`);
-                        console.log('📋 Lista completa de usuarios:', this.allUsers);
+                        // console.log(`✅ Cargados ${this.allUsers.length} usuarios desde Supabase`);
+                        // console.log('📋 Lista completa de usuarios:', this.allUsers);
                     } else {
-                        console.log('⚠️ No se encontraron usuarios en la base de datos');
+                        // console.log('⚠️ No se encontraron usuarios en la base de datos');
                         this.allUsers = [];
                     }
                     
@@ -6169,7 +6169,7 @@
                     this.allUsers = [];
                 }
                 
-                console.log(`📊 Total de usuarios cargados: ${this.allUsers.length}`);
+                // console.log(`📊 Total de usuarios cargados: ${this.allUsers.length}`);
             }
 
             getUserLeague(points) {
@@ -6201,9 +6201,9 @@
             }
 
             updateLeaderboard() {
-                console.log('🏆 Actualizando tabla de clasificación...');
-                console.log('📊 Usuarios disponibles:', this.allUsers);
-                console.log('🔍 Filtro actual:', this.currentFilter);
+                // console.log('🏆 Actualizando tabla de clasificación...');
+                // console.log('📊 Usuarios disponibles:', this.allUsers);
+                // console.log('🔍 Filtro actual:', this.currentFilter);
                 
                 const leaderboardTable = document.getElementById('leaderboardTable');
                 const totalParticipants = document.getElementById('totalParticipants');
@@ -6213,8 +6213,8 @@
                     return;
                 }
 
-                console.log('🎯 Elemento leaderboardTable encontrado:', leaderboardTable);
-                console.log('📏 Dimensiones del elemento:', {
+                // console.log('🎯 Elemento leaderboardTable encontrado:', leaderboardTable);
+                // console.log('📏 Dimensiones del elemento:', {
                     offsetHeight: leaderboardTable.offsetHeight,
                     clientHeight: leaderboardTable.clientHeight,
                     scrollHeight: leaderboardTable.scrollHeight,
@@ -6227,7 +6227,7 @@
                     filteredUsers = this.allUsers.filter(user => user.league === this.currentFilter);
                 }
 
-                console.log('📋 Usuarios filtrados:', filteredUsers);
+                // console.log('📋 Usuarios filtrados:', filteredUsers);
 
                 // Ordenar por puntos (mayor a menor)
                 filteredUsers.sort((a, b) => b.points - a.points);
@@ -6235,12 +6235,12 @@
                 // Actualizar contador de participantes
                 if (totalParticipants) {
                     totalParticipants.textContent = `${filteredUsers.length} participantes`;
-                    console.log('📊 Contador actualizado:', `${filteredUsers.length} participantes`);
+                    // console.log('📊 Contador actualizado:', `${filteredUsers.length} participantes`);
                 }
 
                 // Generar HTML de la tabla
                 if (filteredUsers.length === 0) {
-                    console.log('⚠️ No hay usuarios para mostrar');
+                    // console.log('⚠️ No hay usuarios para mostrar');
                     leaderboardTable.innerHTML = `
                         <div class="empty-leaderboard">
                             <i class="fas fa-trophy"></i>
@@ -6248,7 +6248,7 @@
                         </div>
                     `;
                 } else {
-                    console.log('✅ Generando tabla con usuarios...');
+                    // console.log('✅ Generando tabla con usuarios...');
                     const tableHTML = filteredUsers.map((user, index) => {
                         const position = index + 1;
                         const medal = position <= 3 ? this.getMedalIcon(position) : '';
@@ -6275,12 +6275,12 @@
                                 </div>
                             </div>
                         `;
-                        console.log(`👤 Fila ${position}: ${user.name} - ${user.points} puntos`);
+                        // console.log(`👤 Fila ${position}: ${user.name} - ${user.points} puntos`);
                         return rowHTML;
                     }).join('');
                     
                     leaderboardTable.innerHTML = tableHTML;
-                    console.log('✅ Tabla de clasificación actualizada');
+                    // console.log('✅ Tabla de clasificación actualizada');
                 }
             }
 
@@ -6314,10 +6314,10 @@
 
         // Función global para debug manual
         window.debugLoadUsers = async function() {
-            console.log('🔍 Función debugLoadUsers llamada manualmente...');
+            // console.log('🔍 Función debugLoadUsers llamada manualmente...');
             
             if (window.leagueFilterSystem) {
-                console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
+                // console.log('✅ LeagueFilterSystem disponible, cargando usuarios...');
                 await window.leagueFilterSystem.loadAllUsers();
                 window.leagueFilterSystem.updateLeaderboard();
             } else {
@@ -6327,7 +6327,7 @@
 
         // Función de prueba para verificar la conexión a Supabase
         async function testSupabaseConnection() {
-            console.log('🧪 Probando conexión a Supabase...');
+            // console.log('🧪 Probando conexión a Supabase...');
             
             if (!window.supabase) {
                 console.error('❌ Supabase no está disponible');
@@ -6346,8 +6346,8 @@
                     return false;
                 }
 
-                console.log('✅ Conexión a Supabase exitosa');
-                console.log('📊 Datos de prueba:', data);
+                // console.log('✅ Conexión a Supabase exitosa');
+                // console.log('📊 Datos de prueba:', data);
                 return true;
             } catch (error) {
                 console.error('❌ Error probando conexión:', error);
@@ -6359,17 +6359,17 @@
 
         // OPTIMIZACIÓN: Función para inicializar sistemas cuando Supabase esté listo
         async function initializeSystemsWhenReady() {
-            console.log('🚀 Inicializando sistemas cuando Supabase esté listo...');
-            console.log('🔍 Supabase disponible globalmente:', !!window.supabase);
-            console.log('🔍 SUPABASE_URL disponible:', !!window.SUPABASE_URL);
-            console.log('🔍 SUPABASE_ANON_KEY disponible:', !!window.SUPABASE_ANON_KEY);
+            // console.log('🚀 Inicializando sistemas cuando Supabase esté listo...');
+            // console.log('🔍 Supabase disponible globalmente:', !!window.supabase);
+            // console.log('🔍 SUPABASE_URL disponible:', !!window.SUPABASE_URL);
+            // console.log('🔍 SUPABASE_ANON_KEY disponible:', !!window.SUPABASE_ANON_KEY);
 
             // OPTIMIZACIÓN: Inicializar solo CommunitySystem primero para cargar banner
             window.communitySystem = new CommunitySystem();
             
-            console.log('🔍 CommunitySystem inicializado:', !!window.communitySystem);
-            console.log('🔍 CommunitySystem.db disponible:', !!window.communitySystem?.db);
-            console.log('🔍 CommunitySystem.db.supabase disponible:', !!window.communitySystem?.db?.supabase);
+            // console.log('🔍 CommunitySystem inicializado:', !!window.communitySystem);
+            // console.log('🔍 CommunitySystem.db disponible:', !!window.communitySystem?.db);
+            // console.log('🔍 CommunitySystem.db.supabase disponible:', !!window.communitySystem?.db?.supabase);
             
             // OPTIMIZACIÓN: Cargar estado de acceso inmediatamente después del banner
             await loadAccessState();
@@ -6394,12 +6394,12 @@
                 syncPromise
             ]);
             
-            console.log('✅ Community system initialized');
+            // console.log('✅ Community system initialized');
         }
 
         // OPTIMIZACIÓN: Función para cargar banner inmediatamente desde localStorage
         function loadBannerFromLocalStorage() {
-            console.log('🚀 Cargando banner desde localStorage...');
+            // console.log('🚀 Cargando banner desde localStorage...');
             
             // Obtener slug de la URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -6413,7 +6413,7 @@
                     const community = communities.find(c => c.slug === communitySlug);
                     
                     if (community) {
-                        console.log('✅ Comunidad encontrada en localStorage:', community);
+                        // console.log('✅ Comunidad encontrada en localStorage:', community);
                         
                         // Actualizar banner inmediatamente
                         const bannerTitle = document.getElementById('communityBannerTitle');
@@ -6435,11 +6435,11 @@
                         
                         // Cargar imagen del banner desde image_url de localStorage
                         if (bannerImage && community.image_url) {
-                            console.log('🖼️ Cargando imagen del banner desde localStorage:', community.image_url);
+                            // console.log('🖼️ Cargando imagen del banner desde localStorage:', community.image_url);
                             bannerImage.style.backgroundImage = `url(${community.image_url})`;
                             bannerImage.style.display = 'block';
                         } else if (bannerImage) {
-                            console.log('⚠️ No hay image_url disponible en localStorage para la comunidad');
+                            // console.log('⚠️ No hay image_url disponible en localStorage para la comunidad');
                             bannerImage.style.display = 'none';
                         }
                         
@@ -6451,7 +6451,7 @@
                         // Actualizar título de la página
                         document.title = `Comunidad de ${community.name}`;
                         
-                        console.log('✅ Banner cargado desde localStorage');
+                        // console.log('✅ Banner cargado desde localStorage');
                         return;
                     }
                 } catch (error) {
@@ -6460,7 +6460,7 @@
             }
             
             // Fallback: mostrar datos básicos
-            console.log('⚠️ No se encontró comunidad en localStorage, usando fallback');
+            // console.log('⚠️ No se encontró comunidad en localStorage, usando fallback');
             const bannerTitle = document.getElementById('communityBannerTitle');
             const bannerDesc = document.getElementById('communityBannerDesc');
             const bannerMeta = document.getElementById('communityBannerMeta');
@@ -6489,7 +6489,7 @@
 
         // OPTIMIZACIÓN: Función separada para inicializar sistemas no críticos
         async function initializeOtherSystems() {
-            console.log('🔄 Inicializando sistemas secundarios...');
+            // console.log('🔄 Inicializando sistemas secundarios...');
             
             // Inicializar sistemas secundarios
             window.pointsSystem = new PointsSystem();
@@ -6497,7 +6497,7 @@
             
             // Inicializar sistema de filtros de liga
             if (window.leagueFilterSystem) {
-                console.log('🏆 Inicializando sistema de filtros de liga...');
+                // console.log('🏆 Inicializando sistema de filtros de liga...');
                 await window.leagueFilterSystem.loadAllUsers();
                 window.leagueFilterSystem.updateLeaderboard();
             }
@@ -6505,7 +6505,7 @@
             // Forzar actualización del display de ligas después de un breve delay
             setTimeout(async () => {
                 if (window.pointsSystem) {
-                    console.log('🔄 Forcing league display update after page load...');
+                    // console.log('🔄 Forcing league display update after page load...');
                     await window.pointsSystem.getCurrentUser();
                     await window.pointsSystem.refreshPointsFromDatabase();
                     window.pointsSystem.updateLeagueDisplay();
@@ -6513,18 +6513,18 @@
                 
                 // Actualizar también la clasificación global
                 if (window.leagueFilterSystem) {
-                    console.log('🔄 Actualizando clasificación global...');
+                    // console.log('🔄 Actualizando clasificación global...');
                     await window.leagueFilterSystem.loadAllUsers();
                     window.leagueFilterSystem.updateLeaderboard();
                 }
             }, 1000); // 1 segundo de delay
             
-            console.log('✅ Sistemas secundarios inicializados');
+            // console.log('✅ Sistemas secundarios inicializados');
         }
 
         // OPTIMIZACIÓN: Cargar banner inmediatamente sin esperar Supabase
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 DOMContentLoaded - Cargando banner inmediatamente...');
+            // console.log('🚀 DOMContentLoaded - Cargando banner inmediatamente...');
             
             // OPTIMIZACIÓN: Cargar banner básico inmediatamente desde localStorage
             loadBannerFromLocalStorage();
@@ -6535,12 +6535,12 @@
             
             while (attempts < maxAttempts) {
                 if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-                    console.log('✅ Supabase está listo, inicializando sistemas...');
+                    // console.log('✅ Supabase está listo, inicializando sistemas...');
                     await initializeSystemsWhenReady();
                     return;
                 }
                 
-                console.log(`⏳ Esperando Supabase... intento ${attempts + 1}/${maxAttempts}`);
+                // console.log(`⏳ Esperando Supabase... intento ${attempts + 1}/${maxAttempts}`);
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
             }
@@ -6566,11 +6566,11 @@
 
         // Función para verificar el estado de Supabase
         async function checkSupabaseStatus() {
-            console.log('🔍 Checking Supabase status...');
-            console.log('window.supabase available:', !!window.supabase);
+            // console.log('🔍 Checking Supabase status...');
+            // console.log('window.supabase available:', !!window.supabase);
 
             if (window.supabase) {
-                console.log('Supabase client details:', {
+                // console.log('Supabase client details:', {
                     url: window.supabase.supabaseUrl,
                     key: window.supabase.supabaseKey ? 'Present' : 'Missing'
                 });
@@ -6585,14 +6585,14 @@
                     if (error) {
                         console.error('❌ Supabase connection error:', error);
                     } else {
-                        console.log('✅ Supabase connection successful');
-                        console.log('Sample users from database:', users);
+                        // console.log('✅ Supabase connection successful');
+                        // console.log('Sample users from database:', users);
                     }
                 } catch (error) {
                     console.error('❌ Error testing Supabase connection:', error);
                 }
             } else {
-                console.log('⚠️ Supabase client not initialized');
+                // console.log('⚠️ Supabase client not initialized');
             }
         }
 
@@ -6600,7 +6600,7 @@
         async function syncWithSupabase() {
             try {
                 if (window.supabase) {
-                    console.log('🔄 Syncing with Supabase...');
+                    // console.log('🔄 Syncing with Supabase...');
 
                     // Obtener usuarios de Supabase
                     const { data: users, error } = await window.supabase
@@ -6609,7 +6609,7 @@
                         .not('points', 'is', null);
 
                     if (!error && users) {
-                        console.log(`📊 Found ${users.length} users in Supabase`);
+                        // console.log(`📊 Found ${users.length} users in Supabase`);
 
                         // Actualizar puntos en localStorage
                         const localUsers = JSON.parse(localStorage.getItem('communityUsers') || '[]');
@@ -6632,7 +6632,7 @@
                         });
 
                         localStorage.setItem('communityUsers', JSON.stringify(updatedUsers));
-                        console.log('✅ Data synced with Supabase');
+                        // console.log('✅ Data synced with Supabase');
                     }
                 }
             } catch (error) {
@@ -6727,7 +6727,7 @@
 
         async function requestAccess(communityId) {
             try {
-                console.log('[ACCESS] 🚀 Solicitando acceso a comunidad:', communityId);
+                // console.log('[ACCESS] 🚀 Solicitando acceso a comunidad:', communityId);
 
                 // Verificar sesión de Supabase primero
                 if (!(await window.hasCommunitySession())) {
@@ -6736,7 +6736,7 @@
                     return;
                 }
 
-                console.log('[ACCESS] 🚀 Solicitando acceso vía RPC...');
+                // console.log('[ACCESS] 🚀 Solicitando acceso vía RPC...');
 
                 const { error } = await window.executeRPCWithAuth('rpc_request_access', {
                     p_community_id: communityId
@@ -6747,7 +6747,7 @@
                     throw error;
                 }
 
-                console.log('[ACCESS] ✅ Solicitud creada exitosamente via RPC');
+                // console.log('[ACCESS] ✅ Solicitud creada exitosamente via RPC');
                 showToast('Solicitud enviada exitosamente', 'success');
                 return true;
             } catch (error) {
@@ -6792,23 +6792,23 @@
 
                 if (!isInviteOnly) {
                     // Es una comunidad gratuita (Free) - verificar sesión y registrar automáticamente
-                    console.log('🔓 [ACCESS] Comunidad gratuita detectada, verificando sesión...');
+                    // console.log('🔓 [ACCESS] Comunidad gratuita detectada, verificando sesión...');
 
                     const hasSession = await window.hasCommunitySession();
                     if (!hasSession) {
-                        console.log('⚠️ [ACCESS] Sin sesión - usuario no puede unirse automáticamente');
+                        // console.log('⚠️ [ACCESS] Sin sesión - usuario no puede unirse automáticamente');
                         return;
                     }
 
                     // Verificar si ya es miembro
                     const isMemberResult = await isMember(community.id);
                     if (isMemberResult) {
-                        console.log('✅ [ACCESS] Usuario ya es miembro de la comunidad gratuita');
+                        // console.log('✅ [ACCESS] Usuario ya es miembro de la comunidad gratuita');
                         return;
                     }
 
                     // Usuario autenticado no es miembro - unirse automáticamente
-                    console.log('🚀 [ACCESS] Registrando usuario automáticamente en comunidad gratuita...');
+                    // console.log('🚀 [ACCESS] Registrando usuario automáticamente en comunidad gratuita...');
 
                     try {
                         // Obtener instancia de CommunityDatabase
@@ -6827,7 +6827,7 @@
                         const joinSuccess = await db.joinCommunity(community.id);
 
                         if (joinSuccess) {
-                            console.log('✅ [ACCESS] Usuario registrado automáticamente en comunidad gratuita');
+                            // console.log('✅ [ACCESS] Usuario registrado automáticamente en comunidad gratuita');
 
                             // Mostrar notificación de bienvenida
                             if (typeof notifications !== 'undefined') {
@@ -6955,7 +6955,7 @@
 
         function showToast(message, type = 'info') {
             // Usar sistema de toast existente o crear uno simple
-            console.log(`[TOAST ${type.toUpperCase()}] ${message}`);
+            // console.log(`[TOAST ${type.toUpperCase()}] ${message}`);
 
             // Intentar usar el sistema existente de toasts
             if (window.showToast) {
@@ -6976,7 +6976,7 @@
         });
 
         function initializeUserProfileModal() {
-            console.log('🔍 [PROFILE MODAL] Inicializando sistema de modal de perfil...');
+            // console.log('🔍 [PROFILE MODAL] Inicializando sistema de modal de perfil...');
 
             // Event listeners para tarjetas de miembros
             setupMemberCardListeners();
@@ -6991,14 +6991,14 @@
                 }
             });
 
-            console.log('✅ [PROFILE MODAL] Sistema inicializado correctamente');
+            // console.log('✅ [PROFILE MODAL] Sistema inicializado correctamente');
         }
 
         function setupMemberCardListeners() {
             // Función para agregar listeners a las tarjetas existentes
             function addListenersToCards() {
                 const memberCards = document.querySelectorAll('.member-card[data-user-id]');
-                console.log(`🔍 [PROFILE MODAL] Configurando listeners para ${memberCards.length} tarjetas`);
+                // console.log(`🔍 [PROFILE MODAL] Configurando listeners para ${memberCards.length} tarjetas`);
 
                 memberCards.forEach(card => {
                     // Remover listener anterior si existe
@@ -7039,7 +7039,7 @@
                 return;
             }
 
-            console.log(`🔍 [PROFILE MODAL] Click en tarjeta de usuario: ${userId}`);
+            // console.log(`🔍 [PROFILE MODAL] Click en tarjeta de usuario: ${userId}`);
             openUserProfile(userId);
         }
 
@@ -7090,7 +7090,7 @@
         // 🚨 FUNCIÓN PARA OBTENER ACTIVIDAD REAL DEL USUARIO
         async function getRealUserActivity(userId) {
             try {
-                console.log('📊 Obteniendo actividad real para usuario:', userId);
+                // console.log('📊 Obteniendo actividad real para usuario:', userId);
 
                 // Ejecutar todas las consultas en paralelo para mejor rendimiento
                 const [postsResult, commentsResult, reactionsResult] = await Promise.allSettled([
@@ -7121,8 +7121,8 @@
 
                 const activity = { posts, comments, reactions };
 
-                console.log('📊 Actividad real obtenida:', activity);
-                console.log('📊 Detalles:', {
+                // console.log('📊 Actividad real obtenida:', activity);
+                // console.log('📊 Detalles:', {
                     posts: `${posts} publicaciones`,
                     comments: `${comments} comentarios`,
                     reactions: `${reactions} reacciones`
@@ -7139,7 +7139,7 @@
         // 🚨 FUNCIÓN PARA OBTENER RANKING REAL DEL USUARIO
         async function getRealUserRanking(userId) {
             try {
-                console.log('🏆 Calculando ranking real para usuario:', userId);
+                // console.log('🏆 Calculando ranking real para usuario:', userId);
 
                 // Obtener todos los usuarios ordenados por puntos (descendente)
                 const { data: allUsers, error } = await window.supabase
@@ -7160,8 +7160,8 @@
                     total: totalUsers
                 };
 
-                console.log('🏆 Ranking real calculado:', ranking);
-                console.log('🏆 Usuario en posición:', userRank, 'de', totalUsers, 'usuarios');
+                // console.log('🏆 Ranking real calculado:', ranking);
+                // console.log('🏆 Usuario en posición:', userRank, 'de', totalUsers, 'usuarios');
 
                 return ranking;
 
@@ -7259,11 +7259,11 @@
                 
                 // Confirmar que la imagen se cargó correctamente
                 avatarImg.onload = function() {
-                    console.log('✅ [AVATAR] Imagen cargada correctamente');
+                    // console.log('✅ [AVATAR] Imagen cargada correctamente');
                 };
             } else {
                 // Usuario no tiene imagen, mostrar fallback
-                console.log('ℹ️ [AVATAR] Usuario sin imagen, mostrando fallback');
+                // console.log('ℹ️ [AVATAR] Usuario sin imagen, mostrando fallback');
                 avatarImg.style.display = 'none';
                 avatarFallback.style.display = 'flex';
                 avatarContainer.classList.remove('has-image');
@@ -7278,14 +7278,14 @@
         function updateProfileModalWithRealData(data) {
             const { user, activity, ranking, league, lastSeen, memberSince } = data;
 
-            console.log('🔍 VERIFICACIÓN FINAL - DATOS COMPLETAMENTE REALES:');
-            console.log('  - Usuario ID:', user.id);
-            console.log('  - Puntos desde BD:', user.points);
-            console.log('  - Ranking calculado:', `#${ranking.rank} de ${ranking.total}`);
-            console.log('  - Posts reales:', activity.posts);
-            console.log('  - Comentarios reales:', activity.comments);
-            console.log('  - Reacciones reales:', activity.reactions);
-            console.log('  - Liga calculada:', league);
+            // console.log('🔍 VERIFICACIÓN FINAL - DATOS COMPLETAMENTE REALES:');
+            // console.log('  - Usuario ID:', user.id);
+            // console.log('  - Puntos desde BD:', user.points);
+            // console.log('  - Ranking calculado:', `#${ranking.rank} de ${ranking.total}`);
+            // console.log('  - Posts reales:', activity.posts);
+            // console.log('  - Comentarios reales:', activity.comments);
+            // console.log('  - Reacciones reales:', activity.reactions);
+            // console.log('  - Liga calculada:', league);
 
             // 1. Datos básicos del usuario
             setText('profileName', user.display_name || user.first_name || user.username || 'Usuario');
@@ -7323,7 +7323,7 @@
                 avatarImg.style.display = 'block';
             }
 
-            console.log('✅ UI ACTUALIZADA CON DATOS REALES');
+            // console.log('✅ UI ACTUALIZADA CON DATOS REALES');
         }
 
         // Helper para setText
@@ -7346,7 +7346,7 @@
         // 🚨 FUNCIÓN PRINCIPAL PARA CARGAR DATOS REALES (DIRECTA A SUPABASE)
         async function loadRealUserProfile(userId) {
             try {
-                console.log('🔄 Cargando datos REALES del usuario:', userId);
+                // console.log('🔄 Cargando datos REALES del usuario:', userId);
 
                 // 1. Obtener datos básicos del usuario
                 const { data: user, error: userError } = await window.supabase
@@ -7359,23 +7359,23 @@
 
                 // 2. Obtener actividad real del usuario
                 const activity = await getRealUserActivity(userId);
-                console.log('📊 Actividad real:', activity);
+                // console.log('📊 Actividad real:', activity);
 
                 // 3. Obtener ranking real del usuario
                 const ranking = await getRealUserRanking(userId);
-                console.log('🏆 Ranking real:', ranking);
+                // console.log('🏆 Ranking real:', ranking);
 
                 // 4. Calcular liga real basada en puntos
                 const realLeague = getRealLeagueFromPoints(user.points);
-                console.log('🎯 Liga real:', realLeague);
+                // console.log('🎯 Liga real:', realLeague);
 
                 // 5. Calcular tiempo transcurrido real
                 const realLastSeen = getRealTimeAgo(user.last_login_at);
-                console.log('🕐 Última vez visto real:', realLastSeen);
+                // console.log('🕐 Última vez visto real:', realLastSeen);
 
                 // 6. Calcular fecha de membresía real
                 const realMemberSince = getRealMemberSince(user.created_at);
-                console.log('📅 Miembro desde real:', realMemberSince);
+                // console.log('📅 Miembro desde real:', realMemberSince);
 
                 // 7. Actualizar UI con datos REALES
                 updateProfileModalWithRealData({
@@ -7387,7 +7387,7 @@
                     memberSince: realMemberSince
                 });
 
-                console.log('✅ PERFIL ACTUALIZADO CON DATOS REALES');
+                // console.log('✅ PERFIL ACTUALIZADO CON DATOS REALES');
 
             } catch (error) {
                 console.error('❌ ERROR AL CARGAR PERFIL REAL:', error);
@@ -7397,11 +7397,11 @@
 
         // 🚨 FUNCIÓN LEGACY - REDIRIGE A NUEVA IMPLEMENTACIÓN CON DATOS REALES
         function updateProfileModal(data) {
-            console.log('⚠️ [LEGACY] updateProfileModal llamada - redirigiendo a implementación real');
+            // console.log('⚠️ [LEGACY] updateProfileModal llamada - redirigiendo a implementación real');
 
             // Esta función legacy ahora redirige a la implementación real
             if (data && data.user && data.user.id) {
-                console.log('✅ [LEGACY] Redirigiendo a loadRealUserProfile con userId:', data.user.id);
+                // console.log('✅ [LEGACY] Redirigiendo a loadRealUserProfile con userId:', data.user.id);
                 loadRealUserProfile(data.user.id);
             } else {
                 console.error('❌ [LEGACY] Datos inválidos para actualizar perfil:', data);
@@ -7416,7 +7416,7 @@
                 if (bioSection) {
                     bioSection.style.display = user.bio ? 'block' : 'none';
                 }
-                console.log('✅ BIOGRAFÍA ACTUALIZADA EN UI:', user.bio || 'No disponible');
+                // console.log('✅ BIOGRAFÍA ACTUALIZADA EN UI:', user.bio || 'No disponible');
             }
 
             // 2. ⭐ CARGO EN LA EMPRESA (FALTANTE - AGREGAR)
@@ -7424,56 +7424,56 @@
             if (cargoElement) {
                 cargoElement.textContent = user.cargo_rol || 'Cargo no especificado';
                 cargoElement.style.display = user.cargo_rol ? 'inline-block' : 'none';
-                console.log('✅ CARGO ACTUALIZADO EN UI:', user.cargo_rol || 'No especificado');
+                // console.log('✅ CARGO ACTUALIZADO EN UI:', user.cargo_rol || 'No especificado');
             }
 
             // 3. ⭐ LIGA INFERIOR (HARDCODEADA - CORREGIR)
             const leagueElement = document.getElementById('profileLeagueDisplay');
             if (leagueElement) {
                 leagueElement.textContent = stats.league; // ⭐ DATO REAL
-                console.log('✅ LIGA INFERIOR ACTUALIZADA EN UI:', stats.league);
+                // console.log('✅ LIGA INFERIOR ACTUALIZADA EN UI:', stats.league);
             }
 
             // 4. ⭐ RANKING (HARDCODEADO - CORREGIR)
             const rankingElement = document.getElementById('profileRanking');
             if (rankingElement) {
                 rankingElement.textContent = `#${stats.ranking.position} de ${stats.ranking.total_users}`; // ⭐ DATO REAL
-                console.log('✅ RANKING ACTUALIZADO EN UI:', `#${stats.ranking.position} de ${stats.ranking.total_users}`);
+                // console.log('✅ RANKING ACTUALIZADO EN UI:', `#${stats.ranking.position} de ${stats.ranking.total_users}`);
             }
 
             // 5. ⭐ ÚLTIMA VEZ VISTO (HARDCODEADO - CORREGIR)
             const lastSeenElement = document.getElementById('profileLastSeen');
             if (lastSeenElement) {
                 lastSeenElement.textContent = stats.last_seen; // ⭐ DATO REAL
-                console.log('✅ ÚLTIMA VEZ VISTO ACTUALIZADO EN UI:', stats.last_seen);
+                // console.log('✅ ÚLTIMA VEZ VISTO ACTUALIZADO EN UI:', stats.last_seen);
             }
 
             // 6. ⭐ POSTS REALIZADOS (HARDCODEADO - CORREGIR)
             const postsElement = document.getElementById('profilePosts');
             if (postsElement) {
                 postsElement.textContent = `${stats.posts_count} posts realizados`; // ⭐ DATO REAL
-                console.log('✅ POSTS REALIZADOS ACTUALIZADO EN UI:', `${stats.posts_count} posts realizados`);
+                // console.log('✅ POSTS REALIZADOS ACTUALIZADO EN UI:', `${stats.posts_count} posts realizados`);
             }
 
             // 7. ⭐ MIEMBRO DESDE (HARDCODEADO - CORREGIR)
             const memberSinceElement = document.getElementById('profileJoinDate');
             if (memberSinceElement) {
                 memberSinceElement.textContent = stats.member_since; // ⭐ DATO REAL
-                console.log('✅ MIEMBRO DESDE ACTUALIZADO EN UI:', stats.member_since);
+                // console.log('✅ MIEMBRO DESDE ACTUALIZADO EN UI:', stats.member_since);
             }
 
             // 8. ⭐ PUNTOS (VERIFICAR SI ESTÁ CONECTADO)
             const pointsElement = document.getElementById('profilePoints');
             if (pointsElement) {
                 pointsElement.textContent = user.points; // ⭐ DATO REAL
-                console.log('✅ PUNTOS ACTUALIZADOS EN UI:', user.points);
+                // console.log('✅ PUNTOS ACTUALIZADOS EN UI:', user.points);
             }
 
             // 9. ⭐ LIGA SUPERIOR (VERIFICAR SI ESTÁ CONECTADO)
             const topLeagueElement = document.getElementById('profileLeague');
             if (topLeagueElement) {
                 topLeagueElement.textContent = `Liga ${user.type_rol || 'Miembro'}`; // ⭐ DATO REAL
-                console.log('✅ LIGA SUPERIOR ACTUALIZADA EN UI:', `Liga ${user.type_rol || 'Miembro'}`);
+                // console.log('✅ LIGA SUPERIOR ACTUALIZADA EN UI:', `Liga ${user.type_rol || 'Miembro'}`);
             }
 
             // Información básica
@@ -7500,27 +7500,27 @@
             }
 
             // 🚨 LOG FINAL DE VERIFICACIÓN SEGÚN DOCUMENTO
-            console.log('🎉 ✅ VERIFICACIÓN COMPLETADA - TODOS LOS DATOS SON REALES');
-            console.log('🔥 CRITERIO DE ÉXITO CUMPLIDO: NO HAY VALORES HARDCODEADOS');
-            console.log('📋 RESUMEN IMPLEMENTACIÓN:');
-            console.log('   ✅ Liga inferior calculada desde puntos reales');
-            console.log('   ✅ Ranking real calculado desde BD');
-            console.log('   ✅ Última vez visto calculado desde last_login_at');
-            console.log('   ✅ Posts realizados contados desde community_posts');
-            console.log('   ✅ Miembro desde calculado desde created_at');
-            console.log('   ✅ Biografía mostrada desde campo bio');
-            console.log('   ✅ Cargo mostrado desde campo cargo_rol');
-            console.log('   ✅ Puntos conectados a BD');
-            console.log('   ✅ Liga superior conectada a BD');
+            // console.log('🎉 ✅ VERIFICACIÓN COMPLETADA - TODOS LOS DATOS SON REALES');
+            // console.log('🔥 CRITERIO DE ÉXITO CUMPLIDO: NO HAY VALORES HARDCODEADOS');
+            // console.log('📋 RESUMEN IMPLEMENTACIÓN:');
+            // console.log('   ✅ Liga inferior calculada desde puntos reales');
+            // console.log('   ✅ Ranking real calculado desde BD');
+            // console.log('   ✅ Última vez visto calculado desde last_login_at');
+            // console.log('   ✅ Posts realizados contados desde community_posts');
+            // console.log('   ✅ Miembro desde calculado desde created_at');
+            // console.log('   ✅ Biografía mostrada desde campo bio');
+            // console.log('   ✅ Cargo mostrado desde campo cargo_rol');
+            // console.log('   ✅ Puntos conectados a BD');
+            // console.log('   ✅ Liga superior conectada a BD');
         }
 
         // 🚨 FUNCIÓN DE VERIFICACIÓN - EJECUTAR AL CARGAR EL MODAL (EXACTA SEGÚN DOCUMENTO)
         function verifyRealData(userId) {
-            console.log('🔍 VERIFICANDO DATOS REALES PARA USUARIO:', userId);
+            // console.log('🔍 VERIFICANDO DATOS REALES PARA USUARIO:', userId);
 
             // Verificar que se están obteniendo datos reales
             loadRealUserProfile(userId).then(() => {
-                console.log('✅ VERIFICACIÓN COMPLETADA - TODOS LOS DATOS SON REALES');
+                // console.log('✅ VERIFICACIÓN COMPLETADA - TODOS LOS DATOS SON REALES');
             }).catch((error) => {
                 console.error('❌ ERROR EN VERIFICACIÓN:', error);
             });
@@ -7534,7 +7534,7 @@
         // Función de fallback usando Supabase directo
         async function getUserDataFallback(userId) {
             try {
-                console.log(`⚠️ [PROFILE MODAL] Usando fallback a Supabase para usuario: ${userId}`);
+                // console.log(`⚠️ [PROFILE MODAL] Usando fallback a Supabase para usuario: ${userId}`);
 
                 if (!window.supabase) {
                     console.error('[PROFILE MODAL] Supabase no disponible');
@@ -7574,7 +7574,7 @@
                     return null;
                 }
 
-                console.log('✅ [PROFILE MODAL] Datos del usuario obtenidos desde Supabase (fallback):', userData);
+                // console.log('✅ [PROFILE MODAL] Datos del usuario obtenidos desde Supabase (fallback):', userData);
                 return userData;
             } catch (error) {
                 console.error('[PROFILE MODAL] Error en getUserDataFallback:', error);
@@ -7585,7 +7585,7 @@
         // Abrir modal con datos del usuario
         async function openUserProfile(userId) {
             try {
-                console.log(`🔍 [PROFILE MODAL] Abriendo perfil para usuario: ${userId}`);
+                // console.log(`🔍 [PROFILE MODAL] Abriendo perfil para usuario: ${userId}`);
 
                 // Mostrar modal con skeleton loader
                 showProfileModalSkeleton();
@@ -7601,7 +7601,7 @@
 
         // Poblar modal con datos del usuario
         function populateProfileModal(userData) {
-            console.log('🔍 [PROFILE MODAL] Poblando modal con datos:', userData);
+            // console.log('🔍 [PROFILE MODAL] Poblando modal con datos:', userData);
 
             // Información básica
             const nameElement = document.getElementById('profileName');
@@ -7696,7 +7696,7 @@
                 modal.classList.add('active');
             }
 
-            console.log('✅ [PROFILE MODAL] Modal poblado y mostrado');
+            // console.log('✅ [PROFILE MODAL] Modal poblado y mostrado');
         }
 
 
@@ -7763,7 +7763,7 @@
 
         // ⭐ FUNCIÓN CORREGIDA - Calcular tiempo transcurrido REAL (EXACTA SEGÚN DOCUMENTO)
         function getRealTimeAgo(lastLoginAt) {
-            console.log('🕐 ÚLTIMO LOGIN REAL:', lastLoginAt);
+            // console.log('🕐 ÚLTIMO LOGIN REAL:', lastLoginAt);
 
             if (!lastLoginAt) return "Nunca ha iniciado sesión";
 
@@ -7783,7 +7783,7 @@
 
         // ⭐ FUNCIÓN CORREGIDA - Determinar liga REAL basada en puntos (EXACTA SEGÚN DOCUMENTO)
         function getRealLeagueFromPoints(points) {
-            console.log('🎯 PUNTOS REALES DEL USUARIO:', points);
+            // console.log('🎯 PUNTOS REALES DEL USUARIO:', points);
 
             if (points >= 2000) return "Diamante";
             if (points >= 1500) return "Platino";
@@ -7794,7 +7794,7 @@
 
         // ⭐ FUNCIÓN CORREGIDA - Calcular fecha de membresía REAL (EXACTA SEGÚN DOCUMENTO)
         function getRealMemberSince(createdAt) {
-            console.log('📅 FECHA REAL DE REGISTRO:', createdAt);
+            // console.log('📅 FECHA REAL DE REGISTRO:', createdAt);
 
             const date = new Date(createdAt);
             const month = date.toLocaleString('es-ES', { month: 'long' });
@@ -7857,7 +7857,7 @@
 
         // Cerrar modal
         function closeUserProfile() {
-            console.log('🔍 [PROFILE MODAL] Cerrando modal');
+            // console.log('🔍 [PROFILE MODAL] Cerrando modal');
             const modal = document.getElementById('userProfileModal');
             if (modal) {
                 modal.classList.remove('active');
@@ -7867,7 +7867,7 @@
 
         // Mostrar skeleton loader
         function showProfileModalSkeleton() {
-            console.log('🔍 [PROFILE MODAL] Mostrando skeleton loader');
+            // console.log('🔍 [PROFILE MODAL] Mostrando skeleton loader');
             const modal = document.getElementById('userProfileModal');
             if (modal) {
                 modal.classList.add('active', 'loading');
@@ -8025,7 +8025,7 @@
             }
         });
 
-        console.log('✅ [PROFILE MODAL] Sistema de modal de perfil cargado');
+        // console.log('✅ [PROFILE MODAL] Sistema de modal de perfil cargado');
     </script>
 
     <!-- CORRECCIONES DEL MODAL DE PERFIL SEGÚN PROMPT -->
@@ -8035,7 +8035,7 @@
 
         function profileLog(message, data = null) {
             if (DEBUG_PROFILE) {
-                console.log(`[PROFILE] ${message}`, data);
+                // console.log(`[PROFILE] ${message}`, data);
             }
         }
 
@@ -8273,7 +8273,7 @@
 
                 // 🚨 ELIMINAR LÓGICA HARDCODEADA - USAR DATOS REALES DE LA API
                 // Los datos reales se cargan a través de loadRealUserProfile()
-                console.log('⚠️ Esta función legacy debe usar la nueva API. Redirigiendo a loadRealUserProfile()');
+                // console.log('⚠️ Esta función legacy debe usar la nueva API. Redirigiendo a loadRealUserProfile()');
 
                 // Llamar a la nueva función que usa datos reales
                 if (userData.id) {
@@ -8460,7 +8460,7 @@
 
                 // Ahora agregar los nuevos listeners
                 setupMemberCardListeners();
-                console.log('✅ [PROFILE CORRECTION] Listeners de tarjetas configurados');
+                // console.log('✅ [PROFILE CORRECTION] Listeners de tarjetas configurados');
             }, 1500); // Más tiempo para asegurar que todo esté cargado
         });
 
@@ -8489,7 +8489,7 @@
             if (cardsAdded) {
                 setTimeout(() => {
                     setupMemberCardListeners();
-                    console.log('✅ [PROFILE CORRECTION] Nuevas tarjetas detectadas, listeners reconfigurados');
+                    // console.log('✅ [PROFILE CORRECTION] Nuevas tarjetas detectadas, listeners reconfigurados');
                 }, 100);
             }
         });
@@ -8512,7 +8512,7 @@
         window.showProfileError = showProfileError;
         window.handleMemberCardClick = handleMemberCardClick;
 
-        console.log('✅ [PROFILE CORRECTION] Correcciones del modal aplicadas exitosamente');
+        // console.log('✅ [PROFILE CORRECTION] Correcciones del modal aplicadas exitosamente');
     </script>
 
     <!-- SCRIPT DE CORRECCIÓN FINAL DEL MODAL DE PERFIL -->
@@ -8525,7 +8525,7 @@
         (function() {
             'use strict';
 
-            console.log('🚀 [MODAL FIX] Iniciando corrección definitiva del modal de perfil...');
+            // console.log('🚀 [MODAL FIX] Iniciando corrección definitiva del modal de perfil...');
 
             // Sistema de modal de perfil limpio y funcional
             class ProfileModalFixed {
@@ -8546,7 +8546,7 @@
                 }
 
                 setup() {
-                    console.log('🔧 [MODAL FIX] Configurando modal...');
+                    // console.log('🔧 [MODAL FIX] Configurando modal...');
 
                     this.modal = document.getElementById('userProfileModal');
                     if (!this.modal) {
@@ -8557,7 +8557,7 @@
                     this.setupEventListeners();
                     this.observeMemberCards();
 
-                    console.log('✅ [MODAL FIX] Modal configurado correctamente');
+                    // console.log('✅ [MODAL FIX] Modal configurado correctamente');
                 }
 
                 setupEventListeners() {
@@ -8621,7 +8621,7 @@
                         card.addEventListener('click', (e) => this.memberCardHandler(e, card));
                     });
 
-                    console.log(`🔗 [MODAL FIX] ${cards.length} tarjetas configuradas`);
+                    // console.log(`🔗 [MODAL FIX] ${cards.length} tarjetas configuradas`);
                 }
 
                 memberCardHandler(e, card) {
@@ -8630,7 +8630,7 @@
 
                     const memberId = card.getAttribute('data-user-id');
                     if (memberId) {
-                        console.log(`🔍 [MODAL FIX] Abriendo modal para miembro ID: ${memberId}`);
+                        // console.log(`🔍 [MODAL FIX] Abriendo modal para miembro ID: ${memberId}`);
                         this.open(memberId);
                     } else {
                         console.warn('⚠️ [MODAL FIX] No se encontró data-user-id en la tarjeta');
@@ -8638,7 +8638,7 @@
                 }
 
                 async open(memberId) {
-                    console.log(`👤 [MODAL FIX] Abriendo perfil para miembro: ${memberId}`);
+                    // console.log(`👤 [MODAL FIX] Abriendo perfil para miembro: ${memberId}`);
 
                     this.currentUserId = memberId;
                     this.isOpen = true;
@@ -8669,7 +8669,7 @@
                     }
 
                     try {
-                        console.log('🔍 [MODAL FIX] Buscando datos para memberId:', memberId);
+                        // console.log('🔍 [MODAL FIX] Buscando datos para memberId:', memberId);
 
                         // Primero obtener el member con sus datos de usuario
                         const { data: memberData, error: memberError } = await window.supabase
@@ -8712,7 +8712,7 @@
                             is_active: memberData.is_active
                         };
 
-                        console.log('✅ [MODAL FIX] Datos del usuario obtenidos:', userData);
+                        // console.log('✅ [MODAL FIX] Datos del usuario obtenidos:', userData);
                         return userData;
 
                     } catch (error) {
@@ -8722,14 +8722,14 @@
                 }
 
                 renderUserData(userData) {
-                    console.log('📝 [MODAL FIX] Redirigiendo a loadRealUserProfile para datos reales:', userData);
+                    // console.log('📝 [MODAL FIX] Redirigiendo a loadRealUserProfile para datos reales:', userData);
 
                     // 🚨 ELIMINAR COMPLETAMENTE DATOS HARDCODEADOS/SIMULADOS
                     // Esta función ahora usa SOLO datos reales de la base de datos
 
                     if (userData && userData.id) {
                         // Usar la nueva función que carga datos reales
-                        console.log('✅ [MODAL FIX] Llamando a loadRealUserProfile con userId:', userData.id);
+                        // console.log('✅ [MODAL FIX] Llamando a loadRealUserProfile con userId:', userData.id);
                         loadRealUserProfile(userData.id);
                     } else {
                         console.error('❌ [MODAL FIX] No se pudo obtener ID de usuario para cargar datos reales');
@@ -8752,7 +8752,7 @@
             setAvatar(avatarUrl) {
                 // Validación menos estricta para mejorar compatibilidad del perfil
                 if (!avatarUrl || avatarUrl.trim() === '' || avatarUrl === 'null') {
-                    console.log('ℹ️ [AVATAR] URL de avatar vacía o nula, usando fallback');
+                    // console.log('ℹ️ [AVATAR] URL de avatar vacía o nula, usando fallback');
                     return;
                 }
                 
@@ -8846,7 +8846,7 @@
             }
 
             close() {
-                console.log('✅ [MODAL FIX] Cerrando modal');
+                // console.log('✅ [MODAL FIX] Cerrando modal');
 
                 this.modal.classList.remove('active', 'loading');
                 this.modal.style.display = 'none';
@@ -8862,7 +8862,7 @@
         window.openUserProfile = (memberId) => window.profileModalFixed.open(memberId);
         window.closeUserProfile = () => window.profileModalFixed.close();
 
-        console.log('✅ [MODAL FIX] Sistema del modal de perfil corregido e instalado');
+        // console.log('✅ [MODAL FIX] Sistema del modal de perfil corregido e instalado');
 
     })();
     </script>

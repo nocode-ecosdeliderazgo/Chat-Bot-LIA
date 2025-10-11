@@ -210,7 +210,7 @@
             resultDiv.innerHTML = '<div class="loading">🔄 Testing API...</div>';
             
             try {
-                console.log('🌐 Testing API URL:', `${apiBaseUrl}/courses/module1-videos`);
+                // console.log('🌐 Testing API URL:', `${apiBaseUrl}/courses/module1-videos`);
                 
                 const response = await fetch(`${apiBaseUrl}/courses/module1-videos`, {
                     method: 'GET',
@@ -219,12 +219,12 @@
                     }
                 });
                 
-                console.log('📊 Response status:', response.status);
-                console.log('📊 Response ok:', response.ok);
+                // console.log('📊 Response status:', response.status);
+                // console.log('📊 Response ok:', response.ok);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ API Response data:', data);
+                    // console.log('✅ API Response data:', data);
                     
                     resultDiv.innerHTML = `
                         <div class="status success">
@@ -267,7 +267,7 @@
             const iframe = document.getElementById('testIframe');
             const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
             
-            console.log('🎥 Testing video URL:', embedUrl);
+            // console.log('🎥 Testing video URL:', embedUrl);
             
             iframe.src = embedUrl;
             
@@ -280,7 +280,7 @@
             
             // Test si el iframe carga correctamente
             iframe.onload = () => {
-                console.log('✅ Iframe loaded successfully');
+                // console.log('✅ Iframe loaded successfully');
                 const successDiv = document.createElement('div');
                 successDiv.className = 'status success';
                 successDiv.innerHTML = '✅ Video iframe loaded successfully';
@@ -373,7 +373,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('🔍 Deep Debug Data:', data);
+                    // console.log('🔍 Deep Debug Data:', data);
                     
                     let html = '<div class="status success">✅ Deep Debug Analysis Complete</div>';
                     
@@ -441,7 +441,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('🔍 Analysis Data:', data);
+                    // console.log('🔍 Analysis Data:', data);
                     
                     let html = '<div class="status success">✅ Analysis Complete</div>';
                     
@@ -520,7 +520,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('🛠️ Fix Data:', data);
+                    // console.log('🛠️ Fix Data:', data);
                     
                     let html = `<div class="status success">✅ ${data.message}</div>`;
                     
@@ -586,8 +586,8 @@
         });
         
         // Auto-run environment detection on load
-        console.log('🔧 Video Debug Test loaded');
-        console.log('🌐 Environment:', { hostname, port, isLocalhost, isNetlify, apiBaseUrl });
+        // console.log('🔧 Video Debug Test loaded');
+        // console.log('🌐 Environment:', { hostname, port, isLocalhost, isNetlify, apiBaseUrl });
     </script>
 </body>
 </html>

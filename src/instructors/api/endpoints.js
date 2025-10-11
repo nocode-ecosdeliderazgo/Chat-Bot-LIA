@@ -574,11 +574,11 @@ const instructorAPI = new InstructorAPI();
 
 // Manejar errores de red
 window.addEventListener('online', () => {
-    console.log('🟢 Conexión restaurada');
+    // console.log('🟢 Conexión restaurada');
 });
 
 window.addEventListener('offline', () => {
-    console.log('🔴 Sin conexión a internet');
+    // console.log('🔴 Sin conexión a internet');
 });
 
 // Exportar para uso global

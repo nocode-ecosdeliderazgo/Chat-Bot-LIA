@@ -31,7 +31,7 @@ class ProfileQuestionnaire {
             // Verificar si hay un parámetro especial para forzar el acceso
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('force') === 'true' || urlParams.get('force-questionnaire') === 'true') {
-                console.log('🔓 Acceso forzado al cuestionario');
+                // console.log('🔓 Acceso forzado al cuestionario');
                 return; // Salir sin hacer ninguna verificación
             }
             
@@ -461,7 +461,7 @@ class ProfileQuestionnaire {
         this.persistRoleWithBackend().catch(err => console.warn('[PersistRole Backend] Error:', err));
         this.persistQuestionnaireAnswers().catch(err => console.warn('[PersistAnswers] Error:', err));
 
-        console.log('Datos de perfil guardados:', telemetryData);
+        // console.log('Datos de perfil guardados:', telemetryData);
     }
 
     async persistRoleIfMissing() {
@@ -500,7 +500,7 @@ class ProfileQuestionnaire {
             const roleToSave = this.overrideProfile || this.selectedProfile || '';
             if (!roleToSave) return;
 
-            console.log('[PersistRole Backend] Actualizando type_rol a:', roleToSave);
+            // console.log('[PersistRole Backend] Actualizando type_rol a:', roleToSave);
 
             const response = await fetch('/api/update-profile', {
                 method: 'POST',
@@ -519,7 +519,7 @@ class ProfileQuestionnaire {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('[PersistRole Backend] type_rol actualizado correctamente:', result);
+                // console.log('[PersistRole Backend] type_rol actualizado correctamente:', result);
                 
                 // Actualizar datos en localStorage
                 const updatedUser = { ...currentUser, type_rol: roleToSave };
@@ -571,11 +571,11 @@ class ProfileQuestionnaire {
         });
 
         if (responses.length === 0) {
-            console.log('⚠️ No hay respuestas para guardar en el cuestionario de perfil');
+            // console.log('⚠️ No hay respuestas para guardar en el cuestionario de perfil');
             return;
         }
 
-        console.log(`💾 Guardando ${responses.length} respuestas del cuestionario de perfil en tabla respuestas`);
+        // console.log(`💾 Guardando ${responses.length} respuestas del cuestionario de perfil en tabla respuestas`);
 
         try {
             // Intentar guardar usando el servidor backend primero
@@ -592,7 +592,7 @@ class ProfileQuestionnaire {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Respuestas del cuestionario de perfil guardadas a través del servidor:', result);
+                // console.log('✅ Respuestas del cuestionario de perfil guardadas a través del servidor:', result);
             } else {
                 throw new Error(`Error del servidor: ${response.status}`);
             }
@@ -611,7 +611,7 @@ class ProfileQuestionnaire {
                     throw new Error(`Error guardando respuestas del perfil: ${error.message}`);
                 }
                 
-                console.log(`✅ ${responses.length} respuestas del cuestionario de perfil guardadas en tabla respuestas`);
+                // console.log(`✅ ${responses.length} respuestas del cuestionario de perfil guardadas en tabla respuestas`);
                 
             } catch (supabaseError) {
                 console.error('❌ Error con Supabase directo:', supabaseError);

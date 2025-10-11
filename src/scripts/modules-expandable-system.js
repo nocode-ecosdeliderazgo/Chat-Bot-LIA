@@ -21,7 +21,7 @@ class ModulesExpandableSystem {
     }
 
     async init() {
-        console.log('🚀 Inicializando sistema de módulos expandibles...');
+        // console.log('🚀 Inicializando sistema de módulos expandibles...');
         
         try {
             // Cargar módulos desde la base de datos
@@ -34,7 +34,7 @@ class ModulesExpandableSystem {
             this.setupEventListeners();
             
             this.isInitialized = true;
-            console.log('✅ Sistema de módulos expandibles inicializado correctamente');
+            // console.log('✅ Sistema de módulos expandibles inicializado correctamente');
             
         } catch (error) {
             console.error('❌ Error inicializando sistema de módulos:', error);
@@ -46,7 +46,7 @@ class ModulesExpandableSystem {
 
     async loadModulesFromDatabase() {
         try {
-            console.log('📚 Cargando módulos desde la base de datos...');
+            // console.log('📚 Cargando módulos desde la base de datos...');
             
             // Intentar obtener datos del curso desde la API con retry
             await this.tryLoadFromAPI();
@@ -62,24 +62,24 @@ class ModulesExpandableSystem {
         const retryDelay = 1000 * Math.pow(2, retryCount); // 1s, 2s, 4s
         
         try {
-            console.log(`🔄 Intento ${retryCount + 1}/${maxRetries + 1} cargando desde API...`);
+            // console.log(`🔄 Intento ${retryCount + 1}/${maxRetries + 1} cargando desde API...`);
             
             // Intentar obtener datos del curso desde la API
             const response = await fetch('/api/courses/ia-fundamentos/full-structure');
             
-            console.log(`📡 Respuesta API: ${response.status} ${response.statusText}`);
+            // console.log(`📡 Respuesta API: ${response.status} ${response.statusText}`);
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('📦 Datos recibidos de API:', data);
+                // console.log('📦 Datos recibidos de API:', data);
                 
                 if (data.success && data.data) {
                     this.modulesData = data.data.modules || [];
-                    console.log('✅ Módulos cargados desde la base de datos:', this.modulesData.length);
+                    // console.log('✅ Módulos cargados desde la base de datos:', this.modulesData.length);
                     
                     // Si es fallback, mostrar notificación
                     if (data._fallback) {
-                        console.log('⚠️ Usando datos de fallback temporal');
+                        // console.log('⚠️ Usando datos de fallback temporal');
                         this.showTemporaryNotification('Usando datos temporales - algunos datos pueden no estar actualizados');
                     }
                     return;
@@ -88,26 +88,26 @@ class ModulesExpandableSystem {
             
             // Si falla la respuesta, intentar retry
             if (retryCount < maxRetries) {
-                console.log(`⏰ API falló, reintentando en ${retryDelay}ms...`);
+                // console.log(`⏰ API falló, reintentando en ${retryDelay}ms...`);
                 await this.delay(retryDelay);
                 return await this.tryLoadFromAPI(retryCount + 1);
             }
             
             // Si todos los reintentos fallaron, usar datos locales
-            console.log('⚠️ API no disponible después de todos los reintentos, usando datos locales...');
+            // console.log('⚠️ API no disponible después de todos los reintentos, usando datos locales...');
             this.loadLocalData();
             
         } catch (error) {
             console.error(`❌ Error en intento ${retryCount + 1}:`, error);
             
             if (retryCount < maxRetries) {
-                console.log(`🔄 Reintentando en ${retryDelay}ms debido a error...`);
+                // console.log(`🔄 Reintentando en ${retryDelay}ms debido a error...`);
                 await this.delay(retryDelay);
                 return await this.tryLoadFromAPI(retryCount + 1);
             }
             
             // Si todos los reintentos fallaron, usar datos locales
-            console.log('❌ Todos los reintentos fallaron, usando datos locales...');
+            // console.log('❌ Todos los reintentos fallaron, usando datos locales...');
             this.loadLocalData();
         }
     }
@@ -261,7 +261,7 @@ class ModulesExpandableSystem {
             }
         ];
         
-        console.log('📚 Módulos cargados desde datos locales:', this.modulesData);
+        // console.log('📚 Módulos cargados desde datos locales:', this.modulesData);
     }
 
     renderModules() {
@@ -285,7 +285,7 @@ class ModulesExpandableSystem {
             this.setActiveModule(this.modulesData[0].id);
         }
 
-        console.log('✅ Módulos renderizados correctamente');
+        // console.log('✅ Módulos renderizados correctamente');
     }
 
     createModuleElement(module, index) {
@@ -404,11 +404,11 @@ class ModulesExpandableSystem {
             toggleIcon.classList.add('expanded');
         }
 
-        console.log(`🔄 Módulo ${moduleId} ${isExpanded ? 'contraído' : 'expandido'}`);
+        // console.log(`🔄 Módulo ${moduleId} ${isExpanded ? 'contraído' : 'expandido'}`);
     }
 
     playVideo(videoId, youtubeId, videoTitle) {
-        console.log(`🎬 Reproduciendo video: ${videoId} - ${videoTitle}`);
+        // console.log(`🎬 Reproduciendo video: ${videoId} - ${videoTitle}`);
         
         // Actualizar video activo
         this.currentVideoId = videoId;
@@ -439,7 +439,7 @@ class ModulesExpandableSystem {
             if (statusElement) {
                 statusElement.textContent = 'Reproduciendo';
             } else {
-                console.log('⚠️ Elemento de estado no encontrado para video:', videoId);
+                // console.log('⚠️ Elemento de estado no encontrado para video:', videoId);
             }
         }
     }
@@ -458,7 +458,7 @@ class ModulesExpandableSystem {
         player.src = videoUrl;
         player.title = videoTitle;
         
-        console.log(`✅ Video cargado en reproductor: ${videoTitle}`);
+        // console.log(`✅ Video cargado en reproductor: ${videoTitle}`);
     }
 
     updateVideoInfo(videoTitle) {
@@ -504,7 +504,7 @@ class ModulesExpandableSystem {
 
     setupEventListeners() {
         // Event listeners ya están configurados en los elementos HTML
-        console.log('✅ Event listeners configurados');
+        // console.log('✅ Event listeners configurados');
     }
 
     // Método público para obtener el video actual
@@ -532,12 +532,12 @@ window.ModulesExpandableSystem = ModulesExpandableSystem;
 document.addEventListener('DOMContentLoaded', function() {
     // Verificar si module1-videos-loader ya está cargado para evitar conflictos
     if (window.Module1VideosLoader) {
-        console.log('🚫 Modules Expandable System desactivado - detectado Module1 Videos Loader');
-        console.log('⚠️ Evitando conflicto entre sistemas de carga de videos');
+        // console.log('🚫 Modules Expandable System desactivado - detectado Module1 Videos Loader');
+        // console.log('⚠️ Evitando conflicto entre sistemas de carga de videos');
         return;
     }
     
-    console.log('🌟 DOM listo - Inicializando sistema de módulos expandibles');
+    // console.log('🌟 DOM listo - Inicializando sistema de módulos expandibles');
     
     if (!window.modulesExpandableSystem) {
         window.modulesExpandableSystem = new ModulesExpandableSystem();

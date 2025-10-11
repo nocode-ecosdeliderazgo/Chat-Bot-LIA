@@ -196,11 +196,11 @@ function extractCourseInformation(question, questionType) {
 
 // Función principal para procesar preguntas del curso
 function processCourseQuestion(question) {
-    console.log(`🤖 Chat LIA procesando pregunta: "${question}"`);
+    // console.log(`🤖 Chat LIA procesando pregunta: "${question}"`);
     
     // Detectar tipo de pregunta
     const questionType = detectQuestionType(question);
-    console.log(`📋 Tipo de pregunta detectado: ${questionType}`);
+    // console.log(`📋 Tipo de pregunta detectado: ${questionType}`);
     
     // Extraer información del temario
     const courseInfo = extractCourseInformation(question, questionType);
@@ -208,11 +208,11 @@ function processCourseQuestion(question) {
     if (courseInfo) {
         // Generar respuesta estructurada
         const response = courseInfo.formatResponse();
-        console.log(`✅ Respuesta generada para pregunta del curso`);
+        // console.log(`✅ Respuesta generada para pregunta del curso`);
         return response;
     } else {
         // Manejar pregunta no cubierta
-        console.log(`❓ Pregunta no cubierta en el temario`);
+        // console.log(`❓ Pregunta no cubierta en el temario`);
         return handleUncoveredQuestion(question);
     }
 }
@@ -223,14 +223,14 @@ function integrateWithChatLIA() {
     if (typeof window !== 'undefined' && window.ChatLIA) {
         // Integrar con el sistema existente de Chat LIA
         window.ChatLIA.addCourseKnowledgeHandler(processCourseQuestion);
-        console.log('✅ Integración con Chat LIA completada');
+        // console.log('✅ Integración con Chat LIA completada');
     } else {
         // Configurar para uso independiente
         window.CourseKnowledgeHandler = {
             processQuestion: processCourseQuestion,
             config: COURSE_KNOWLEDGE_CONFIG
         };
-        console.log('✅ Manejador de conocimiento del curso configurado');
+        // console.log('✅ Manejador de conocimiento del curso configurado');
     }
 }
 
@@ -239,7 +239,7 @@ async function loadCourseTemario() {
     try {
         // En la implementación real, esto cargaría el contenido del TEMARIO.docx
         // Por ahora, simulamos la carga
-        console.log('📚 Cargando temario del curso...');
+        // console.log('📚 Cargando temario del curso...');
         
         // Aquí se implementaría la lógica para leer el TEMARIO.docx
         // Por ejemplo, usando una API o librería para procesar documentos
@@ -266,13 +266,13 @@ async function loadCourseTemario() {
 
 // Función para inicializar el sistema
 async function initializeCourseKnowledge() {
-    console.log('🚀 Inicializando sistema de conocimiento del curso...');
+    // console.log('🚀 Inicializando sistema de conocimiento del curso...');
     
     // Cargar temario
     const temarioResult = await loadCourseTemario();
     
     if (temarioResult.success) {
-        console.log('✅ Temario cargado correctamente');
+        // console.log('✅ Temario cargado correctamente');
         
         // Integrar con Chat LIA
         integrateWithChatLIA();
@@ -280,7 +280,7 @@ async function initializeCourseKnowledge() {
         // Configurar listeners para preguntas del curso
         setupCourseQuestionListeners();
         
-        console.log('🎉 Sistema de conocimiento del curso inicializado');
+        // console.log('🎉 Sistema de conocimiento del curso inicializado');
     } else {
         console.error('❌ Error al inicializar sistema de conocimiento del curso');
     }
@@ -346,7 +346,7 @@ function displayCourseResponse(response) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
     } else {
         // Fallback: mostrar en consola
-        console.log('📚 Respuesta del curso:', response);
+        // console.log('📚 Respuesta del curso:', response);
     }
 }
 
@@ -376,22 +376,22 @@ function testCourseKnowledge() {
         "¿Cuál es el objetivo del curso?"
     ];
     
-    console.log('🧪 Probando sistema de conocimiento del curso...');
+    // console.log('🧪 Probando sistema de conocimiento del curso...');
     
     testQuestions.forEach((question, index) => {
-        console.log(`\n--- Pregunta ${index + 1}: ${question} ---`);
+        // console.log(`\n--- Pregunta ${index + 1}: ${question} ---`);
         const response = processCourseQuestion(question);
-        console.log(response);
+        // console.log(response);
     });
 }
 
 // Función para mostrar información del sistema
 function showSystemInfo() {
-    console.log('📊 Información del Sistema de Conocimiento del Curso:');
-    console.log('Curso:', COURSE_KNOWLEDGE_CONFIG.courseName);
-    console.log('Instructor:', COURSE_KNOWLEDGE_CONFIG.instructor);
-    console.log('Versión:', COURSE_KNOWLEDGE_CONFIG.version);
-    console.log('Documento fuente:', COURSE_KNOWLEDGE_CONFIG.sourceDocument);
+    // console.log('📊 Información del Sistema de Conocimiento del Curso:');
+    // console.log('Curso:', COURSE_KNOWLEDGE_CONFIG.courseName);
+    // console.log('Instructor:', COURSE_KNOWLEDGE_CONFIG.instructor);
+    // console.log('Versión:', COURSE_KNOWLEDGE_CONFIG.version);
+    // console.log('Documento fuente:', COURSE_KNOWLEDGE_CONFIG.sourceDocument);
 }
 
 // Hacer funciones de debugging disponibles globalmente

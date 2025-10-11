@@ -18,7 +18,7 @@ class CourseProgressManagerV2 {
         this.updateInterval = null;
         this.lastVideoTime = 0;
         
-        console.log('📈 Course Progress Manager V2 creado');
+        // console.log('📈 Course Progress Manager V2 creado');
         this.init();
     }
 
@@ -28,11 +28,11 @@ class CourseProgressManagerV2 {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Course Progress Manager V2...');
+            // console.log('🚀 Inicializando Course Progress Manager V2...');
             
             // 1. Obtener usuario actual
             this.userId = this.getCurrentUserId();
-            console.log('👤 Usuario:', this.userId);
+            // console.log('👤 Usuario:', this.userId);
 
             // 2. Cargar progreso inicial
             await this.loadInitialProgress();
@@ -46,7 +46,7 @@ class CourseProgressManagerV2 {
             // 5. Configurar auto-guardado
             this.setupAutoSave();
 
-            console.log('✅ Course Progress Manager V2 inicializado exitosamente');
+            // console.log('✅ Course Progress Manager V2 inicializado exitosamente');
 
         } catch (error) {
             console.error('💥 Error inicializando Progress Manager:', error);
@@ -55,7 +55,7 @@ class CourseProgressManagerV2 {
 
     async loadInitialProgress() {
         try {
-            console.log('📊 Cargando progreso inicial...');
+            // console.log('📊 Cargando progreso inicial...');
 
             const response = await this.apiCall(`/users/${this.userId}/course/intro-to-ai/progress`, {
                 method: 'GET'
@@ -63,7 +63,7 @@ class CourseProgressManagerV2 {
 
             if (response.success) {
                 this.currentProgress = response;
-                console.log('✅ Progreso inicial cargado:', response.summary);
+                // console.log('✅ Progreso inicial cargado:', response.summary);
             } else {
                 console.warn('⚠️ No se pudo cargar progreso inicial');
                 this.currentProgress = this.getDefaultProgress();
@@ -128,22 +128,22 @@ class CourseProgressManagerV2 {
                          window.location.hostname.includes('netlify.com');
         const currentPort = window.location.port;
 
-        console.log(`🔍 Detectando entorno - localhost: ${isLocalhost}, netlify: ${isNetlify}, port: ${currentPort}`);
+        // console.log(`🔍 Detectando entorno - localhost: ${isLocalhost}, netlify: ${isNetlify}, port: ${currentPort}`);
 
         if (isLocalhost && (currentPort === '3000' || window.location.href.includes(':3000'))) {
-            console.log('🏠 Entorno: Node.js local puerto 3000');
+            // console.log('🏠 Entorno: Node.js local puerto 3000');
             return '/api';
         } else if (isLocalhost && (currentPort === '3001' || window.location.href.includes(':3001'))) {
-            console.log('🏠 Entorno: Node.js local puerto 3001');
+            // console.log('🏠 Entorno: Node.js local puerto 3001');
             return '/api';
         } else if (isLocalhost && currentPort === '8888') {
-            console.log('🏠 Entorno: Netlify Dev local');
+            // console.log('🏠 Entorno: Netlify Dev local');
             return '/.netlify/functions';
         } else if (isLocalhost) {
-            console.log('🏠 Entorno: Servidor local genérico');
+            // console.log('🏠 Entorno: Servidor local genérico');
             return '/api';
         } else {
-            console.log('🌐 Entorno: Netlify producción - usando rutas con redirects');
+            // console.log('🌐 Entorno: Netlify producción - usando rutas con redirects');
             return '/api'; // Cambiar a /api para usar los redirects de Netlify
         }
     }
@@ -162,7 +162,7 @@ class CourseProgressManagerV2 {
         const fullUrl = `${this.apiBaseUrl}${endpoint}`;
 
         try {
-            console.log(`🌐 API Call: ${mergedOptions.method || 'GET'} ${fullUrl}`);
+            // console.log(`🌐 API Call: ${mergedOptions.method || 'GET'} ${fullUrl}`);
             
             const response = await fetch(fullUrl, mergedOptions);
             
@@ -231,14 +231,14 @@ class CourseProgressManagerV2 {
 
     async loadModulesProgress() {
         try {
-            console.log('📊 Cargando progreso de módulos...');
+            // console.log('📊 Cargando progreso de módulos...');
             
             const response = await this.apiCall(`/api/users/${this.userId}/course/intro-to-ai/modules/progress`, {
                 method: 'GET'
             });
             
             if (response.success) {
-                console.log('✅ Progreso de módulos obtenido:', response.data.length, 'módulos');
+                // console.log('✅ Progreso de módulos obtenido:', response.data.length, 'módulos');
                 this.updateModulesProgressUI(response.data);
                 return response.data;
             } else {
@@ -253,7 +253,7 @@ class CourseProgressManagerV2 {
     }
 
     updateModulesProgressUI(modulesProgress) {
-        console.log('🎨 Actualizando UI del progreso de módulos');
+        // console.log('🎨 Actualizando UI del progreso de módulos');
         
         modulesProgress.forEach(moduleData => {
             const moduleNumber = moduleData.module_number;
@@ -400,7 +400,7 @@ class CourseProgressManagerV2 {
     // =====================================================
 
     setupVideoTracking() {
-        console.log('🎥 Configurando tracking de video...');
+        // console.log('🎥 Configurando tracking de video...');
 
         // Buscar el iframe de YouTube
         const iframe = document.getElementById('youtubePlayer');
@@ -470,12 +470,12 @@ class CourseProgressManagerV2 {
     }
 
     onVideoPlay() {
-        console.log('▶️ Video iniciado/reanudado');
+        // console.log('▶️ Video iniciado/reanudado');
         this.startProgressTracking();
     }
 
     onVideoPause() {
-        console.log('⏸️ Video pausado');
+        // console.log('⏸️ Video pausado');
         this.updateProgressImmediate();
     }
 
@@ -508,7 +508,7 @@ class CourseProgressManagerV2 {
 
     async updateProgressImmediate(currentTime) {
         if (this.isUpdating) {
-            console.log('⏳ Actualización ya en progreso...');
+            // console.log('⏳ Actualización ya en progreso...');
             return;
         }
 
@@ -527,7 +527,7 @@ class CourseProgressManagerV2 {
             const completionPercentage = videoDuration > 0 ? (time / videoDuration) * 100 : 0;
             const isCompleted = completionPercentage >= 90; // Considerar completado al 90%
 
-            console.log(`📊 Actualizando progreso: ${Math.round(completionPercentage)}% (${time}s/${videoDuration}s)`);
+            // console.log(`📊 Actualizando progreso: ${Math.round(completionPercentage)}% (${time}s/${videoDuration}s)`);
 
             // Determinar número de módulo desde el currentVideo
             const moduleNumber = currentVideo.module_number || this.extractModuleNumber(currentVideo.module_id) || 1;
@@ -570,7 +570,7 @@ class CourseProgressManagerV2 {
                     }
                 }));
                 
-                console.log('✅ Progreso actualizado exitosamente');
+                // console.log('✅ Progreso actualizado exitosamente');
             }
 
         } catch (error) {
@@ -597,7 +597,7 @@ class CourseProgressManagerV2 {
     }
 
     emitVideoCompletedEvent(videoData) {
-        console.log('📡 Emitiendo evento de video completado desde CourseProgressManager');
+        // console.log('📡 Emitiendo evento de video completado desde CourseProgressManager');
         
         const event = new CustomEvent('videoCompleted', {
             detail: {
@@ -616,7 +616,7 @@ class CourseProgressManagerV2 {
     // =====================================================
 
     setupAutoSave() {
-        console.log('💾 Configurando auto-guardado...');
+        // console.log('💾 Configurando auto-guardado...');
 
         // Guardar progreso cada 2 minutos
         this.autoSaveInterval = setInterval(() => {
@@ -667,7 +667,7 @@ class CourseProgressManagerV2 {
      */
     async updateVideoProgress(moduleNumber, videoUpdates) {
         try {
-            console.log(`🔗 Método de compatibilidad - Módulo ${moduleNumber}:`, videoUpdates);
+            // console.log(`🔗 Método de compatibilidad - Módulo ${moduleNumber}:`, videoUpdates);
             
             // Mapear los datos al formato que espera updateProgressImmediate
             this.lastVideoTime = videoUpdates.last_video_position || 0;
@@ -707,7 +707,7 @@ class CourseProgressManagerV2 {
      */
     async startModule(moduleNumber) {
         try {
-            console.log(`🎬 Iniciando módulo ${moduleNumber}`);
+            // console.log(`🎬 Iniciando módulo ${moduleNumber}`);
             // No necesita hacer nada específico, el progreso se maneja automáticamente
             return Promise.resolve();
         } catch (error) {
@@ -717,7 +717,7 @@ class CourseProgressManagerV2 {
 
     async switchToModule(moduleId) {
         try {
-            console.log(`🔄 Cambiando progreso a módulo: ${moduleId}`);
+            // console.log(`🔄 Cambiando progreso a módulo: ${moduleId}`);
 
             const response = await this.apiCall('/users/switch-module', {
                 method: 'POST',
@@ -731,7 +731,7 @@ class CourseProgressManagerV2 {
             if (response.success) {
                 // Actualizar progreso local
                 this.currentProgress.course_progress.current_module_id = moduleId;
-                console.log('✅ Progreso de módulo actualizado');
+                // console.log('✅ Progreso de módulo actualizado');
                 return response;
             } else {
                 throw new Error(response.error);
@@ -762,7 +762,7 @@ class CourseProgressManagerV2 {
                 })
             });
 
-            console.log('✅ Video marcado como completado');
+            // console.log('✅ Video marcado como completado');
 
         } catch (error) {
             console.error('❌ Error marcando video como completado:', error);
@@ -788,7 +788,7 @@ class CourseProgressManagerV2 {
     // =====================================================
 
     destroy() {
-        console.log('🧹 Limpiando Course Progress Manager V2...');
+        // console.log('🧹 Limpiando Course Progress Manager V2...');
 
         // Actualizar progreso final
         this.updateProgressImmediate();
@@ -810,7 +810,7 @@ class CourseProgressManagerV2 {
         window.removeEventListener('beforeunload', this.updateProgressImmediate);
         window.removeEventListener('blur', this.updateProgressImmediate);
 
-        console.log('✅ Course Progress Manager V2 limpiado');
+        // console.log('✅ Course Progress Manager V2 limpiado');
     }
 }
 
@@ -823,7 +823,7 @@ window.courseProgressManager = null;
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📈 Inicializando Course Progress Manager V2...');
+    // console.log('📈 Inicializando Course Progress Manager V2...');
     
     // Esperar un poco para que otros componentes se inicialicen
     setTimeout(() => {

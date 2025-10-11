@@ -16,7 +16,7 @@ class YouTubeProgressTracker {
     }
     
     async init() {
-        console.log('🎥 Inicializando YouTube Progress Tracker...');
+        // console.log('🎥 Inicializando YouTube Progress Tracker...');
         
         try {
             // Cargar YouTube IFrame API
@@ -25,7 +25,7 @@ class YouTubeProgressTracker {
             // Configurar event listeners
             this.setupEventListeners();
             
-            console.log('✅ YouTube Progress Tracker listo');
+            // console.log('✅ YouTube Progress Tracker listo');
         } catch (error) {
             console.error('❌ Error inicializando YouTube Progress Tracker:', error);
             // Continuar sin la API de YouTube, pero marcar como disponible
@@ -37,7 +37,7 @@ class YouTubeProgressTracker {
         return new Promise((resolve, reject) => {
             // Si ya está cargada la API
             if (window.YT && window.YT.Player) {
-                console.log('✅ YouTube API ya está disponible');
+                // console.log('✅ YouTube API ya está disponible');
                 resolve();
                 return;
             }
@@ -47,7 +47,7 @@ class YouTubeProgressTracker {
                 const originalCallback = window.onYouTubeIframeAPIReady;
                 window.onYouTubeIframeAPIReady = () => {
                     if (originalCallback) originalCallback();
-                    console.log('✅ YouTube API cargada (callback existente)');
+                    // console.log('✅ YouTube API cargada (callback existente)');
                     resolve();
                 };
                 return;
@@ -63,13 +63,13 @@ class YouTubeProgressTracker {
         const retryDelay = 2000 * (attemptCount + 1); // 2s, 4s, 6s
         
         try {
-            console.log(`🔄 Intento ${attemptCount + 1}/${maxAttempts} cargando YouTube API...`);
+            // console.log(`🔄 Intento ${attemptCount + 1}/${maxAttempts} cargando YouTube API...`);
             
             // Remover script anterior si existe
             const existingScript = document.querySelector('script[src*="youtube.com/iframe_api"]');
             if (existingScript && attemptCount > 0) {
                 existingScript.remove();
-                console.log('🧹 Script anterior removido para retry');
+                // console.log('🧹 Script anterior removido para retry');
             }
             
             const tag = document.createElement('script');
@@ -79,7 +79,7 @@ class YouTubeProgressTracker {
             
             // Configurar callback de éxito
             window.onYouTubeIframeAPIReady = () => {
-                console.log('✅ YouTube IFrame API cargada exitosamente');
+                // console.log('✅ YouTube IFrame API cargada exitosamente');
                 resolve();
             };
             
@@ -88,7 +88,7 @@ class YouTubeProgressTracker {
                 console.error(`❌ Error cargando YouTube API (intento ${attemptCount + 1}):`, error);
                 
                 if (attemptCount < maxAttempts - 1) {
-                    console.log(`🔄 Reintentando en ${retryDelay}ms...`);
+                    // console.log(`🔄 Reintentando en ${retryDelay}ms...`);
                     setTimeout(() => {
                         this.attemptYouTubeAPILoad(resolve, reject, attemptCount + 1);
                     }, retryDelay);
@@ -105,7 +105,7 @@ class YouTubeProgressTracker {
                     console.warn(`⏰ Timeout en intento ${attemptCount + 1} (${timeoutDuration}ms)`);
                     
                     if (attemptCount < maxAttempts - 1) {
-                        console.log(`🔄 Reintentando por timeout en ${retryDelay}ms...`);
+                        // console.log(`🔄 Reintentando por timeout en ${retryDelay}ms...`);
                         setTimeout(() => {
                             this.attemptYouTubeAPILoad(resolve, reject, attemptCount + 1);
                         }, retryDelay);
@@ -155,7 +155,7 @@ class YouTubeProgressTracker {
     
     // Inicializar player para un video específico
     initializePlayer(containerId, videoId, moduleNumber, options = {}) {
-        console.log(`🎥 Inicializando player: ${videoId} para módulo ${moduleNumber}`);
+        // console.log(`🎥 Inicializando player: ${videoId} para módulo ${moduleNumber}`);
         
         this.currentVideoId = videoId;
         this.currentModuleNumber = moduleNumber;
@@ -205,7 +205,7 @@ class YouTubeProgressTracker {
             // Crear nuevo player
             this.player = new YT.Player(containerId, playerOptions);
             
-            console.log('✅ YouTube Player inicializado');
+            // console.log('✅ YouTube Player inicializado');
             
         } catch (error) {
             console.error('❌ Error inicializando YouTube Player:', error);
@@ -215,7 +215,7 @@ class YouTubeProgressTracker {
     
     // Crear player básico cuando YouTube API no esté disponible
     createBasicPlayer(containerId, videoId) {
-        console.log('🔧 Creando player básico para:', videoId);
+        // console.log('🔧 Creando player básico para:', videoId);
         
         const container = document.getElementById(containerId);
         if (!container) {
@@ -245,23 +245,23 @@ class YouTubeProgressTracker {
             }
         };
         
-        console.log('✅ Player básico creado');
+        // console.log('✅ Player básico creado');
     }
     
     onPlayerReady(event) {
-        console.log('✅ YouTube Player listo');
+        // console.log('✅ YouTube Player listo');
         
         // Obtener información del video
         const duration = this.player.getDuration();
         const videoUrl = this.player.getVideoUrl();
         
-        console.log(`📊 Video info: ${duration}s, ${videoUrl}`);
+        // console.log(`📊 Video info: ${duration}s, ${videoUrl}`);
         
         // Actualizar la duración del video en currentVideo si es un objeto básico
         if (window.dynamicVideoLoader && window.dynamicVideoLoader.currentVideo) {
             if (window.dynamicVideoLoader.currentVideo.duration_seconds === 0) {
                 window.dynamicVideoLoader.currentVideo.duration_seconds = duration;
-                console.log(`📊 Duración actualizada en currentVideo: ${duration}s`);
+                // console.log(`📊 Duración actualizada en currentVideo: ${duration}s`);
             }
         }
         
@@ -280,7 +280,7 @@ class YouTubeProgressTracker {
         };
         
         const stateName = states[event.data] || 'unknown';
-        console.log(`🎥 Player state: ${stateName} (${event.data})`);
+        // console.log(`🎥 Player state: ${stateName} (${event.data})`);
         
         switch (event.data) {
             case YT.PlayerState.PLAYING:
@@ -311,14 +311,14 @@ class YouTubeProgressTracker {
             this.trackProgress();
         }, this.updateFrequency);
         
-        console.log(`⏱️ Seguimiento de progreso iniciado (cada ${this.updateFrequency/1000}s)`);
+        // console.log(`⏱️ Seguimiento de progreso iniciado (cada ${this.updateFrequency/1000}s)`);
     }
     
     stopProgressTracking() {
         if (this.progressUpdateInterval) {
             clearInterval(this.progressUpdateInterval);
             this.progressUpdateInterval = null;
-            console.log('⏹️ Seguimiento de progreso detenido');
+            // console.log('⏹️ Seguimiento de progreso detenido');
         }
     }
     
@@ -342,7 +342,7 @@ class YouTubeProgressTracker {
                 return;
             }
             
-            console.log(`📊 Video progress: ${progressPercentage}% (${Math.floor(currentTime)}/${Math.floor(duration)}s)`);
+            // console.log(`📊 Video progress: ${progressPercentage}% (${Math.floor(currentTime)}/${Math.floor(duration)}s)`);
             
             // Actualizar progreso en backend
             if (this.courseProgressManager && this.currentModuleNumber) {
@@ -368,7 +368,7 @@ class YouTubeProgressTracker {
                 time_watched_seconds: Math.floor(currentTime)
             };
             
-            console.log(`📡 Actualizando progreso video módulo ${this.currentModuleNumber}:`, videoUpdates);
+            // console.log(`📡 Actualizando progreso video módulo ${this.currentModuleNumber}:`, videoUpdates);
             
             const result = await this.courseProgressManager.updateVideoProgress(
                 this.currentModuleNumber, 
@@ -376,11 +376,11 @@ class YouTubeProgressTracker {
             );
             
             if (result && result.success) {
-                console.log('✅ Progreso de video actualizado en backend');
+                // console.log('✅ Progreso de video actualizado en backend');
                 
                 // Si el video se completó, verificar si el módulo también se completó
                 if (isCompleted && result.module_completed) {
-                    console.log(`🎯 ¡Módulo ${this.currentModuleNumber} completado!`);
+                    // console.log(`🎯 ¡Módulo ${this.currentModuleNumber} completado!`);
                     this.handleModuleCompletion(this.currentModuleNumber);
                 }
             }
@@ -424,7 +424,7 @@ class YouTubeProgressTracker {
     }
     
     showCompletionNotification() {
-        console.log('🎉 Video completado - Mostrando notificación');
+        // console.log('🎉 Video completado - Mostrando notificación');
         
         // Crear notificación de completación
         const notification = document.createElement('div');
@@ -464,7 +464,7 @@ class YouTubeProgressTracker {
     }
     
     handleVideoPlay() {
-        console.log('▶️ Video iniciado');
+        // console.log('▶️ Video iniciado');
         this.startProgressTracking();
         
         // Marcar módulo como iniciado si no lo está
@@ -476,12 +476,12 @@ class YouTubeProgressTracker {
     }
     
     handleVideoPause() {
-        console.log('⏸️ Video pausado');
+        // console.log('⏸️ Video pausado');
         // Mantener seguimiento pero menos frecuente cuando está pausado
     }
     
     handleVideoEnd() {
-        console.log('🎬 Video terminado');
+        // console.log('🎬 Video terminado');
         this.stopProgressTracking();
         
         // Forzar actualización final al 100%
@@ -497,7 +497,7 @@ class YouTubeProgressTracker {
     }
 
     emitVideoCompletedEvent() {
-        console.log('📡 Emitiendo evento de video completado');
+        // console.log('📡 Emitiendo evento de video completado');
         
         const eventDetail = {
             videoId: this.currentVideoId,
@@ -506,7 +506,7 @@ class YouTubeProgressTracker {
             duration: this.player && this.player.getDuration ? this.player.getDuration() : 0
         };
         
-        console.log('📡 Detalle del evento:', eventDetail);
+        // console.log('📡 Detalle del evento:', eventDetail);
         
         const event = new CustomEvent('videoCompleted', {
             detail: eventDetail
@@ -516,10 +516,10 @@ class YouTubeProgressTracker {
         
         // También verificar si chat-online-v2 está inicializado
         if (window.chatOnlineV2) {
-            console.log('✅ chat-online-v2 encontrado, llamando directamente a handleVideoCompleted');
+            // console.log('✅ chat-online-v2 encontrado, llamando directamente a handleVideoCompleted');
             window.chatOnlineV2.handleVideoCompleted(eventDetail);
         } else if (window.chatOnline) {
-            console.log('✅ chatOnline encontrado, llamando directamente a handleVideoCompleted');
+            // console.log('✅ chatOnline encontrado, llamando directamente a handleVideoCompleted');
             if (typeof window.chatOnline.handleVideoCompleted === 'function') {
                 window.chatOnline.handleVideoCompleted(eventDetail);
             }
@@ -558,7 +558,7 @@ class YouTubeProgressTracker {
             // Si encontramos el video, establecerlo como currentVideo
             if (currentVideo) {
                 window.dynamicVideoLoader.currentVideo = currentVideo;
-                console.log(`✅ CurrentVideo establecido:`, currentVideo.video_title || videoId);
+                // console.log(`✅ CurrentVideo establecido:`, currentVideo.video_title || videoId);
             } else {
                 // Si no podemos encontrar el video completo, buscar al menos el módulo para obtener su ID real
                 console.warn(`⚠️ Video completo no encontrado, buscando información del módulo ${moduleNumber}`);
@@ -588,7 +588,7 @@ class YouTubeProgressTracker {
                     duration_seconds: this.player && this.player.getDuration ? this.player.getDuration() : 0
                 };
                 
-                console.log(`✅ CurrentVideo básico creado con module_id real:`, realModuleId);
+                // console.log(`✅ CurrentVideo básico creado con module_id real:`, realModuleId);
             }
             
         } catch (error) {
@@ -597,7 +597,7 @@ class YouTubeProgressTracker {
     }
     
     handleModuleCompletion(moduleNumber) {
-        console.log(`🎯 Manejando completación del módulo ${moduleNumber}`);
+        // console.log(`🎯 Manejando completación del módulo ${moduleNumber}`);
         
         // Emitir evento de módulo completado
         const event = new CustomEvent('moduleCompleted', {
@@ -661,7 +661,7 @@ class YouTubeProgressTracker {
     }
     
     unlockNextModule(completedModule) {
-        console.log(`🔓 Desbloqueando módulo ${completedModule + 1}`);
+        // console.log(`🔓 Desbloqueando módulo ${completedModule + 1}`);
         
         // Emitir evento para actualizar UI
         const event = new CustomEvent('moduleUnlocked', {
@@ -712,11 +712,11 @@ class YouTubeProgressTracker {
             return;
         }
         
-        console.log(`🔄 Reintento ${retryCount + 1}/${maxRetries} en ${retryDelay}ms...`);
+        // console.log(`🔄 Reintento ${retryCount + 1}/${maxRetries} en ${retryDelay}ms...`);
         
         setTimeout(() => {
             if (this.currentVideoId && this.currentModuleNumber) {
-                console.log(`🔧 Recreando player (intento ${retryCount + 1})`);
+                // console.log(`🔧 Recreando player (intento ${retryCount + 1})`);
                 
                 // Destruir player existente
                 if (this.player && typeof this.player.destroy === 'function') {
@@ -796,12 +796,12 @@ class YouTubeProgressTracker {
     }
     
     handleProgressUpdate(progressData) {
-        console.log('📊 Progress update received:', progressData);
+        // console.log('📊 Progress update received:', progressData);
         // Actualizar UI basado en datos del backend
     }
     
     handleModuleChange(moduleData) {
-        console.log('🔄 Module change:', moduleData);
+        // console.log('🔄 Module change:', moduleData);
         
         if (moduleData.videoId && moduleData.moduleNumber) {
             // Cambiar a nuevo video
@@ -811,7 +811,7 @@ class YouTubeProgressTracker {
     
     // Método público para cambiar video manualmente
     changeVideo(videoId, moduleNumber) {
-        console.log(`🎥 Cambiando a video: ${videoId} (Módulo ${moduleNumber})`);
+        // console.log(`🎥 Cambiando a video: ${videoId} (Módulo ${moduleNumber})`);
         this.initializePlayer('youtubePlayer', videoId, moduleNumber);
     }
     
@@ -830,7 +830,7 @@ class YouTubeProgressTracker {
     
     // Limpieza
     destroy() {
-        console.log('🧹 Destruyendo YouTube Progress Tracker...');
+        // console.log('🧹 Destruyendo YouTube Progress Tracker...');
         
         this.stopProgressTracking();
         
@@ -891,7 +891,7 @@ window.YouTubeProgressTracker = YouTubeProgressTracker;
 if (typeof window !== 'undefined') {
     window.addEventListener('load', () => {
         if (window.YouTubeProgressTracker) {
-            console.log('🎯 YouTubeProgressTracker listo en window.load');
+            // console.log('🎯 YouTubeProgressTracker listo en window.load');
             window.dispatchEvent(new CustomEvent('youtubeProgressTrackerReady', {
                 detail: { tracker: window.YouTubeProgressTracker }
             }));

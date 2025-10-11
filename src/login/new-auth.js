@@ -143,7 +143,7 @@ const API_BASE = (() => {
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const devLog = (...args) => {
     if (isDev) {
-        // console.log('[AUTH DEV]', ...args);
+        // // console.log('[AUTH DEV]', ...args);
     }
 };
 
@@ -1371,7 +1371,7 @@ async function registerUserLocal(userData) {
     existingUsers.push(newUser);
     localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
     
-    // console.log('Usuario registrado exitosamente:', newUser);
+    // // console.log('Usuario registrado exitosamente:', newUser);
     return newUser;
 }
 
@@ -2399,7 +2399,7 @@ function clearPreviousAccountData() {
         }
     }
     
-    // console.log('✅ Datos de cuenta anterior limpiados');
+    // // console.log('✅ Datos de cuenta anterior limpiados');
 }
 
 // Función mejorada para login que limpia datos previos
@@ -2435,18 +2435,18 @@ async function loginWithCleanup(emailOrUsername, password, remember = false) {
  * Abre el modal de recuperación de contraseña
  */
 function openForgotPasswordModal() {
-    console.log('🔐 Abriendo modal de recuperación de contraseña');
+    // console.log('🔐 Abriendo modal de recuperación de contraseña');
     const modal = document.getElementById('forgotPasswordModal');
-    console.log('Modal encontrado:', modal);
+    // console.log('Modal encontrado:', modal);
 
     if (modal) {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        console.log('Modal activado con clases:', modal.className);
+        // console.log('Modal activado con clases:', modal.className);
 
         // Forzar estilos del input para asegurar visibilidad
         const emailInput = document.getElementById('forgotPasswordEmail');
-        console.log('Input de email encontrado:', emailInput);
+        // console.log('Input de email encontrado:', emailInput);
         if (emailInput) {
             // ESTILOS FINALES CORRECTOS
             emailInput.style.cssText = `
@@ -2488,7 +2488,7 @@ function openForgotPasswordModal() {
                     opacity: 1 !important;
                     z-index: 9999 !important;
                 `;
-                console.log('✅ Wrapper encontrado y estilizado:', inputWrapper);
+                // console.log('✅ Wrapper encontrado y estilizado:', inputWrapper);
             } else {
                 console.error('❌ No se encontró el wrapper .input-wrapper');
             }
@@ -2503,7 +2503,7 @@ function openForgotPasswordModal() {
                     opacity: 1 !important;
                     z-index: 9998 !important;
                 `;
-                console.log('✅ Form-group encontrado y estilizado:', formGroup);
+                // console.log('✅ Form-group encontrado y estilizado:', formGroup);
             }
 
             // Forzar estilos del contenido del modal
@@ -2515,7 +2515,7 @@ function openForgotPasswordModal() {
                     opacity: 1 !important;
                     z-index: 9997 !important;
                 `;
-                console.log('✅ Modal content encontrado y estilizado:', modalContent);
+                // console.log('✅ Modal content encontrado y estilizado:', modalContent);
             }
 
             // Forzar estilos del icono
@@ -2559,11 +2559,11 @@ function openForgotPasswordModal() {
                     position: relative !important;
                 `;
                 
-                console.log('✅ Estilos aplicados al input:', emailInput.style.cssText);
+                // console.log('✅ Estilos aplicados al input:', emailInput.style.cssText);
                 
                 // Verificar si el input es realmente visible
                 const rect = emailInput.getBoundingClientRect();
-                console.log('📏 Dimensiones del input:', {
+                // console.log('📏 Dimensiones del input:', {
                     width: rect.width,
                     height: rect.height,
                     top: rect.top,
@@ -2573,7 +2573,7 @@ function openForgotPasswordModal() {
                 
                 // Si no es visible, crear un input de emergencia
                 if (rect.width === 0 || rect.height === 0) {
-                    console.log('🚨 Input no visible, creando input de emergencia...');
+                    // console.log('🚨 Input no visible, creando input de emergencia...');
                     createEmergencyInput();
                 }
             }, 300); // Esperar a que termine la animación
@@ -2660,7 +2660,7 @@ function createEmergencyInput() {
         emergencyInput.focus();
     }, 100);
     
-    console.log('🚨 Input de emergencia creado:', emergencyInput);
+    // console.log('🚨 Input de emergencia creado:', emergencyInput);
 }
 
 /**
@@ -2704,7 +2704,7 @@ async function handleForgotPassword(e) {
         const emergencyInput = document.getElementById('emergencyEmailInput');
         if (emergencyInput) {
             email = emergencyInput.value.trim();
-            console.log('📧 Usando input de emergencia:', email);
+            // console.log('📧 Usando input de emergencia:', email);
         }
     }
 
@@ -2724,7 +2724,7 @@ async function handleForgotPassword(e) {
         // Intentar con Supabase si está disponible
         if (ENABLE_SUPABASE_AUTH && window.supabase) {
             try {
-                console.log('🔄 Verificando usuario en Supabase para:', email);
+                // console.log('🔄 Verificando usuario en Supabase para:', email);
 
                 // Primero verificar si el usuario existe en Supabase
                 const { data: userData, error: userError } = await window.supabase
@@ -2733,24 +2733,24 @@ async function handleForgotPassword(e) {
                     .eq('email', email.toLowerCase())
                     .single();
 
-                console.log('👤 Datos del usuario:', { userData, userError });
+                // console.log('👤 Datos del usuario:', { userData, userError });
 
                 if (userError && userError.code !== 'PGRST116') {
                     console.error('❌ Error verificando usuario:', userError);
                 } else if (!userData) {
-                    console.log('⚠️ Usuario no encontrado en Supabase, usando servidor propio...');
+                    // console.log('⚠️ Usuario no encontrado en Supabase, usando servidor propio...');
                 } else {
-                    console.log('✅ Usuario encontrado, enviando email de recuperación...');
+                    // console.log('✅ Usuario encontrado, enviando email de recuperación...');
 
                     // URL de redirección más simple
                     const redirectUrl = `${window.location.protocol}//${window.location.host}/src/login/new-auth.html`;
-                    console.log('🔗 URL de redirección:', redirectUrl);
+                    // console.log('🔗 URL de redirección:', redirectUrl);
 
                     const { data, error } = await window.supabase.auth.resetPasswordForEmail(email, {
                         redirectTo: redirectUrl
                     });
 
-                    console.log('📄 Respuesta Supabase:', { data, error });
+                    // console.log('📄 Respuesta Supabase:', { data, error });
 
                     if (!error) {
                         showNotification('Se ha enviado un enlace de recuperación a tu correo electrónico', 'success');
@@ -2767,7 +2767,7 @@ async function handleForgotPassword(e) {
                         if (isEmailLoginsDisabled) {
                             // Este es un caso esperado - Email provider no está habilitado en Supabase
                             // Continuar silenciosamente con el servidor propio
-                            console.log('ℹ️ Supabase Email Provider no habilitado, usando servidor propio...');
+                            // console.log('ℹ️ Supabase Email Provider no habilitado, usando servidor propio...');
                         } else {
                             // Otros errores se registran como errores reales
                             console.error('❌ Error de Supabase:', error);
@@ -2789,21 +2789,21 @@ async function handleForgotPassword(e) {
                 );
 
                 if (isExpectedError) {
-                    console.log('ℹ️ Supabase Email Provider no configurado, usando servidor propio...');
+                    // console.log('ℹ️ Supabase Email Provider no configurado, usando servidor propio...');
                 } else {
                     console.error('❌ Excepción de Supabase:', supabaseError);
-                    console.log('⚠️ Supabase no funcionó, continuando con servidor propio...');
+                    // console.log('⚠️ Supabase no funcionó, continuando con servidor propio...');
                 }
             }
         } else {
-            console.log('ℹ️ Supabase no está disponible o no está habilitado');
+            // console.log('ℹ️ Supabase no está disponible o no está habilitado');
         }
 
         // Detectar entorno y usar endpoint apropiado
         const isNetlify = window.location.hostname.includes('netlify') || window.location.hostname.includes('.app');
         const endpoint = isNetlify ? '/.netlify/functions/forgot-password' : '/api/forgot-password';
 
-        console.log(`🌐 Entorno detectado: ${isNetlify ? 'Netlify' : 'Local'}, usando endpoint: ${endpoint}`);
+        // console.log(`🌐 Entorno detectado: ${isNetlify ? 'Netlify' : 'Local'}, usando endpoint: ${endpoint}`);
 
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -2813,11 +2813,11 @@ async function handleForgotPassword(e) {
             body: JSON.stringify({ email })
         });
 
-        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+        // console.log('📡 Respuesta del servidor:', response.status, response.statusText);
 
         if (response.ok) {
             const result = await response.json();
-            console.log('✅ Respuesta exitosa:', result);
+            // console.log('✅ Respuesta exitosa:', result);
             showNotification('Se ha enviado un enlace de recuperación a tu correo electrónico', 'success');
             closeForgotPasswordModal();
         } else {

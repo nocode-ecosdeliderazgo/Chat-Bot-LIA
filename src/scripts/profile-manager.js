@@ -11,20 +11,20 @@ class ProfileManager {
     async init() {
         try {
             // Esperar a que las credenciales de Supabase se carguen primero
-            console.log('🔄 ProfileManager: Esperando credenciales de Supabase...');
+            // console.log('🔄 ProfileManager: Esperando credenciales de Supabase...');
             if (window.supabaseCredentialsPromise) {
                 const credentialsLoaded = await window.supabaseCredentialsPromise;
                 if (credentialsLoaded) {
-                    console.log('✅ ProfileManager: Credenciales de Supabase cargadas');
+                    // console.log('✅ ProfileManager: Credenciales de Supabase cargadas');
                 } else {
                     console.warn('⚠️ ProfileManager: Credenciales de Supabase no se cargaron completamente, continuando...');
                 }
             }
 
             // Esperar a que Supabase esté listo antes de continuar
-            console.log('🔄 ProfileManager: Esperando a que Supabase esté listo...');
+            // console.log('🔄 ProfileManager: Esperando a que Supabase esté listo...');
             await this.waitForSupabase();
-            console.log('✅ ProfileManager: Supabase está listo, cargando perfil...');
+            // console.log('✅ ProfileManager: Supabase está listo, cargando perfil...');
 
             await this.loadCurrentUser();
             await this.loadProfileData();
@@ -45,7 +45,7 @@ class ProfileManager {
         while (Date.now() - startTime < maxWaitMs) {
             // Verificar si Supabase está listo
             if (window.supabaseInitialized && window.supabase) {
-                console.log('✅ Supabase está inicializado y listo');
+                // console.log('✅ Supabase está inicializado y listo');
                 return true;
             }
 
@@ -54,7 +54,7 @@ class ProfileManager {
                                    localStorage.getItem('supabaseAnonKey');
 
             if (hasCredentials && !window.supabaseLoading) {
-                console.log('🔄 Credenciales encontradas, intentando inicializar Supabase...');
+                // console.log('🔄 Credenciales encontradas, intentando inicializar Supabase...');
                 if (typeof initializeSupabaseClient === 'function') {
                     try {
                         await initializeSupabaseClient();
@@ -85,7 +85,7 @@ class ProfileManager {
             }
             const sessionUser = JSON.parse(raw);
 
-            console.log('📋 Cargando perfil de usuario:', {
+            // console.log('📋 Cargando perfil de usuario:', {
                 id: sessionUser.id,
                 username: sessionUser.username,
                 email: sessionUser.email
@@ -98,36 +98,36 @@ class ProfileManager {
                 if (sessionUser.username) attempts.push(`username=${encodeURIComponent(sessionUser.username)}`);
                 if (sessionUser.email) attempts.push(`email=${encodeURIComponent(sessionUser.email)}`);
 
-                console.log('🔍 Intentos de obtención de perfil:', attempts.length);
+                // console.log('🔍 Intentos de obtención de perfil:', attempts.length);
 
                 for (const q of attempts) {
                     try {
-                        console.log(`🔄 Intento ${attempts.indexOf(q) + 1}/${attempts.length}: /api/profile?${q}`);
+                        // console.log(`🔄 Intento ${attempts.indexOf(q) + 1}/${attempts.length}: /api/profile?${q}`);
                         const r = await fetch(`/api/profile?${q}`);
-                        console.log(`📡 Respuesta del servidor: ${r.status} ${r.statusText}`);
+                        // console.log(`📡 Respuesta del servidor: ${r.status} ${r.statusText}`);
                         
                         if (r.ok) {
                             const result = await r.json();
-                            console.log('✅ Perfil obtenido exitosamente desde API');
-                            console.log('📊 Datos recibidos:', {
-                                hasUser: !!result.user,
-                                username: result.user?.username,
-                                email: result.user?.email,
-                                first_name: result.user?.first_name,
-                                last_name: result.user?.last_name,
-                                phone: result.user?.phone,
-                                location: result.user?.location
-                            });
+                            // console.log('✅ Perfil obtenido exitosamente desde API');
+                            // console.log('📊 Datos recibidos:', {
+                            //     hasUser: !!result.user,
+                            //     username: result.user?.username,
+                            //     email: result.user?.email,
+                            //     first_name: result.user?.first_name,
+                            //     last_name: result.user?.last_name,
+                            //     phone: result.user?.phone,
+                            //     location: result.user?.location
+                            // });
                             return result;
                         } else if (r.status === 404 && attempts.indexOf(q) === 0) {
                             // Si el primer intento retorna 404, intentar sincronizar usuario
-                            console.log('⚠️ Usuario no encontrado, intentando sincronizar...');
+                            // console.log('⚠️ Usuario no encontrado, intentando sincronizar...');
                             await this.syncUserToDatabase(sessionUser);
                             // Reintentar después de sincronizar
                             const retry = await fetch(`/api/profile?${q}`);
                             if (retry.ok) {
                                 const result = await retry.json();
-                                console.log('✅ Perfil obtenido exitosamente después de sincronizar');
+                                // console.log('✅ Perfil obtenido exitosamente después de sincronizar');
                                 return result;
                             }
                         } else {
@@ -186,7 +186,7 @@ class ProfileManager {
                 this.showWarning('Trabajando en modo offline. Los datos se cargan desde el almacenamiento local.');
             }
 
-            console.log('✅ Datos de perfil obtenidos:', {
+            // console.log('✅ Datos de perfil obtenidos:', {
                 username: data.username,
                 email: data.email,
                 first_name: data.first_name,
@@ -218,7 +218,7 @@ class ProfileManager {
                 portfolio_url: data.portfolio_url || data.website_url || ''
             };
 
-            console.log('✅ profileData cargado:', {
+            // console.log('✅ profileData cargado:', {
                 first_name: this.profileData.first_name,
                 last_name: this.profileData.last_name,
                 phone: this.profileData.phone,
@@ -226,7 +226,7 @@ class ProfileManager {
                 bio: this.profileData.bio
             });
 
-            console.log('🔄 Actualizando visualización del perfil...');
+            // console.log('🔄 Actualizando visualización del perfil...');
             this.updateCurrentProfileDisplay();
         } catch (error) {
             console.error('Error cargando usuario actual:', error);
@@ -236,7 +236,7 @@ class ProfileManager {
 
     async syncUserToDatabase(userData) {
         try {
-            console.log('🔄 Sincronizando usuario a la base de datos...');
+            // console.log('🔄 Sincronizando usuario a la base de datos...');
 
             const response = await fetch('/api/sync-user', {
                 method: 'POST',
@@ -258,7 +258,7 @@ class ProfileManager {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Usuario sincronizado correctamente:', result);
+                // console.log('✅ Usuario sincronizado correctamente:', result);
                 return true;
             } else {
                 console.warn('⚠️ Error sincronizando usuario:', await response.text());
@@ -314,10 +314,10 @@ class ProfileManager {
              this.currentUser.type_rol === 'administrador');
 
         if (isAdmin) {
-            console.log('Usuario es administrador, mostrando panel de administración');
+            // console.log('Usuario es administrador, mostrando panel de administración');
             adminPanel.style.display = 'block';
         } else {
-            console.log('Usuario no es administrador, ocultando panel de administración');
+            // console.log('Usuario no es administrador, ocultando panel de administración');
             adminPanel.style.display = 'none';
         }
     }
@@ -328,7 +328,7 @@ class ProfileManager {
             return;
         }
 
-        console.log('📝 Poblando formulario con datos completos:', {
+        // console.log('📝 Poblando formulario con datos completos:', {
             'currentUser': this.currentUser,
             'profileData': this.profileData
         });
@@ -338,22 +338,22 @@ class ProfileManager {
         this.setFormValue('email', this.currentUser.email);
 
         // Información del perfil - TODOS los campos
-        console.log('📋 Estableciendo firstName:', this.profileData.first_name);
+        // console.log('📋 Estableciendo firstName:', this.profileData.first_name);
         this.setFormValue('firstName', this.profileData.first_name);
 
-        console.log('📋 Estableciendo lastName:', this.profileData.last_name);
+        // console.log('📋 Estableciendo lastName:', this.profileData.last_name);
         this.setFormValue('lastName', this.profileData.last_name);
 
-        console.log('📋 Estableciendo companyRole:', this.currentUser.cargo_rol, 'o', this.currentUser.company_role);
+        // console.log('📋 Estableciendo companyRole:', this.currentUser.cargo_rol, 'o', this.currentUser.company_role);
         this.setFormValue('companyRole', this.currentUser.cargo_rol || this.currentUser.company_role);
 
-        console.log('📋 Estableciendo phone:', this.profileData.phone);
+        // console.log('📋 Estableciendo phone:', this.profileData.phone);
         this.setFormValue('phone', this.profileData.phone);
 
-        console.log('📋 Estableciendo location:', this.profileData.location);
+        // console.log('📋 Estableciendo location:', this.profileData.location);
         this.setFormValue('location', this.profileData.location);
 
-        console.log('📋 Estableciendo bio:', this.profileData.bio);
+        // console.log('📋 Estableciendo bio:', this.profileData.bio);
         this.setFormValue('bio', this.profileData.bio);
 
         // URLs profesionales
@@ -361,7 +361,7 @@ class ProfileManager {
         this.setFormValue('githubUrl', this.profileData.github_url || this.currentUser.github_url || '');
         this.setFormValue('portfolioUrl', this.profileData.portfolio_url || this.currentUser.website_url || '');
 
-        console.log('✅ Formulario poblado - verificar valores en los elementos del DOM');
+        // console.log('✅ Formulario poblado - verificar valores en los elementos del DOM');
     }
 
     setFormValue(fieldId, value) {
@@ -369,7 +369,7 @@ class ProfileManager {
         if (element) {
             // Establecer valor incluso si es vacío, para limpiar campos
             element.value = value || '';
-            console.log(`✅ Campo ${fieldId} establecido:`, value || '(vacío)');
+            // console.log(`✅ Campo ${fieldId} establecido:`, value || '(vacío)');
         } else {
             console.warn(`⚠️ Campo ${fieldId} no encontrado en el DOM`);
         }
@@ -470,7 +470,7 @@ class ProfileManager {
         const profilePictureInput = document.getElementById('profilePicture');
         
         if (profilePictureInput && !this.photoListenersConfigured) {
-            console.log('📸 Configurando botones de foto de perfil...');
+            // console.log('📸 Configurando botones de foto de perfil...');
             
             // Función para abrir selector de archivos
             const openFileChooser = (event) => {
@@ -482,25 +482,25 @@ class ProfileManager {
                 // Verificar que no hay diálogos abiertos
                 if (document.querySelector('.password-required-notification') || 
                     document.querySelector('.email-not-confirmed-notification')) {
-                    console.log('⚠️ Hay un diálogo abierto, cancelando file chooser');
+                    // console.log('⚠️ Hay un diálogo abierto, cancelando file chooser');
                     return;
                 }
                 
-                console.log('📸 Abriendo selector de imagen...');
+                // console.log('📸 Abriendo selector de imagen...');
                 profilePictureInput.click();
             };
             
             // Configurar botón "Cambiar foto" (solo una vez)
             if (changeAvatarBtn) {
                 changeAvatarBtn.addEventListener('click', openFileChooser);
-                console.log('✅ Botón "Cambiar foto" configurado');
+                // console.log('✅ Botón "Cambiar foto" configurado');
             }
             
             // Configurar avatar clickeable (solo una vez)
             if (avatar) {
                 avatar.addEventListener('click', openFileChooser);
                 avatar.style.cursor = 'pointer';
-                console.log('✅ Avatar clickeable configurado');
+                // console.log('✅ Avatar clickeable configurado');
             }
             
             // Marcar como configurado para evitar duplicación
@@ -525,7 +525,7 @@ class ProfileManager {
     setupFileUploads() {
         // NOTA: Las fotos de perfil son manejadas por file-upload-manager.js
         // Este método solo maneja curriculum (CV) para evitar conflictos
-        console.log('📝 ProfileManager: Configurando solo upload de CV (fotos manejadas por FileUploadManager)');
+        // console.log('📝 ProfileManager: Configurando solo upload de CV (fotos manejadas por FileUploadManager)');
 
         // Curriculum
         const curriculumInput = document.getElementById('curriculum');
@@ -543,7 +543,7 @@ class ProfileManager {
             newCvBtn.addEventListener('click', (event) => {
                 // Prevenir clics duplicados
                 if (cvClickInProgress) {
-                    console.log('⚠️ Click ya en progreso, ignorando...');
+                    // console.log('⚠️ Click ya en progreso, ignorando...');
                     event.preventDefault();
                     return;
                 }
@@ -561,14 +561,14 @@ class ProfileManager {
                 // Verificar que no haya otros diálogos abiertos
                 if (document.querySelector('.password-required-notification') || 
                     document.querySelector('.email-not-confirmed-notification')) {
-                    console.log('⚠️ Diálogo de notificación abierto, esperando...');
+                    // console.log('⚠️ Diálogo de notificación abierto, esperando...');
                     return;
                 }
                 
                 cvClickInProgress = true;
                 
                 try {
-                    console.log('📝 Abriendo selector de archivos para CV...');
+                    // console.log('📝 Abriendo selector de archivos para CV...');
                     
                     // Usar setTimeout para asegurar que se ejecute en el contexto correcto
                     setTimeout(() => {
@@ -600,7 +600,7 @@ class ProfileManager {
                 const file = e.target.files[0];
                 if (file && curriculumName) {
                     curriculumName.textContent = file.name;
-                    console.log('📝 Archivo CV seleccionado:', file.name);
+                    // console.log('📝 Archivo CV seleccionado:', file.name);
                 }
                 // El upload real es manejado por FileUploadManager
             });
@@ -826,7 +826,7 @@ class ProfileManager {
             website_url: document.getElementById('portfolioUrl')?.value || null
         };
 
-        console.log('Actualizando perfil con datos:', updates);
+        // console.log('Actualizando perfil con datos:', updates);
 
         let user;
         try {
@@ -873,7 +873,7 @@ class ProfileManager {
             }
 
             user = data[0];
-            console.log('Perfil actualizado en Supabase:', user);
+            // console.log('Perfil actualizado en Supabase:', user);
 
         } catch (err) {
             console.error('Error actualizando en Supabase:', err);
@@ -886,7 +886,7 @@ class ProfileManager {
                 store[key] = { ...(store[key] || {}), ...updates };
                 localStorage.setItem(KEY, JSON.stringify(store));
                 user = { ...store[key] };
-                console.log('Perfil guardado localmente:', user);
+                // console.log('Perfil guardado localmente:', user);
             } catch (localErr) {
                 console.error('Error guardando localmente:', localErr);
                 throw err; // si no podemos guardar localmente, re-lanzamos el error original
@@ -926,7 +926,7 @@ class ProfileManager {
     setupAutoSave() {
         // Auto-guardado deshabilitado para evitar logs repetitivos
         // Los usuarios deben guardar manualmente usando el botón "Guardar"
-        console.log('ℹ️ Auto-guardado deshabilitado - usar botón "Guardar" para persistir cambios');
+        // console.log('ℹ️ Auto-guardado deshabilitado - usar botón "Guardar" para persistir cambios');
     }
 
     showSuccess(message) {
@@ -1016,10 +1016,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Función global de debug disponible en consola
     window.debugProfile = () => {
         if (window.profileManager) {
-            console.log('=== DEBUG PROFILE STATE ===');
-            console.log('Current User:', window.profileManager.currentUser);
-            console.log('Profile Data:', window.profileManager.profileData);
-            console.log('LocalStorage currentUser:', localStorage.getItem('currentUser'));
+            // console.log('=== DEBUG PROFILE STATE ===');
+            // console.log('Current User:', window.profileManager.currentUser);
+            // console.log('Profile Data:', window.profileManager.profileData);
+            // console.log('LocalStorage currentUser:', localStorage.getItem('currentUser'));
             
             // Mostrar todas las claves de perfil en localStorage
             const profileKeys = [];
@@ -1029,10 +1029,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     profileKeys.push(key);
                 }
             }
-            console.log('Profile keys in localStorage:', profileKeys);
-            console.log('=== END DEBUG ===');
+            // console.log('Profile keys in localStorage:', profileKeys);
+            // console.log('=== END DEBUG ===');
         } else {
-            console.log('ProfileManager no está inicializado');
+            // console.log('ProfileManager no está inicializado');
         }
     };
 });

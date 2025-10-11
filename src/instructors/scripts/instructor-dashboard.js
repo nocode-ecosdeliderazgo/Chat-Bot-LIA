@@ -8,7 +8,7 @@ class InstructorDashboard {
     }
 
     async init() {
-        console.log('🚀 Inicializando Panel de Maestros...');
+        // console.log('🚀 Inicializando Panel de Maestros...');
         
         // Verificar autenticación
         await this.checkAuth();
@@ -20,7 +20,7 @@ class InstructorDashboard {
         this.loadDashboardData();
         this.initFormHandlers();
         
-        console.log('✅ Panel de Maestros inicializado correctamente');
+        // console.log('✅ Panel de Maestros inicializado correctamente');
     }
 
     async checkAuth() {
@@ -28,7 +28,7 @@ class InstructorDashboard {
         const userToken = localStorage.getItem('userToken') || localStorage.getItem('authToken');
         
         if (!userDataStr || !userToken) {
-            console.log('No hay datos de autenticación, redirigiendo al login');
+            // console.log('No hay datos de autenticación, redirigiendo al login');
             window.location.href = '../login/new-auth.html';
             return;
         }
@@ -36,7 +36,7 @@ class InstructorDashboard {
         try {
             const userData = JSON.parse(userDataStr);
             if (userData.cargo_rol !== 'Instructor' && userData.cargo_rol !== 'instructor') {
-                console.log('Usuario no es instructor, redirigiendo');
+                // console.log('Usuario no es instructor, redirigiendo');
                 window.location.href = '../cursos.html';
                 return;
             }
@@ -137,7 +137,7 @@ class InstructorDashboard {
     }
 
     async loadDashboardData() {
-        console.log('📊 Cargando datos del dashboard...');
+        // console.log('📊 Cargando datos del dashboard...');
         
         // Simular datos del dashboard (en producción esto vendría de la API)
         const dashboardData = {
@@ -312,7 +312,7 @@ class InstructorDashboard {
     }
 
     async loadCourses() {
-        console.log('📚 Cargando cursos...');
+        // console.log('📚 Cargando cursos...');
         
         // Simular datos de cursos (en producción esto vendría de la API)
         const courses = [
@@ -468,7 +468,7 @@ class InstructorDashboard {
             instructor_id: this.currentUser.id || this.currentUser.user_id
         };
 
-        console.log('📝 Creando curso:', courseData);
+        // console.log('📝 Creando curso:', courseData);
 
         try {
             // Aquí iría la llamada a la API para crear el curso
@@ -539,13 +539,13 @@ function cancelCreate() {
 }
 
 function editCourse(courseId) {
-    console.log('✏️ Editando curso:', courseId);
+    // console.log('✏️ Editando curso:', courseId);
     alert(`📝 Editando curso ${courseId} - Funcionalidad en desarrollo`);
 }
 
 function deleteCourse(courseId) {
     if (confirm('¿Estás seguro de que quieres eliminar este curso? Esta acción no se puede deshacer.')) {
-        console.log('🗑️ Eliminando curso:', courseId);
+        // console.log('🗑️ Eliminando curso:', courseId);
         alert(`✅ Curso ${courseId} eliminado exitosamente`);
         // Aquí iría la lógica para eliminar el curso
     }
@@ -584,4 +584,4 @@ window.addEventListener('error', (e) => {
     console.error('Error en el panel de maestros:', e.error);
 });
 
-console.log('📚 Panel de Maestros - Script cargado');
+// console.log('📚 Panel de Maestros - Script cargado');

@@ -23,7 +23,7 @@ class OTPCleanupService {
                 }
             });
 
-            console.log('✅ Servicio de limpieza de OTPs inicializado');
+            // console.log('✅ Servicio de limpieza de OTPs inicializado');
         } catch (error) {
             console.error('❌ Error inicializando pool de conexión:', error);
         }
@@ -49,9 +49,9 @@ class OTPCleanupService {
             const result = await this.pool.query(query);
             
             if (result.rowCount > 0) {
-                console.log(`🧹 Limpieza completada: ${result.rowCount} OTPs expirados eliminados`);
+                // console.log(`🧹 Limpieza completada: ${result.rowCount} OTPs expirados eliminados`);
             } else {
-                console.log('🧹 No se encontraron OTPs para limpiar');
+                // console.log('🧹 No se encontraron OTPs para limpiar');
             }
 
         } catch (error) {
@@ -76,7 +76,7 @@ class OTPCleanupService {
             this.cleanupExpiredOTPs();
         }, intervalMinutes * 60 * 1000);
 
-        console.log(`🔄 Servicio de limpieza automática iniciado (cada ${intervalMinutes} minutos)`);
+        // console.log(`🔄 Servicio de limpieza automática iniciado (cada ${intervalMinutes} minutos)`);
     }
 
     /**
@@ -86,7 +86,7 @@ class OTPCleanupService {
         if (this.cleanupInterval) {
             clearInterval(this.cleanupInterval);
             this.cleanupInterval = null;
-            console.log('🛑 Servicio de limpieza automática detenido');
+            // console.log('🛑 Servicio de limpieza automática detenido');
         }
     }
 
@@ -126,7 +126,7 @@ class OTPCleanupService {
         
         if (this.pool) {
             await this.pool.end();
-            console.log('🔌 Conexión a la base de datos cerrada');
+            // console.log('🔌 Conexión a la base de datos cerrada');
         }
     }
 }
@@ -136,13 +136,13 @@ const otpCleanupService = new OTPCleanupService();
 
 // Manejar señales de terminación
 process.on('SIGINT', async () => {
-    console.log('\n🛑 Recibida señal SIGINT, cerrando servicio...');
+    // console.log('\n🛑 Recibida señal SIGINT, cerrando servicio...');
     await otpCleanupService.close();
     process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-    console.log('\n🛑 Recibida señal SIGTERM, cerrando servicio...');
+    // console.log('\n🛑 Recibida señal SIGTERM, cerrando servicio...');
     await otpCleanupService.close();
     process.exit(0);
 });

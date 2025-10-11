@@ -1,9 +1,9 @@
 // Script simple para arreglar el avatar - SIN DEPENDENCIAS EXTERNAS
-console.log('🔧 AVATAR-FIX-SIMPLE.JS INICIADO');
+// console.log('🔧 AVATAR-FIX-SIMPLE.JS INICIADO');
 
 // Función para crear avatar
 function createAvatar() {
-    console.log('🎨 Creando avatar...');
+    // console.log('🎨 Creando avatar...');
     
     try {
         // Crear canvas
@@ -36,7 +36,7 @@ function createAvatar() {
         
         // Convertir a data URL
         const dataURL = canvas.toDataURL('image/png');
-        console.log('✅ Avatar creado exitosamente');
+        // console.log('✅ Avatar creado exitosamente');
         
         return dataURL;
     } catch (error) {
@@ -47,7 +47,7 @@ function createAvatar() {
 
 // Función para aplicar avatar SOLO SI NO HAY FOTO EXISTENTE
 function applyAvatar() {
-    console.log('📍 Verificando si ya hay foto de perfil...');
+    // console.log('📍 Verificando si ya hay foto de perfil...');
     
     // VERIFICAR SI YA HAY UNA FOTO DE PERFIL VÁLIDA
     try {
@@ -59,7 +59,7 @@ function applyAvatar() {
                 !userData.profile_picture_url.includes('createAvatar') &&
                 !userData.profile_picture_url.includes('F') && 
                 userData.profile_picture_url.length > 50) { // URLs de fotos reales son más largas
-                console.log('✅ Ya existe una foto de perfil válida, NO sobrescribiendo');
+                // console.log('✅ Ya existe una foto de perfil válida, NO sobrescribiendo');
                 return false;
             }
         }
@@ -67,16 +67,16 @@ function applyAvatar() {
         console.error('❌ Error verificando foto existente:', error);
     }
     
-    console.log('📍 Buscando elemento avatar...');
+    // console.log('📍 Buscando elemento avatar...');
     
     const avatarImage = document.getElementById('avatarImage');
     
     if (avatarImage) {
-        console.log('✅ Elemento avatar encontrado');
+        // console.log('✅ Elemento avatar encontrado');
         
         // VERIFICAR SI ESTÁ PROTEGIDO POR FOTO REAL
         if (avatarImage.hasAttribute('data-real-photo') || avatarImage.hasAttribute('data-protected')) {
-            console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO PLACEHOLDER');
+            // console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO PLACEHOLDER');
             return false;
         }
         
@@ -87,7 +87,7 @@ function applyAvatar() {
             avatarImage.style.visibility = 'visible';
             avatarImage.style.opacity = '1';
             
-            console.log('✅ Avatar aplicado correctamente');
+            // console.log('✅ Avatar aplicado correctamente');
             
             // Guardar en localStorage
             try {
@@ -96,7 +96,7 @@ function applyAvatar() {
                     const userData = JSON.parse(currentUser);
                     userData.profile_picture_url = avatarDataURL;
                     localStorage.setItem('currentUser', JSON.stringify(userData));
-                    console.log('✅ Avatar guardado en localStorage');
+                    // console.log('✅ Avatar guardado en localStorage');
                 }
             } catch (error) {
                 console.error('❌ Error guardando en localStorage:', error);
@@ -114,18 +114,18 @@ function applyAvatar() {
 }
 
 // Ejecutar automáticamente
-console.log('⚡ Ejecutando avatar automáticamente...');
+// console.log('⚡ Ejecutando avatar automáticamente...');
 applyAvatar();
 
 // También ejecutar después de un retraso
 setTimeout(() => {
-    console.log('⏰ Ejecutando avatar con retraso...');
+    // console.log('⏰ Ejecutando avatar con retraso...');
     applyAvatar();
 }, 1000);
 
 // Y después de que se cargue todo
 window.addEventListener('load', () => {
-    console.log('📄 Ejecutando avatar después de load...');
+    // console.log('📄 Ejecutando avatar después de load...');
     setTimeout(() => {
         applyAvatar();
     }, 2000);
@@ -133,8 +133,8 @@ window.addEventListener('load', () => {
 
 // Función global para uso manual
 window.fixAvatar = function() {
-    console.log('🧪 FIX AVATAR MANUAL');
+    // console.log('🧪 FIX AVATAR MANUAL');
     return applyAvatar();
 };
 
-console.log('✅ AVATAR-FIX-SIMPLE.JS CARGADO');
+// console.log('✅ AVATAR-FIX-SIMPLE.JS CARGADO');

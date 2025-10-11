@@ -39,7 +39,7 @@ class VideoPlayer {
         this.initializeSubtitles();
         
         this.isInitialized = true;
-        console.log('🎥 Video Player inicializado');
+        // console.log('🎥 Video Player inicializado');
     }
 
     /**
@@ -691,7 +691,7 @@ class VideoPlayer {
      */
     toggleSubtitles() {
         // Implementar toggle de subtítulos
-        console.log('Toggle subtítulos');
+        // console.log('Toggle subtítulos');
     }
 
     /**
@@ -817,7 +817,7 @@ class VideoPlayer {
      */
     showSkipFeedback(text) {
         // Implementar feedback visual
-        console.log(`Skip: ${text}`);
+        // console.log(`Skip: ${text}`);
     }
 
     /**
@@ -825,7 +825,7 @@ class VideoPlayer {
      */
     showBookmarkFeedback() {
         // Implementar feedback visual
-        console.log('Marcador añadido');
+        // console.log('Marcador añadido');
     }
 
     /**
@@ -879,11 +879,11 @@ class VideoPlayer {
         try {
             // Prevenir múltiples llamadas del mismo video
             if (this.isCompleted) {
-                console.log('[VIDEO] Video ya marcado como completado, ignorando duplicate call');
+                // console.log('[VIDEO] Video ya marcado como completado, ignorando duplicate call');
                 return;
             }
 
-            console.log('[VIDEO] Marcando video como completado:', this.videoId);
+            // console.log('[VIDEO] Marcando video como completado:', this.videoId);
             this.isCompleted = true;
 
             // Emitir evento de completión
@@ -904,7 +904,7 @@ class VideoPlayer {
             // También emitir en document para componentes que lo esperan
             document.dispatchEvent(event);
 
-            console.log('[VIDEO] Evento videoCompleted emitido correctamente');
+            // console.log('[VIDEO] Evento videoCompleted emitido correctamente');
 
         } catch (error) {
             console.error('[VIDEO] Error en markAsCompleted:', error);
@@ -957,7 +957,7 @@ class VideoPlayer {
         // Función de seguridad - implementación básica
         try {
             // Aquí iría la lógica de subtítulos si fuera necesaria
-            console.log('[VIDEO] updateSubtitles called (safe mode)');
+            // console.log('[VIDEO] updateSubtitles called (safe mode)');
         } catch (error) {
             console.warn('[VIDEO] Error in updateSubtitles:', error);
         }
@@ -966,7 +966,7 @@ class VideoPlayer {
     showBuffering(show = true) {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] showBuffering called:', show);
+            // console.log('[VIDEO] showBuffering called:', show);
             // Aquí iría la lógica de buffering si fuera necesaria
         } catch (error) {
             console.warn('[VIDEO] Error in showBuffering:', error);
@@ -976,7 +976,7 @@ class VideoPlayer {
     hideBigPlayButton() {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] hideBigPlayButton called (safe mode)');
+            // console.log('[VIDEO] hideBigPlayButton called (safe mode)');
             // Aquí iría la lógica del botón de play si fuera necesaria
         } catch (error) {
             console.warn('[VIDEO] Error in hideBigPlayButton:', error);
@@ -986,7 +986,7 @@ class VideoPlayer {
     showBigPlayButton() {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] showBigPlayButton called (safe mode)');
+            // console.log('[VIDEO] showBigPlayButton called (safe mode)');
             // Aquí iría la lógica del botón de play si fuera necesaria
         } catch (error) {
             console.warn('[VIDEO] Error in showBigPlayButton:', error);
@@ -996,7 +996,7 @@ class VideoPlayer {
     updateVolumeDisplay() {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] updateVolumeDisplay called (safe mode)');
+            // console.log('[VIDEO] updateVolumeDisplay called (safe mode)');
         } catch (error) {
             console.warn('[VIDEO] Error in updateVolumeDisplay:', error);
         }
@@ -1005,7 +1005,7 @@ class VideoPlayer {
     trackProgress() {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] trackProgress called (safe mode)');
+            // console.log('[VIDEO] trackProgress called (safe mode)');
         } catch (error) {
             console.warn('[VIDEO] Error in trackProgress:', error);
         }
@@ -1015,7 +1015,7 @@ class VideoPlayer {
     updateBufferProgress() {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] updateBufferProgress called (safe mode)');
+            // console.log('[VIDEO] updateBufferProgress called (safe mode)');
         } catch (error) {
             console.warn('[VIDEO] Error in updateBufferProgress:', error);
         }
@@ -1024,7 +1024,7 @@ class VideoPlayer {
     updateFullscreenButton() {
         // Función de seguridad - implementación básica
         try {
-            console.log('[VIDEO] updateFullscreenButton called (safe mode)');
+            // console.log('[VIDEO] updateFullscreenButton called (safe mode)');
         } catch (error) {
             console.warn('[VIDEO] Error in updateFullscreenButton:', error);
         }

@@ -72,14 +72,14 @@
             logEntry.className = type;
             logEntry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
             logsDiv.appendChild(logEntry);
-            console.log(message);
+            // console.log(message);
         }
 
-        // Override console.log para mostrar en la página
-        const originalLog = console.log;
+        // Override // console.log para mostrar en la página
+        const originalLog = // console.log;
         const originalError = console.error;
         
-        console.log = function(...args) {
+        // console.log = function(...args) {
             originalLog.apply(console, args);
             addLog(args.join(' '), 'success');
         };

@@ -1,6 +1,6 @@
 // Script para crear automáticamente una imagen de avatar local
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎨 CREANDO AVATAR LOCAL AUTOMÁTICAMENTE');
+    // console.log('🎨 CREANDO AVATAR LOCAL AUTOMÁTICAMENTE');
     
     // Función para crear avatar con iniciales
     function createAvatarWithInitials(initials = 'F') {
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (avatarImage) {
             // VERIFICAR SI ESTÁ PROTEGIDO POR FOTO REAL
             if (avatarImage.hasAttribute('data-real-photo') || avatarImage.hasAttribute('data-protected')) {
-                console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO INICIALES');
+                // console.log('⚠️ AVATAR PROTEGIDO DETECTADO, NO APLICANDO INICIALES');
                 return false;
             }
             avatarImage.src = dataURL;
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             avatarImage.style.visibility = 'visible';
             avatarImage.style.opacity = '1';
             
-            console.log('✅ Avatar local aplicado correctamente');
+            // console.log('✅ Avatar local aplicado correctamente');
             
             // Guardar en localStorage
             const currentUser = localStorage.getItem('currentUser');
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const userData = JSON.parse(currentUser);
                 userData.profile_picture_url = dataURL;
                 localStorage.setItem('currentUser', JSON.stringify(userData));
-                console.log('✅ Avatar guardado en localStorage');
+                // console.log('✅ Avatar guardado en localStorage');
             }
             
             return true;
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             userData.profile_picture_url.includes('createAvatar') ||
             (userData.profile_picture_url.includes('F') && userData.profile_picture_url.length < 100)) {
             
-            console.log('⚠️ No hay imagen de perfil válida, creando una local...');
+            // console.log('⚠️ No hay imagen de perfil válida, creando una local...');
             
             // Obtener iniciales del nombre del usuario
             let initials = 'F'; // Por defecto
@@ -92,13 +92,13 @@ document.addEventListener('DOMContentLoaded', function() {
             applyAvatar(avatarDataURL);
             
         } else {
-            console.log('✅ Ya existe una imagen de perfil válida, NO sobrescribiendo:', userData.profile_picture_url);
+            // console.log('✅ Ya existe una imagen de perfil válida, NO sobrescribiendo:', userData.profile_picture_url);
             
             // NO verificar errores de carga para evitar sobrescribir fotos reales
-            console.log('ℹ️ Respetando foto de perfil existente');
+            // console.log('ℹ️ Respetando foto de perfil existente');
         }
     } else {
-        console.log('ℹ️ No hay datos de usuario, creando avatar por defecto...');
+        // console.log('ℹ️ No hay datos de usuario, creando avatar por defecto...');
         const avatarDataURL = createAvatarWithInitials('F');
         applyAvatar(avatarDataURL);
     }
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función global para crear avatar personalizado
 window.createCustomAvatar = function(initials = 'F', color1 = '#44E5FF', color2 = '#0077A6') {
-    console.log('🎨 CREANDO AVATAR PERSONALIZADO:', { initials, color1, color2 });
+    // console.log('🎨 CREANDO AVATAR PERSONALIZADO:', { initials, color1, color2 });
     
     const canvas = document.createElement('canvas');
     canvas.width = 100;
@@ -152,7 +152,7 @@ window.createCustomAvatar = function(initials = 'F', color1 = '#44E5FF', color2 
             localStorage.setItem('currentUser', JSON.stringify(userData));
         }
         
-        console.log('✅ Avatar personalizado creado y aplicado');
+        // console.log('✅ Avatar personalizado creado y aplicado');
         return dataURL;
     } else {
         console.error('❌ Elemento avatar no encontrado');

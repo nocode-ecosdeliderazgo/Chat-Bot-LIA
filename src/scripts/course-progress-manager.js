@@ -15,7 +15,7 @@ class CourseProgressManager {
     }
 
     async init() {
-        console.log('🚀 Inicializando Course Progress Manager...');
+        // console.log('🚀 Inicializando Course Progress Manager...');
         
         // Obtener información del usuario
         this.userId = this.getCurrentUserId();
@@ -25,7 +25,7 @@ class CourseProgressManager {
             this.userId = 'demo-user-' + Date.now();
         }
 
-        console.log('👤 User ID:', this.userId);
+        // console.log('👤 User ID:', this.userId);
     }
 
     // ===== OBTENER USUARIO ACTUAL =====
@@ -35,14 +35,14 @@ class CourseProgressManager {
             const userData = localStorage.getItem('userData');
             if (userData) {
                 const user = JSON.parse(userData);
-                console.log('👤 Usuario obtenido del localStorage:', user.id);
+                // console.log('👤 Usuario obtenido del localStorage:', user.id);
                 return user.id;
             }
 
             // 2. Intentar obtener userId directamente del localStorage
             const directUserId = localStorage.getItem('userId');
             if (directUserId) {
-                console.log('👤 UserId directo del localStorage:', directUserId);
+                // console.log('👤 UserId directo del localStorage:', directUserId);
                 return directUserId;
             }
 
@@ -50,7 +50,7 @@ class CourseProgressManager {
             const sessionData = sessionStorage.getItem('userData');
             if (sessionData) {
                 const user = JSON.parse(sessionData);
-                console.log('👤 Usuario obtenido del sessionStorage:', user.id);
+                // console.log('👤 Usuario obtenido del sessionStorage:', user.id);
                 return user.id;
             }
 
@@ -58,7 +58,7 @@ class CourseProgressManager {
             const urlParams = new URLSearchParams(window.location.search);
             const urlUserId = urlParams.get('userId');
             if (urlUserId) {
-                console.log('👤 UserId obtenido de la URL:', urlUserId);
+                // console.log('👤 UserId obtenido de la URL:', urlUserId);
                 return urlUserId;
             }
 
@@ -69,7 +69,7 @@ class CourseProgressManager {
                 demoId = '00000000-0000-0000-0000-000000000001';
                 localStorage.setItem('demoUserId', demoId);
             }
-            console.log('🎭 Usando ID demo persistente:', demoId);
+            // console.log('🎭 Usando ID demo persistente:', demoId);
             return demoId;
             
         } catch (error) {
@@ -111,7 +111,7 @@ class CourseProgressManager {
         const fullUrl = `${baseUrl}/${apiPath}`;
 
         try {
-            console.log(`🌐 API Call: ${fullUrl}`, mergedOptions);
+            // console.log(`🌐 API Call: ${fullUrl}`, mergedOptions);
             
             const response = await fetch(fullUrl, mergedOptions);
             
@@ -120,7 +120,7 @@ class CourseProgressManager {
             }
 
             const data = await response.json();
-            console.log(`✅ API Response: ${fullUrl}`, data);
+            // console.log(`✅ API Response: ${fullUrl}`, data);
             
             return data;
             
@@ -136,13 +136,13 @@ class CourseProgressManager {
         if (!forceRefresh && this.progressCache && this.cacheTimestamp) {
             const cacheAge = Date.now() - this.cacheTimestamp;
             if (cacheAge < this.cacheDuration) {
-                console.log('📦 Usando progreso desde caché');
+                // console.log('📦 Usando progreso desde caché');
                 return this.progressCache;
             }
         }
 
         try {
-            console.log('📊 Obteniendo progreso del curso...');
+            // console.log('📊 Obteniendo progreso del curso...');
             
             const response = await this.makeApiCall(
                 `/api/course-progress?course_identifier=${this.courseId}&user_id=${this.userId}`
@@ -153,7 +153,7 @@ class CourseProgressManager {
                 this.progressCache = response.progress;
                 this.cacheTimestamp = Date.now();
                 
-                console.log('✅ Progreso obtenido:', this.currentProgress);
+                // console.log('✅ Progreso obtenido:', this.currentProgress);
                 return this.currentProgress;
             } else {
                 throw new Error(response.error || 'Error desconocido');
@@ -164,7 +164,7 @@ class CourseProgressManager {
             
             // Fallback con datos locales o por defecto
             const fallbackProgress = this.generateFallbackProgress();
-            console.log('🔄 Usando progreso de fallback:', fallbackProgress);
+            // console.log('🔄 Usando progreso de fallback:', fallbackProgress);
             return fallbackProgress;
         }
     }
@@ -172,14 +172,14 @@ class CourseProgressManager {
     // ===== ACTUALIZAR PROGRESO DEL MÓDULO =====
     async updateModuleProgress(moduleNumber, updates = {}) {
         if (this.isUpdating) {
-            console.log('⏳ Actualización ya en progreso, saltando...');
+            // console.log('⏳ Actualización ya en progreso, saltando...');
             return this.currentProgress;
         }
 
         this.isUpdating = true;
 
         try {
-            console.log(`📝 Actualizando progreso del módulo ${moduleNumber}:`, updates);
+            // console.log(`📝 Actualizando progreso del módulo ${moduleNumber}:`, updates);
 
             const requestBody = {
                 course_identifier: this.courseId,
@@ -198,7 +198,7 @@ class CourseProgressManager {
                 this.progressCache = response.course_progress;
                 this.cacheTimestamp = Date.now();
 
-                console.log('✅ Progreso del módulo actualizado');
+                // console.log('✅ Progreso del módulo actualizado');
                 
                 // Notificar cambios al UI
                 this.notifyProgressUpdate(moduleNumber, response);
@@ -219,7 +219,7 @@ class CourseProgressManager {
     // ===== ACTUALIZAR PROGRESO DEL VIDEO =====
     async updateVideoProgress(moduleNumber, videoUpdates = {}) {
         try {
-            console.log(`🎥 Actualizando progreso del video módulo ${moduleNumber}:`, videoUpdates);
+            // console.log(`🎥 Actualizando progreso del video módulo ${moduleNumber}:`, videoUpdates);
 
             const requestBody = {
                 course_identifier: this.courseId,
@@ -238,7 +238,7 @@ class CourseProgressManager {
                 this.progressCache = response.course_progress;
                 this.cacheTimestamp = Date.now();
 
-                console.log('✅ Progreso del video actualizado');
+                // console.log('✅ Progreso del video actualizado');
                 
                 // Notificar cambios
                 this.notifyVideoProgressUpdate(moduleNumber, response);
@@ -278,7 +278,7 @@ class CourseProgressManager {
     // ===== COMPLETAR MÓDULO =====
     async completeModule(moduleNumber) {
         try {
-            console.log(`🎯 Completando módulo ${moduleNumber}...`);
+            // console.log(`🎯 Completando módulo ${moduleNumber}...`);
 
             const updates = {
                 status: 'completed',
@@ -289,7 +289,7 @@ class CourseProgressManager {
 
             const response = await this.updateModuleProgress(moduleNumber, updates);
             
-            console.log(`✅ Módulo ${moduleNumber} completado`);
+            // console.log(`✅ Módulo ${moduleNumber} completado`);
             return response;
             
         } catch (error) {
@@ -301,7 +301,7 @@ class CourseProgressManager {
     // ===== INICIAR MÓDULO =====
     async startModule(moduleNumber) {
         try {
-            console.log(`▶️ Iniciando módulo ${moduleNumber}...`);
+            // console.log(`▶️ Iniciando módulo ${moduleNumber}...`);
 
             const updates = {
                 status: 'in_progress',
@@ -310,7 +310,7 @@ class CourseProgressManager {
 
             const response = await this.updateModuleProgress(moduleNumber, updates);
             
-            console.log(`✅ Módulo ${moduleNumber} iniciado`);
+            // console.log(`✅ Módulo ${moduleNumber} iniciado`);
             return response;
             
         } catch (error) {
@@ -397,7 +397,7 @@ class CourseProgressManager {
         });
         
         window.dispatchEvent(event);
-        console.log('📡 Evento courseProgressUpdated emitido');
+        // console.log('📡 Evento courseProgressUpdated emitido');
     }
 
     notifyVideoProgressUpdate(moduleNumber, response) {
@@ -413,7 +413,7 @@ class CourseProgressManager {
         });
         
         window.dispatchEvent(event);
-        console.log('📡 Evento videoProgressUpdated emitido');
+        // console.log('📡 Evento videoProgressUpdated emitido');
     }
 
     // ===== UTILIDADES =====
@@ -445,13 +445,13 @@ class CourseProgressManager {
 
     // ===== MÉTODOS PÚBLICOS PARA UI =====
     async refreshProgress() {
-        console.log('🔄 Refrescando progreso...');
+        // console.log('🔄 Refrescando progreso...');
         return await this.getCourseProgress(true);
     }
 
     async initializeForUser(userId) {
         this.userId = userId;
-        console.log('🔄 Reinicializando para usuario:', userId);
+        // console.log('🔄 Reinicializando para usuario:', userId);
         
         // Limpiar caché
         this.progressCache = null;
@@ -467,7 +467,7 @@ window.CourseProgressManager = CourseProgressManager;
 // Función de inicialización asíncrona
 async function initializeGlobalProgressManager() {
     try {
-        console.log('🚀 Inicializando CourseProgressManager global...');
+        // console.log('🚀 Inicializando CourseProgressManager global...');
         
         // Crear instancia inmediatamente
         const manager = new CourseProgressManager();
@@ -475,8 +475,8 @@ async function initializeGlobalProgressManager() {
         // Asignar a window inmediatamente
         window.courseProgressManager = manager;
         
-        console.log('✅ CourseProgressManager disponible globalmente');
-        console.log('🔍 Verificación:', typeof window.courseProgressManager);
+        // console.log('✅ CourseProgressManager disponible globalmente');
+        // console.log('🔍 Verificación:', typeof window.courseProgressManager);
         
         // Emitir evento de que está listo
         window.dispatchEvent(new CustomEvent('courseProgressManagerReady', {
@@ -518,7 +518,7 @@ if (typeof window !== 'undefined') {
     // Emitir evento cuando esté listo
     window.addEventListener('load', () => {
         if (window.courseProgressManager) {
-            console.log('🎯 CourseProgressManager listo en window.load');
+            // console.log('🎯 CourseProgressManager listo en window.load');
             window.dispatchEvent(new CustomEvent('courseProgressManagerReady', {
                 detail: { manager: window.courseProgressManager }
             }));

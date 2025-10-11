@@ -14,7 +14,7 @@ class VideoNavigationManager {
     }
 
     init() {
-        console.log('[NAV] Inicializando VideoNavigationManager...');
+        // console.log('[NAV] Inicializando VideoNavigationManager...');
 
         // Esperar a que el DOM esté listo
         if (document.readyState === 'loading') {
@@ -29,7 +29,7 @@ class VideoNavigationManager {
      */
     setupEventListeners() {
         try {
-            console.log('[NAV] Configurando event listeners...');
+            // console.log('[NAV] Configurando event listeners...');
 
             // Limpiar listeners existentes para evitar duplicaciones
             this.removeAllEventListeners();
@@ -47,7 +47,7 @@ class VideoNavigationManager {
             this.initializeNavigationButtons();
 
             this.isInitialized = true;
-            console.log('[NAV] Event listeners configurados correctamente');
+            // console.log('[NAV] Event listeners configurados correctamente');
 
         } catch (error) {
             console.error('[NAV] Error configurando event listeners:', error);
@@ -70,7 +70,7 @@ class VideoNavigationManager {
                 target
             });
 
-            console.log(`[NAV] Event listener añadido: ${event} (ID: ${listenerId})`);
+            // console.log(`[NAV] Event listener añadido: ${event} (ID: ${listenerId})`);
             return listenerId;
 
         } catch (error) {
@@ -84,19 +84,19 @@ class VideoNavigationManager {
      */
     removeAllEventListeners() {
         try {
-            console.log('[NAV] Limpiando event listeners existentes...');
+            // console.log('[NAV] Limpiando event listeners existentes...');
 
             this.eventListeners.forEach((listener, listenerId) => {
                 try {
                     listener.target.removeEventListener(listener.event, listener.handler);
-                    console.log(`[NAV] Event listener removido: ${listener.event} (ID: ${listenerId})`);
+                    // console.log(`[NAV] Event listener removido: ${listener.event} (ID: ${listenerId})`);
                 } catch (error) {
                     console.warn(`[NAV] Error removiendo listener ${listenerId}:`, error);
                 }
             });
 
             this.eventListeners.clear();
-            console.log('[NAV] Limpieza de event listeners completada');
+            // console.log('[NAV] Limpieza de event listeners completada');
 
         } catch (error) {
             console.error('[NAV] Error en limpieza de event listeners:', error);
@@ -131,7 +131,7 @@ class VideoNavigationManager {
             // Verificar estado inicial de botones
             this.updateNavigationButtons();
 
-            console.log('[NAV] Botones de navegación inicializados');
+            // console.log('[NAV] Botones de navegación inicializados');
 
         } catch (error) {
             console.error('[NAV] Error inicializando botones de navegación:', error);
@@ -143,7 +143,7 @@ class VideoNavigationManager {
      */
     handleVideoCompleted(event) {
         try {
-            console.log('[NAV] Video completado detectado:', event.detail);
+            // console.log('[NAV] Video completado detectado:', event.detail);
 
             // Re-inicializar botones después de completar video
             setTimeout(() => {
@@ -161,7 +161,7 @@ class VideoNavigationManager {
      */
     handleModuleChanged(event) {
         try {
-            console.log('[NAV] Cambio de módulo detectado:', event.detail);
+            // console.log('[NAV] Cambio de módulo detectado:', event.detail);
 
             // Re-inicializar navegación después de cambio de módulo
             setTimeout(() => {
@@ -178,7 +178,7 @@ class VideoNavigationManager {
      */
     handleCourseStructureLoaded(event) {
         try {
-            console.log('[NAV] Estructura de curso cargada:', event.detail);
+            // console.log('[NAV] Estructura de curso cargada:', event.detail);
 
             // Actualizar lista de videos disponibles
             this.updateVideoList();
@@ -194,13 +194,13 @@ class VideoNavigationManager {
      */
     goToPreviousVideo() {
         try {
-            console.log('[NAV] Navegando al video anterior...');
+            // console.log('[NAV] Navegando al video anterior...');
 
             if (this.currentVideoIndex > 0) {
                 this.currentVideoIndex--;
                 this.navigateToVideo(this.currentVideoIndex);
             } else {
-                console.log('[NAV] Ya estás en el primer video');
+                // console.log('[NAV] Ya estás en el primer video');
                 // Notificación removida para experiencia más limpia
             }
 
@@ -214,13 +214,13 @@ class VideoNavigationManager {
      */
     goToNextVideo() {
         try {
-            console.log('[NAV] Navegando al siguiente video...');
+            // console.log('[NAV] Navegando al siguiente video...');
 
             if (this.currentVideoIndex < this.videoList.length - 1) {
                 this.currentVideoIndex++;
                 this.navigateToVideo(this.currentVideoIndex);
             } else {
-                console.log('[NAV] Ya estás en el último video');
+                // console.log('[NAV] Ya estás en el último video');
                 // Notificación removida para experiencia más limpia
             }
 
@@ -240,7 +240,7 @@ class VideoNavigationManager {
             }
 
             const videoData = this.videoList[index];
-            console.log('[NAV] Navegando a video:', videoData);
+            // console.log('[NAV] Navegando a video:', videoData);
 
             // Emitir evento de cambio de video
             const event = new CustomEvent('videoChanged', {
@@ -284,7 +284,7 @@ class VideoNavigationManager {
             nextBtn.disabled = this.currentVideoIndex >= this.videoList.length - 1;
             nextBtn.style.opacity = this.currentVideoIndex >= this.videoList.length - 1 ? '0.5' : '1';
 
-            console.log(`[NAV] Botones actualizados - Anterior: ${!prevBtn.disabled}, Siguiente: ${!nextBtn.disabled}`);
+            // console.log(`[NAV] Botones actualizados - Anterior: ${!prevBtn.disabled}, Siguiente: ${!nextBtn.disabled}`);
 
         } catch (error) {
             console.error('[NAV] Error actualizando botones de navegación:', error);
@@ -306,7 +306,7 @@ class VideoNavigationManager {
                 prevBtn.style.pointerEvents = 'auto';
                 nextBtn.style.pointerEvents = 'auto';
 
-                console.log('[NAV] Z-index y pointer-events verificados para botones');
+                // console.log('[NAV] Z-index y pointer-events verificados para botones');
             }
 
         } catch (error) {
@@ -332,7 +332,7 @@ class VideoNavigationManager {
                 }));
             }
 
-            console.log('[NAV] Lista de videos actualizada:', this.videoList.length);
+            // console.log('[NAV] Lista de videos actualizada:', this.videoList.length);
 
         } catch (error) {
             console.error('[NAV] Error actualizando lista de videos:', error);
@@ -345,13 +345,13 @@ class VideoNavigationManager {
      */
     reinitializeNavigation() {
         try {
-            console.log('[NAV] Re-inicializando navegación completa...');
+            // console.log('[NAV] Re-inicializando navegación completa...');
 
             this.removeAllEventListeners();
             this.updateVideoList();
             this.setupEventListeners();
 
-            console.log('[NAV] Re-inicialización completada');
+            // console.log('[NAV] Re-inicialización completada');
 
         } catch (error) {
             console.error('[NAV] Error en re-inicialización:', error);
@@ -375,14 +375,14 @@ class VideoNavigationManager {
      */
     destroy() {
         try {
-            console.log('[NAV] Destruyendo VideoNavigationManager...');
+            // console.log('[NAV] Destruyendo VideoNavigationManager...');
 
             this.removeAllEventListeners();
             this.videoList = [];
             this.currentVideoIndex = 0;
             this.isInitialized = false;
 
-            console.log('[NAV] VideoNavigationManager destruído');
+            // console.log('[NAV] VideoNavigationManager destruído');
 
         } catch (error) {
             console.error('[NAV] Error destruyendo manager:', error);

@@ -1,24 +1,24 @@
 // Script de debug y fix para el chat de Lia
-console.log('🔧 Chat Debug Fix iniciando...');
+// console.log('🔧 Chat Debug Fix iniciando...');
 
 // Función para verificar elementos del DOM
 function verificarElementosChat() {
-    console.log('🔍 Verificando elementos del chat...');
+    // console.log('🔍 Verificando elementos del chat...');
     
     const sendBtn = document.getElementById('sendLiaMessage');
     const input = document.getElementById('liaMessageInput');
     const messagesContainer = document.getElementById('liaMessages');
     
-    console.log('- Botón enviar:', sendBtn ? '✅' : '❌');
-    console.log('- Input mensaje:', input ? '✅' : '❌');
-    console.log('- Contenedor mensajes:', messagesContainer ? '✅' : '❌');
+    // console.log('- Botón enviar:', sendBtn ? '✅' : '❌');
+    // console.log('- Input mensaje:', input ? '✅' : '❌');
+    // console.log('- Contenedor mensajes:', messagesContainer ? '✅' : '❌');
     
     return { sendBtn, input, messagesContainer };
 }
 
 // Función para agregar mensaje del usuario
 function agregarMensajeUsuario(mensaje) {
-    console.log('👤 Agregando mensaje del usuario:', mensaje);
+    // console.log('👤 Agregando mensaje del usuario:', mensaje);
     
     const messagesContainer = document.getElementById('liaMessages');
     if (!messagesContainer) return;
@@ -38,7 +38,7 @@ function agregarMensajeUsuario(mensaje) {
 
 // Función para agregar mensaje de Lia
 function agregarMensajeLia(mensaje) {
-    console.log('🤖 Agregando mensaje de Lia:', mensaje.substring(0, 50) + '...');
+    // console.log('🤖 Agregando mensaje de Lia:', mensaje.substring(0, 50) + '...');
     
     const messagesContainer = document.getElementById('liaMessages');
     if (!messagesContainer) return;
@@ -61,7 +61,7 @@ function agregarMensajeLia(mensaje) {
 
 // Función para mostrar typing indicator
 function mostrarTyping(mostrar) {
-    console.log('⏳ Typing indicator:', mostrar ? 'mostrar' : 'ocultar');
+    // console.log('⏳ Typing indicator:', mostrar ? 'mostrar' : 'ocultar');
     
     const messagesContainer = document.getElementById('liaMessages');
     if (!messagesContainer) return;
@@ -90,7 +90,7 @@ function mostrarTyping(mostrar) {
 
 // Función para obtener contexto completo del curso
 async function obtenerContextoCompleto(mensaje) {
-    console.log('🧠 Generando contexto ENRIQUECIDO...');
+    // console.log('🧠 Generando contexto ENRIQUECIDO...');
     
     try {
         // Obtener datos del curso actual
@@ -127,7 +127,7 @@ ${data.current_video.transcript_text?.substring(0, 1500) || 'Sin transcripción 
 
 PREGUNTA DEL USUARIO: ${mensaje}`;
                 
-                console.log('✅ Contexto ENRIQUECIDO generado');
+                // console.log('✅ Contexto ENRIQUECIDO generado');
                 return contexto;
             }
         }
@@ -149,13 +149,13 @@ PREGUNTA DEL USUARIO: ${mensaje}`;
 
 === PREGUNTA DEL USUARIO ===
 ${mensaje}`;
-    console.log('📝 Usando contexto enriquecido básico');
+    // console.log('📝 Usando contexto enriquecido básico');
     return contextoBasico;
 }
 
 // Función principal para enviar mensaje
 async function enviarMensajeALia(mensaje) {
-    console.log('🚀 Enviando mensaje a Lia:', mensaje);
+    // console.log('🚀 Enviando mensaje a Lia:', mensaje);
     
     if (!mensaje.trim()) {
         console.warn('⚠️ Mensaje vacío');
@@ -172,7 +172,7 @@ async function enviarMensajeALia(mensaje) {
         // Generar contexto completo
         const context = await obtenerContextoCompleto(mensaje);
         
-        console.log('📡 Haciendo petición a API...');
+        // console.log('📡 Haciendo petición a API...');
         
         const response = await fetch('/api/openai', {
             method: 'POST',
@@ -187,14 +187,14 @@ async function enviarMensajeALia(mensaje) {
             })
         });
         
-        console.log('📊 Respuesta API status:', response.status);
+        // console.log('📊 Respuesta API status:', response.status);
         
         if (!response.ok) {
             throw new Error(`Error API: ${response.status} - ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('✅ Respuesta recibida');
+        // console.log('✅ Respuesta recibida');
         
         // Ocultar typing
         mostrarTyping(false);
@@ -211,7 +211,7 @@ async function enviarMensajeALia(mensaje) {
 
 // Función para configurar eventos del chat
 function configurarEventosChat() {
-    console.log('🔧 Configurando eventos del chat...');
+    // console.log('🔧 Configurando eventos del chat...');
     
     const elementos = verificarElementosChat();
     
@@ -250,19 +250,19 @@ function configurarEventosChat() {
         }
     });
     
-    console.log('✅ Eventos del chat configurados');
+    // console.log('✅ Eventos del chat configurados');
     return true;
 }
 
 // Función de prueba del chat
 function probarChat() {
-    console.log('🧪 Probando el chat...');
+    // console.log('🧪 Probando el chat...');
     enviarMensajeALia('Hola Lia, ¿puedes ayudarme con el curso?');
 }
 
 // Inicialización
 function inicializarChatFix() {
-    console.log('🚀 Inicializando Chat Fix...');
+    // console.log('🚀 Inicializando Chat Fix...');
     
     // Esperar a que el DOM esté listo
     if (document.readyState === 'loading') {
@@ -270,7 +270,7 @@ function inicializarChatFix() {
             setTimeout(() => {
                 const configurado = configurarEventosChat();
                 if (configurado) {
-                    console.log('✅ Chat Fix inicializado correctamente');
+                    // console.log('✅ Chat Fix inicializado correctamente');
                     // Agregar función global para testing
                     window.probarChat = probarChat;
                     window.enviarMensajeALia = enviarMensajeALia;
@@ -281,7 +281,7 @@ function inicializarChatFix() {
         setTimeout(() => {
             const configurado = configurarEventosChat();
             if (configurado) {
-                console.log('✅ Chat Fix inicializado correctamente');
+                // console.log('✅ Chat Fix inicializado correctamente');
                 window.probarChat = probarChat;
                 window.enviarMensajeALia = enviarMensajeALia;
             }
@@ -292,4 +292,4 @@ function inicializarChatFix() {
 // Inicializar
 inicializarChatFix();
 
-console.log('📝 Para probar el chat manualmente, ejecuta: probarChat()');
+// console.log('📝 Para probar el chat manualmente, ejecuta: probarChat()');

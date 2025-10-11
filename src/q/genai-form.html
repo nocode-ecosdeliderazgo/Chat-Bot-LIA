@@ -428,12 +428,12 @@
     <!-- Script de funcionalidad del botón de tema -->
     <script>
         function toggleTheme() {
-            console.log('🔄 Cambiando tema...');
+            // console.log('🔄 Cambiando tema...');
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            console.log('✅ Tema cambiado a:', newTheme);
+            // console.log('✅ Tema cambiado a:', newTheme);
         }
         
         window.toggleTheme = toggleTheme;
@@ -441,7 +441,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            console.log('🎨 Tema inicial aplicado:', savedTheme);
+            // console.log('🎨 Tema inicial aplicado:', savedTheme);
             
             const themeBtn = document.querySelector('.theme-toggle-btn');
             if (themeBtn) {
@@ -460,7 +460,7 @@
         
         // También escuchar el evento supabaseReady como fallback
         window.addEventListener('supabaseReady', async () => {
-            console.log('📡 Evento supabaseReady recibido, inicializando cuestionario...');
+            // console.log('📡 Evento supabaseReady recibido, inicializando cuestionario...');
             if (!window.genaiQuestionnaire) {
                 await initializeQuestionnaire();
             }

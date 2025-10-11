@@ -102,7 +102,7 @@
             
             try {
                 const apiBaseUrl = getApiBaseUrl();
-                console.log('🌐 Using API Base URL:', apiBaseUrl);
+                // console.log('🌐 Using API Base URL:', apiBaseUrl);
                 
                 // Agregar timestamp para evitar cache
                 const timestamp = new Date().getTime();
@@ -118,7 +118,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Videos data:', data);
+                    // console.log('✅ Videos data:', data);
                     
                     if (data.success && data.videos && data.videos.length > 0) {
                         const firstVideo = data.videos[0];
@@ -173,11 +173,11 @@
         });
         
         // Información del entorno
-        console.log('🔧 Test Cache Fix loaded');
-        console.log('🌐 Environment Detection:');
-        console.log('   - Hostname:', window.location.hostname);
-        console.log('   - Protocol:', window.location.protocol);
-        console.log('   - API Base URL:', getApiBaseUrl());
+        // console.log('🔧 Test Cache Fix loaded');
+        // console.log('🌐 Environment Detection:');
+        // console.log('   - Hostname:', window.location.hostname);
+        // console.log('   - Protocol:', window.location.protocol);
+        // console.log('   - API Base URL:', getApiBaseUrl());
     </script>
 </body>
 </html>
