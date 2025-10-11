@@ -7443,6 +7443,12 @@ INSTRUCCIONES:
 
                 }
 
+                // ===== SISTEMA DE HISTORIAL CONVERSACIONAL DE LIA =====
+                // Almacena los últimos 3 pares de mensajes (usuario + LIA)
+                // para mantener continuidad conversacional
+                window.liaConversationHistory = [];
+                console.log('✅ Sistema de historial conversacional inicializado');
+
                 // 4. Inicializar protección de mensajes de chat
                 setTimeout(() => {
                     if (typeof initializeMessageProtection === 'function') {
@@ -7808,13 +7814,35 @@ INSTRUCCIONES:
 
                             console.log('[LIA] 📚 Contexto del curso:', context);
 
-                            
 
-                            // Preparar prompt con contexto
 
-                            const prompt = `Usuario: ${mensaje}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
+                            // Obtener historial conversacional
+                            const conversationHistory = getFormattedConversationHistory();
+                            console.log('[LIA] 💬 Historial conversacional obtenido');
+                            console.log('[LIA] 📚 Mensajes en historial:', window.liaConversationHistory?.length || 0);
+                            if (window.liaConversationHistory?.length > 0) {
+                                console.log('[LIA] 📋 Contenido del historial:', window.liaConversationHistory);
+                            }
 
-                            console.log('[LIA] 📝 Prompt preparado:', prompt);
+                            // Preparar prompt con historial y contexto
+                            let prompt;
+                            if (conversationHistory) {
+                                // Incluir historial conversacional en el prompt
+                                prompt = `${conversationHistory}MENSAJE ACTUAL:
+Usuario: ${mensaje}
+
+CONTEXTO DEL CURSO:
+El usuario está en el curso "Aprende y Aplica IA" - Chat Online.
+${context}`;
+                                console.log('[LIA] ✅ Prompt CON historial conversacional');
+                            } else {
+                                // Prompt sin historial (primer mensaje)
+                                prompt = `Usuario: ${mensaje}\n\nContexto: El usuario está en el curso "Aprende y Aplica IA" - Chat Online. ${context}`;
+                                console.log('[LIA] ℹ️ Prompt SIN historial (primer mensaje o historial vacío)');
+                            }
+
+                            console.log('[LIA] 📊 Tamaño del prompt:', prompt.length, 'caracteres');
+                            console.log('[LIA] 📝 Preview del prompt (primeros 500 chars):', prompt.substring(0, 500));
 
                             
 
@@ -7988,6 +8016,13 @@ INSTRUCCIONES:
                                 
 
                                 console.log('[LIA] ✅ Respuesta de LIA mostrada');
+
+                                // Agregar al historial conversacional
+                                console.log('[LIA] 💾 Guardando mensaje en historial...');
+                                console.log('[LIA] 📤 Mensaje del usuario:', mensaje.substring(0, 100));
+                                console.log('[LIA] 📥 Respuesta de LIA:', respuestaLIA.substring(0, 100));
+                                addToConversationHistory(mensaje, respuestaLIA);
+                                console.log('[LIA] ✅ Mensaje guardado. Total en historial:', window.liaConversationHistory?.length || 0);
 
                                 
 
@@ -8200,6 +8235,119 @@ INSTRUCCIONES:
 
             return devToken;
         }
+
+        // ===== FUNCIONES DEL SISTEMA DE HISTORIAL CONVERSACIONAL =====
+
+        /**
+         * Agrega un par de mensaje-respuesta al historial conversacional
+         * Mantiene solo los últimos 3 pares para optimizar tokens
+         * @param {string} userMessage - Mensaje del usuario
+         * @param {string} liaResponse - Respuesta de LIA
+         */
+        function addToConversationHistory(userMessage, liaResponse) {
+            try {
+                // Inicializar el array si no existe (fallback de seguridad)
+                if (!window.liaConversationHistory) {
+                    window.liaConversationHistory = [];
+                    console.log('[LIA] ⚠️ Historial no estaba inicializado, creando nuevo array');
+                }
+
+                // Truncar mensajes largos para optimizar tokens
+                const truncatedUserMessage = userMessage.length > 300
+                    ? userMessage.substring(0, 297) + '...'
+                    : userMessage;
+
+                const truncatedLiaResponse = liaResponse.length > 500
+                    ? liaResponse.substring(0, 497) + '...'
+                    : liaResponse;
+
+                // Obtener título del video actual para contexto
+                const videoTitle = document.querySelector('[data-content="transcript"] h4')?.textContent?.trim() || 'Video actual';
+
+                // Crear entrada de historial
+                const historyEntry = {
+                    userMessage: truncatedUserMessage,
+                    liaResponse: truncatedLiaResponse,
+                    timestamp: Date.now(),
+                    videoContext: videoTitle
+                };
+
+                // Agregar al inicio del array (más reciente primero)
+                window.liaConversationHistory.unshift(historyEntry);
+
+                // Mantener solo los últimos 3 elementos
+                if (window.liaConversationHistory.length > 3) {
+                    window.liaConversationHistory = window.liaConversationHistory.slice(0, 3);
+                }
+
+                console.log('[LIA] 📚 Historial actualizado. Total de pares:', window.liaConversationHistory.length);
+                console.log('[LIA] 📋 Último mensaje agregado:', {
+                    userPreview: truncatedUserMessage.substring(0, 50) + '...',
+                    liaPreview: truncatedLiaResponse.substring(0, 50) + '...',
+                    video: videoTitle
+                });
+
+            } catch (error) {
+                console.error('[LIA] ❌ Error agregando al historial:', error);
+            }
+        }
+
+        /**
+         * Obtiene el historial conversacional formateado para el prompt de OpenAI
+         * @returns {string} - Historial formateado o string vacío si no hay historial
+         */
+        function getFormattedConversationHistory() {
+            try {
+                if (!window.liaConversationHistory || window.liaConversationHistory.length === 0) {
+                    console.log('[LIA] 💬 No hay historial conversacional previo');
+                    return '';
+                }
+
+                console.log('[LIA] 💬 Formateando historial de', window.liaConversationHistory.length, 'mensajes');
+
+                let formattedHistory = 'HISTORIAL DE CONVERSACIÓN PREVIA:\n\n';
+
+                // Iterar en orden inverso para mostrar del más antiguo al más reciente
+                for (let i = window.liaConversationHistory.length - 1; i >= 0; i--) {
+                    const entry = window.liaConversationHistory[i];
+                    const messageNumber = window.liaConversationHistory.length - i;
+
+                    formattedHistory += `MENSAJE ANTERIOR #${messageNumber}:\n`;
+                    formattedHistory += `Usuario: ${entry.userMessage}\n`;
+                    formattedHistory += `LIA: ${entry.liaResponse}\n\n`;
+                }
+
+                console.log('[LIA] ✅ Historial formateado exitosamente');
+                console.log('[LIA] 📊 Caracteres del historial:', formattedHistory.length);
+
+                return formattedHistory;
+
+            } catch (error) {
+                console.error('[LIA] ❌ Error formateando historial:', error);
+                return '';
+            }
+        }
+
+        /**
+         * Limpia el historial conversacional
+         * Se debe llamar al cambiar de video o módulo para mantener contexto relevante
+         */
+        function clearConversationHistory() {
+            try {
+                const previousLength = window.liaConversationHistory.length;
+                window.liaConversationHistory = [];
+                console.log('[LIA] 🧹 Historial limpiado. Mensajes eliminados:', previousLength);
+            } catch (error) {
+                console.error('[LIA] ❌ Error limpiando historial:', error);
+            }
+        }
+
+        // Hacer funciones disponibles globalmente para debugging
+        window.addToConversationHistory = addToConversationHistory;
+        window.getFormattedConversationHistory = getFormattedConversationHistory;
+        window.clearConversationHistory = clearConversationHistory;
+
+        console.log('✅ Funciones de historial conversacional definidas y disponibles globalmente');
 
         // Función para actualizar nombres de usuario en mensajes existentes (solo en chat)
         function actualizarNombresUsuarioEnMensajes() {

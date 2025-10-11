@@ -3,6 +3,56 @@
 const ENABLE_SUPABASE_AUTH = true;
 
 /**
+ * FUNCIONES DE OFUSCACIÓN PARA CREDENCIALES RECORDADAS
+ * NOTA: Esto NO es encriptación verdadera, solo ofuscación básica.
+ * Las contraseñas aún pueden ser recuperadas por alguien con acceso al localStorage.
+ */
+
+// Clave simple para ofuscación (en producción debería ser más compleja)
+const OBFUSCATION_KEY = 'AyA-2024-SecureKey-';
+
+/**
+ * Ofusca una cadena de texto usando Base64 y XOR simple
+ */
+function obfuscateString(str) {
+    if (!str) return '';
+    try {
+        // XOR simple con la clave
+        let xored = '';
+        for (let i = 0; i < str.length; i++) {
+            const charCode = str.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length);
+            xored += String.fromCharCode(charCode);
+        }
+        // Convertir a Base64
+        return btoa(xored);
+    } catch (error) {
+        console.error('Error ofuscando:', error);
+        return '';
+    }
+}
+
+/**
+ * Desofusca una cadena de texto
+ */
+function deobfuscateString(str) {
+    if (!str) return '';
+    try {
+        // Decodificar de Base64
+        const xored = atob(str);
+        // XOR inverso
+        let original = '';
+        for (let i = 0; i < xored.length; i++) {
+            const charCode = xored.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length);
+            original += String.fromCharCode(charCode);
+        }
+        return original;
+    } catch (error) {
+        console.error('Error desofuscando:', error);
+        return '';
+    }
+}
+
+/**
  * Función para asegurar que todos los datos de autenticación estén sincronizados
  * Llama a esta función después de cualquier login exitoso
  */
@@ -143,6 +193,7 @@ function loadRememberedCredentials() {
     
     // Cargar credenciales recordadas
     const remembered = localStorage.getItem('rememberedEmailOrUsername');
+    const rememberedPassword = localStorage.getItem('rememberedPassword');
     const rememberedTime = localStorage.getItem('rememberedTime');
     
     if (remembered && rememberedTime) {
@@ -151,17 +202,44 @@ function loadRememberedCredentials() {
         
         // Si han pasado más de 30 días, limpiar datos
         if (daysDiff > 30) {
-            localStorage.removeItem('rememberedEmailOrUsername');
-            localStorage.removeItem('rememberedTime');
+            clearRememberedCredentials();
         } else {
             const loginInput = document.getElementById('loginEmailOrUsername');
+            const passwordInput = document.getElementById('loginPassword');
             const rememberCheckbox = document.getElementById('rememberMe');
+            
             if (loginInput && rememberCheckbox) {
+                // Cargar email/username
                 loginInput.value = remembered;
                 rememberCheckbox.checked = true;
+                
+                // Cargar contraseña si existe
+                if (passwordInput && rememberedPassword) {
+                    try {
+                        const decodedPassword = deobfuscateString(rememberedPassword);
+                        if (decodedPassword) {
+                            passwordInput.value = decodedPassword;
+                            devLog('Credenciales recordadas cargadas correctamente');
+                        }
+                    } catch (error) {
+                        devLog('Error al cargar contraseña recordada:', error);
+                        // Si hay error, limpiar la contraseña guardada
+                        localStorage.removeItem('rememberedPassword');
+                    }
+                }
             }
         }
     }
+}
+
+/**
+ * Limpia todas las credenciales recordadas del localStorage
+ */
+function clearRememberedCredentials() {
+    localStorage.removeItem('rememberedEmailOrUsername');
+    localStorage.removeItem('rememberedPassword');
+    localStorage.removeItem('rememberedTime');
+    devLog('Credenciales recordadas eliminadas');
 }
 
 // Inicialización de la interfaz
@@ -245,6 +323,29 @@ function setupEventListeners() {
     
     // Links de cambio de formulario
     setupFormSwitching();
+    
+    // Checkbox de recordarme
+    setupRememberMeCheckbox();
+}
+
+/**
+ * Configura el comportamiento del checkbox "Recordarme"
+ * Limpia las credenciales guardadas cuando se desmarca
+ */
+function setupRememberMeCheckbox() {
+    const rememberCheckbox = document.getElementById('rememberMe');
+    
+    if (rememberCheckbox) {
+        rememberCheckbox.addEventListener('change', (e) => {
+            if (!e.target.checked) {
+                // Si se desmarca el checkbox, limpiar credenciales guardadas
+                clearRememberedCredentials();
+                devLog('Checkbox desmarcado - credenciales eliminadas');
+            }
+        });
+        
+        devLog('Listener del checkbox "Recordarme" configurado');
+    }
 }
 
 // Navegación por tabs con efectos mejorados
@@ -708,7 +809,7 @@ async function handleLogin(e) {
         return;
     }
     
-    setLoadingState(true, 'loginSubmit');
+    setLoadingState(true, 'loginSubmit', 'Validando...');
     
     devLog('Iniciando proceso de login');
     devLog('ENABLE_SUPABASE_AUTH:', ENABLE_SUPABASE_AUTH);
@@ -734,11 +835,13 @@ async function handleLogin(e) {
             localStorage.removeItem('lockoutEndTime');
 
             if (remember) {
+                // Guardar credenciales con ofuscación
                 localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
+                localStorage.setItem('rememberedPassword', obfuscateString(password));
                 localStorage.setItem('rememberedTime', Date.now().toString());
+                devLog('Credenciales guardadas para recordar (Supabase)');
             } else {
-                localStorage.removeItem('rememberedEmailOrUsername');
-                localStorage.removeItem('rememberedTime');
+                clearRememberedCredentials();
             }
 
             const { data: current } = await window.supabase.auth.getUser();
@@ -869,11 +972,13 @@ async function handleLogin(e) {
             devLog('Sesión creada:', sessionData);
             
             if (remember) {
+                // Guardar credenciales con ofuscación
                 localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
+                localStorage.setItem('rememberedPassword', obfuscateString(password));
                 localStorage.setItem('rememberedTime', Date.now().toString());
+                devLog('Credenciales guardadas para recordar (Backend)');
             } else {
-                localStorage.removeItem('rememberedEmailOrUsername');
-                localStorage.removeItem('rememberedTime');
+                clearRememberedCredentials();
             }
             
             // Asegurar sincronización de datos
@@ -897,9 +1002,13 @@ async function handleLogin(e) {
             devLog('Validación local resultado:', isValid);
             if (isValid) {
                 if (remember) {
+                    // Guardar credenciales con ofuscación
                     localStorage.setItem('rememberedEmailOrUsername', emailOrUsername);
+                    localStorage.setItem('rememberedPassword', obfuscateString(password));
+                    localStorage.setItem('rememberedTime', Date.now().toString());
+                    devLog('Credenciales guardadas para recordar (Modo desarrollo)');
                 } else {
-                    localStorage.removeItem('rememberedEmailOrUsername');
+                    clearRememberedCredentials();
                 }
                 // Asegurar sincronización de datos
                 await ensureAuthDataSync();
@@ -956,7 +1065,7 @@ async function handleRegister(e) {
     // Validaciones
     if (!validateRegisterForm(userData)) return;
     
-    setLoadingState(true, 'registerSubmit');
+    setLoadingState(true, 'registerSubmit', 'Creando cuenta...');
     showNotification('Creando cuenta en la base de datos...', 'info');
     
     try {
@@ -1345,8 +1454,8 @@ async function handleSuccessfulAuth(emailOrUsername, remember, isNewUser = false
     }, AUTH_CONFIG.redirectDelay);
 }
 
-// Estado de carga
-function setLoadingState(loading, buttonId) {
+// Estado de carga con texto opcional
+function setLoadingState(loading, buttonId, loadingText = null) {
     authState.isLoading = loading;
     const button = document.getElementById(buttonId);
     if (!button) return;
@@ -1354,14 +1463,68 @@ function setLoadingState(loading, buttonId) {
     const btnText = button.querySelector('.btn-text');
     const btnLoader = button.querySelector('.btn-loader');
     
+    // Guardar el texto original si no existe
+    if (!button.dataset.originalText && btnText) {
+        button.dataset.originalText = btnText.textContent;
+    }
+    
     if (loading) {
+        // Deshabilitar el botón y agregar clase de loading
         button.disabled = true;
-        if (btnText) btnText.style.opacity = '0';
-        if (btnLoader) btnLoader.style.display = 'block';
+        button.classList.add('loading');
+        button.style.cursor = 'not-allowed';
+        
+        // Cambiar el texto del botón y mostrar el spinner
+        if (btnText) {
+            btnText.textContent = loadingText || 'Cargando...';
+            btnText.style.opacity = '1';
+            btnText.style.paddingRight = '30px'; // Espacio para el spinner
+        }
+        
+        if (btnLoader) {
+            btnLoader.style.display = 'flex';
+            btnLoader.style.alignItems = 'center';
+            btnLoader.style.justifyContent = 'center';
+            btnLoader.style.position = 'absolute';
+            btnLoader.style.right = '20px';
+            btnLoader.style.top = '50%';
+            btnLoader.style.transform = 'translateY(-50%)';
+            btnLoader.style.width = '20px';
+            btnLoader.style.height = '20px';
+            btnLoader.style.zIndex = '100';
+            // Pequeño delay para asegurar que el spinner se vea
+            setTimeout(() => {
+                if (btnLoader) {
+                    btnLoader.style.opacity = '1';
+                    btnLoader.style.visibility = 'visible';
+                }
+            }, 100);
+        }
+        
+        devLog('Estado de carga activado para botón:', buttonId);
     } else {
+        // Habilitar el botón y quitar clase de loading
         button.disabled = false;
-        if (btnText) btnText.style.opacity = '1';
-        if (btnLoader) btnLoader.style.display = 'none';
+        button.classList.remove('loading');
+        button.style.cursor = 'pointer';
+        
+        // Restaurar texto original y ocultar loader
+        if (btnText && button.dataset.originalText) {
+            btnText.textContent = button.dataset.originalText;
+            btnText.style.paddingRight = '0';
+        }
+        
+        if (btnLoader) {
+            btnLoader.style.opacity = '0';
+            btnLoader.style.visibility = 'hidden';
+            setTimeout(() => {
+                if (btnLoader) {
+                    btnLoader.style.display = 'none';
+                }
+            }, 300);
+        }
+        
+        devLog('Estado de carga desactivado para botón:', buttonId);
     }
 }
 

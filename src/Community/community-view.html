@@ -753,6 +753,373 @@
             background: var(--surface-hover);
         }
 
+        /* Estilos para encuestas interactivas */
+        .post-poll-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .poll-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .poll-header i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .poll-question {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .poll-options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .poll-option-interactive {
+            background: var(--surface);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .poll-option-interactive:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(68, 229, 255, 0.2);
+        }
+
+        .poll-option-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .poll-option-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .poll-option-votes {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .poll-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--surface-hover);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
+
+        .poll-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), rgba(68, 229, 255, 0.6));
+            transition: width 0.5s ease;
+        }
+
+        .poll-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .poll-total-votes {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Responsive para encuestas */
+        @media (max-width: 768px) {
+            .poll-question {
+                font-size: 16px;
+            }
+
+            .poll-option-text {
+                font-size: 14px;
+            }
+
+            .poll-option-votes {
+                font-size: 12px;
+            }
+        }
+
+        /* ===================================================================
+           ESTILOS PARA SISTEMA DE CONTENIDO INTERACTIVO - ACERCA DE
+           Modal de video y guideline cards clickeables
+           ================================================================ */
+
+        /* ===== MODAL DE VIDEO ===== */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .video-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+        }
+
+        .video-modal-content {
+            position: relative;
+            background: var(--surface);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+
+        .video-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .video-modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .video-modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .video-modal-close:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }
+
+        .video-modal-body {
+            padding: 24px;
+        }
+
+        .video-player-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .video-player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+
+        .video-loading i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .video-loading p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .video-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+
+        .video-error i {
+            font-size: 3rem;
+            color: #ff6b6b;
+            margin-bottom: 16px;
+        }
+
+        .video-error p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .video-description {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== GUIDELINE CARDS CLICKEABLES ===== */
+        .guideline-card.clickable {
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .guideline-card.clickable:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(68, 229, 255, 0.3);
+            border-color: var(--primary-color);
+        }
+
+        .guideline-card.clickable::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(68, 229, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .guideline-card.clickable:hover::after {
+            opacity: 1;
+        }
+
+        .card-click-hint {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .guideline-card.clickable:hover .card-click-hint {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-click-hint i {
+            margin-right: 6px;
+            animation: bounce 2s infinite;
+        }
+
+        /* ===== ANIMACIONES ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .video-modal-content {
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            .video-modal-header {
+                padding: 16px;
+            }
+
+            .video-modal-header h3 {
+                font-size: 1.2rem;
+            }
+
+            .video-modal-body {
+                padding: 16px;
+            }
+
+            .video-player-wrapper {
+                padding-bottom: 75%; /* Más cuadrado en móvil */
+            }
+        }
+
+        /* FIN ESTILOS SISTEMA DE CONTENIDO INTERACTIVO */
+
         /* Estilos para botón de comentario con carga */
         .comment-btn-loading {
             position: relative;
@@ -1059,20 +1426,31 @@
                     <p class="section-subtitle">Descripción general y recursos.</p>
                 </div>
                 <div class="guidelines-grid">
-                    <div class="guideline-card">
+                    <!-- Card "Comienza aquí" - CLICKEABLE -->
+                    <div class="guideline-card clickable" data-action="show-intro-video">
                         <div class="guideline-icon"><i class="fas fa-play"></i></div>
                         <h3 class="guideline-title">Comienza aquí</h3>
                         <p class="guideline-description">Mira el video de introducción y conoce las reglas básicas.</p>
+                        <div class="card-click-hint">
+                            <i class="fas fa-hand-pointer"></i> Click para ver
+                        </div>
                     </div>
+
+                    <!-- Card "Recursos" - NO CLICKEABLE (por ahora) -->
                     <div class="guideline-card">
                         <div class="guideline-icon"><i class="fas fa-bolt"></i></div>
                         <h3 class="guideline-title">Recursos</h3>
                         <p class="guideline-description">Plantillas, guías y descuentos para acelerar tu aprendizaje.</p>
                     </div>
-                    <div class="guideline-card">
+
+                    <!-- Card "Mejora" - CLICKEABLE -->
+                    <div class="guideline-card clickable" data-action="redirect-leagues">
                         <div class="guideline-icon"><i class="fas fa-arrow-trend-up"></i></div>
                         <h3 class="guideline-title">Mejora</h3>
                         <p class="guideline-description">Sube de nivel participando y compartiendo aportes de calidad.</p>
+                        <div class="card-click-hint">
+                            <i class="fas fa-hand-pointer"></i> Click para ir a Ligas
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1510,6 +1888,224 @@
                     }
                 });
             });
+
+            // ===================================================================
+            // SISTEMA DE CONTENIDO INTERACTIVO - ACERCA DE
+            // Gestiona videos de introducción y redirección a ligas
+            // ===================================================================
+
+            // Función para obtener el slug de la comunidad actual
+            function getCurrentCommunitySlug() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('slug') || 'profesionales';
+            }
+
+            // Función para cargar video de introducción desde la base de datos
+            async function loadCommunityIntroVideo() {
+                const communitySlug = getCurrentCommunitySlug();
+
+                try {
+                    console.log('📹 Cargando video de introducción para:', communitySlug);
+
+                    // Intentar cargar desde Supabase
+                    if (window.supabase) {
+                        const { data: community, error: communityError } = await window.supabase
+                            .from('communities')
+                            .select('id')
+                            .eq('slug', communitySlug)
+                            .single();
+
+                        if (communityError) throw communityError;
+
+                        const { data: video, error: videoError } = await window.supabase
+                            .from('community_videos')
+                            .select('*')
+                            .eq('community_id', community.id)
+                            .eq('video_type', 'intro')
+                            .eq('is_active', true)
+                            .order('order_index', { ascending: true })
+                            .limit(1)
+                            .single();
+
+                        if (videoError) throw videoError;
+
+                        return video;
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error cargando video desde BD, usando fallback:', error);
+                }
+
+                // Fallback: Video demo de YouTube
+                return {
+                    title: 'Video de Introducción a la Comunidad',
+                    description: 'Conoce cómo funciona nuestra comunidad y cómo puedes aprovechar al máximo tu experiencia.',
+                    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    video_provider: 'youtube',
+                    thumbnail_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg'
+                };
+            }
+
+            // Función para construir URL de embed según el proveedor
+            function buildEmbedUrl(videoUrl, provider) {
+                if (provider === 'youtube') {
+                    // Extraer video ID de diferentes formatos de URL de YouTube
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                    const match = videoUrl.match(regExp);
+                    const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+                    if (videoId) {
+                        return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
+                } else if (provider === 'vimeo') {
+                    const videoId = videoUrl.split('/').pop();
+                    return `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+                }
+
+                // Para videos directos, retornar la URL tal cual
+                return videoUrl;
+            }
+
+            // Función para mostrar el modal de video
+            async function showVideoModal() {
+                const modal = document.getElementById('introVideoModal');
+                const playerWrapper = document.getElementById('videoPlayerWrapper');
+                const titleElement = document.getElementById('videoModalTitle');
+                const descriptionElement = document.getElementById('videoDescription');
+
+                // Mostrar el modal con loading
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                try {
+                    // Cargar datos del video
+                    const videoData = await loadCommunityIntroVideo();
+
+                    // Actualizar título y descripción
+                    titleElement.textContent = videoData.title;
+                    descriptionElement.textContent = videoData.description || '';
+
+                    // Construir URL de embed
+                    const embedUrl = buildEmbedUrl(videoData.video_url, videoData.video_provider);
+
+                    // Crear iframe del video
+                    const iframe = document.createElement('iframe');
+                    iframe.src = embedUrl;
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+
+                    // Limpiar wrapper e insertar iframe
+                    playerWrapper.innerHTML = '';
+                    playerWrapper.appendChild(iframe);
+
+                    console.log('✅ Video modal mostrado correctamente');
+
+                } catch (error) {
+                    console.error('❌ Error mostrando video modal:', error);
+                    playerWrapper.innerHTML = `
+                        <div class="video-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error cargando el video. Por favor, intenta de nuevo más tarde.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Función para cerrar el modal de video
+            function closeVideoModal() {
+                const modal = document.getElementById('introVideoModal');
+                const playerWrapper = document.getElementById('videoPlayerWrapper');
+
+                // Ocultar modal
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+
+                // Limpiar contenido del player para detener el video
+                playerWrapper.innerHTML = `
+                    <div class="video-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando video...</p>
+                    </div>
+                `;
+
+                console.log('ℹ️ Video modal cerrado');
+            }
+
+            // Función para redireccionar a la pestaña de Ligas
+            function redirectToLeaguesTab() {
+                console.log('🏆 Redireccionando a pestaña de Ligas...');
+
+                // Remover clase active de todos los tabs
+                document.querySelectorAll('.subnav-link').forEach(btn => btn.classList.remove('active'));
+
+                // Activar tab de Ligas
+                const leaguesTab = document.querySelector('[data-tab="leagues"]');
+                if (leaguesTab) {
+                    leaguesTab.classList.add('active');
+                }
+
+                // Ocultar todas las secciones
+                document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+
+                // Mostrar sección de Ligas
+                const leaguesSection = document.getElementById('tab-leagues');
+                if (leaguesSection) {
+                    leaguesSection.style.display = 'block';
+
+                    // Scroll suave a la parte superior
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    console.log('✅ Redireccionado a Ligas exitosamente');
+                } else {
+                    console.error('❌ Sección de Ligas no encontrada');
+                }
+            }
+
+            // Event Listeners para las guideline-cards
+            document.addEventListener('DOMContentLoaded', () => {
+                // Listener para cards clickeables
+                document.querySelectorAll('.guideline-card.clickable').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const action = card.getAttribute('data-action');
+
+                        if (action === 'show-intro-video') {
+                            showVideoModal();
+                        } else if (action === 'redirect-leagues') {
+                            redirectToLeaguesTab();
+                        }
+                    });
+
+                    // Agregar efecto hover
+                    card.style.cursor = 'pointer';
+                });
+
+                // Listener para cerrar modal de video
+                const closeModalBtn = document.getElementById('closeVideoModal');
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', closeVideoModal);
+                }
+
+                const modalOverlay = document.getElementById('videoModalOverlay');
+                if (modalOverlay) {
+                    modalOverlay.addEventListener('click', closeVideoModal);
+                }
+
+                // Cerrar modal con tecla ESC
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        const modal = document.getElementById('introVideoModal');
+                        if (modal && modal.style.display === 'flex') {
+                            closeVideoModal();
+                        }
+                    }
+                });
+            });
+
+            // FIN SISTEMA DE CONTENIDO INTERACTIVO
+            // ===================================================================
+
                          // Feed mock con persistencia
              let posts = [];
              
@@ -1802,28 +2398,58 @@
 
                         // Construir attachments si existen
                         let attachments = [];
-                        if (post.attachment_url && post.attachment_type) {
-                            // Extraer nombre de archivo de la URL para attachments que lo necesiten
-                            const fileName = post.attachment_url.split('/').pop() || 'archivo';
 
-                            // Detectar si es un video de YouTube por la URL de embed
-                            const isYouTubeEmbed = post.attachment_type === 'video' && 
-                                                 post.attachment_url.includes('youtube.com/embed');
+                        console.log('🔍 [ATTACHMENT DEBUG] Post ID:', post.id);
+                        console.log('  - attachment_type:', post.attachment_type);
+                        console.log('  - attachment_url:', post.attachment_url);
+                        console.log('  - attachment_data:', post.attachment_data);
 
-                            const attachment = {
-                                type: post.attachment_type,
-                                src: post.attachment_url,
-                                url: post.attachment_url,
-                                name: fileName
-                            };
+                        if (post.attachment_type) {
+                            // CASO ESPECIAL: Encuestas (usan attachment_data en lugar de attachment_url)
+                            if (post.attachment_type === 'poll' && post.attachment_data) {
+                                console.log('📊 [POLL DEBUG] Procesando encuesta para post', post.id);
+                                const pollData = post.attachment_data;
+                                console.log('  - pollData completo:', JSON.stringify(pollData, null, 2));
+                                console.log('  - question:', pollData.question);
+                                console.log('  - options:', pollData.options);
+                                console.log('  - votes:', pollData.votes);
 
-                            // Si es YouTube, agregar propiedades especiales
-                            if (isYouTubeEmbed) {
-                                attachment.isYoutube = true;
-                                attachment.embed = post.attachment_url;
+                                const attachment = {
+                                    type: 'poll',
+                                    question: pollData.question,
+                                    options: pollData.options || [],
+                                    votes: pollData.votes || {},
+                                    postId: post.id // Necesario para el sistema de votación
+                                };
+                                attachments.push(attachment);
+                                console.log('✅ [POLL DEBUG] Encuesta agregada a attachments:', attachment);
+                            } else if (post.attachment_type === 'poll' && !post.attachment_data) {
+                                console.warn('⚠️ [POLL DEBUG] Post tiene tipo poll pero no tiene attachment_data');
                             }
+                            // CASO NORMAL: Adjuntos con URL
+                            else if (post.attachment_url) {
+                                // Extraer nombre de archivo de la URL para attachments que lo necesiten
+                                const fileName = post.attachment_url.split('/').pop() || 'archivo';
 
-                            attachments.push(attachment);
+                                // Detectar si es un video de YouTube por la URL de embed
+                                const isYouTubeEmbed = post.attachment_type === 'video' &&
+                                                     post.attachment_url.includes('youtube.com/embed');
+
+                                const attachment = {
+                                    type: post.attachment_type,
+                                    src: post.attachment_url,
+                                    url: post.attachment_url,
+                                    name: fileName
+                                };
+
+                                // Si es YouTube, agregar propiedades especiales
+                                if (isYouTubeEmbed) {
+                                    attachment.isYoutube = true;
+                                    attachment.embed = post.attachment_url;
+                                }
+
+                                attachments.push(attachment);
+                            }
                         }
 
 
@@ -1847,6 +2473,14 @@
                             community_id: post.community_id,
                             created_at: post.created_at
                         };
+
+                        console.log('📦 [POST OBJECT] Post construido:', {
+                            id: postObject.id,
+                            hasAttachments: attachments.length > 0,
+                            attachmentsCount: attachments.length,
+                            attachmentTypes: attachments.map(a => a.type),
+                            attachments: attachments
+                        });
 
                         // Calcular total de reacciones
                         const totalReactions = Object.values(postObject.reactions).reduce((sum, count) => sum + count, 0);
@@ -2229,6 +2863,18 @@
                         openPostModal(id);
                     });
                 });
+                // Votación en encuestas
+                list.querySelectorAll('.poll-option-interactive').forEach(optionEl => {
+                    optionEl.addEventListener('click', async () => {
+                        const postId = optionEl.getAttribute('data-poll-id');
+                        const option = optionEl.getAttribute('data-option');
+
+                        console.log('🗳️ Votando en encuesta:', { postId, option });
+
+                        await voteInPoll(postId, option);
+                    });
+                });
+
                 // compartir
                 list.querySelectorAll('[data-share]').forEach(el=>{
                     el.addEventListener('click', async ()=>{
@@ -2732,17 +3378,358 @@
             }
 
             function renderAttachmentsCentered(att){
-                if(!att || att.length===0) return '';
-                return att.map(a=>{
+                console.log('🎨 [RENDER] renderAttachmentsCentered llamado con:', att);
+
+                if(!att || att.length===0) {
+                    console.log('⚠️ [RENDER] No hay attachments para renderizar');
+                    return '';
+                }
+
+                console.log(`📎 [RENDER] Renderizando ${att.length} attachment(s)`);
+
+                return att.map((a, index) => {
+                    console.log(`  ${index + 1}. Tipo: ${a.type}`, a);
+
                      if(a.type==='image') return `<div class="post-media-container"><img src='${a.src || a.url}' class='post-image' loading='lazy' alt='Imagen adjunta'></div>`;
                      if(a.type==='video' && a.isYoutube) return `<div class="post-media-container"><iframe width='100%' height='315' src='${a.embed}' frameborder='0' allowfullscreen loading='lazy'></iframe></div>`;
                      if(a.type==='video') return `<div class="post-media-container"><video src='${a.src || a.url}' class='post-video' controls loading='lazy'></video></div>`;
                     if(a.type==='pdf') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='fas fa-file-pdf'></i> ${a.name}</a></div>`;
                     if(a.type==='document') return `<div class="post-document-container"><a href='${a.dataUrl || a.url}' target='_blank' class='attachment-link'><i class='${getDocumentIcon(a.name)}'></i> ${a.name}</a></div>`;
                     if(a.type==='link') return `<div class="post-link-container"><a href='${a.url}' target='_blank' class='attachment-link'><i class='fas fa-link'></i> ${new URL(a.url).hostname.replace('www.', '')}</a></div>`;
-                    if(a.type==='poll') return `<div class="post-document-container"><div class='attachment-link'><i class='fas fa-poll'></i> ${a.question} (${a.options.length} opciones)</div></div>`;
+                    if(a.type==='poll') {
+                        console.log('📊 [RENDER] Renderizando encuesta:', a);
+                        const pollHtml = renderPollInteractive(a);
+                        console.log('  - HTML generado:', pollHtml.substring(0, 100) + '...');
+                        return pollHtml;
+                    }
+                    console.warn('⚠️ [RENDER] Tipo de attachment desconocido:', a.type);
                     return '';
                 }).join('');
+            }
+
+            // Función para renderizar encuesta interactiva
+            function renderPollInteractive(poll) {
+                console.log('📊 [POLL RENDER] Iniciando renderizado de encuesta:', poll);
+                console.log('  - Poll ID:', poll.postId);
+                console.log('  - Question:', poll.question);
+                console.log('  - Options:', poll.options);
+                console.log('  - Votes (raw):', poll.votes);
+                console.log('  - Votes type:', typeof poll.votes);
+
+                // SANITIZAR Y VALIDAR datos de votos
+                let votes = {};
+
+                // Si votes es un objeto válido
+                if (poll.votes && typeof poll.votes === 'object' && !Array.isArray(poll.votes)) {
+                    console.log('🔍 [VOTES DEBUG] Analizando estructura de votes...');
+
+                    // Recorrer cada clave en votes
+                    Object.keys(poll.votes).forEach(key => {
+                        console.log(`  - Key: "${key}", Value:`, poll.votes[key], `Type: ${typeof poll.votes[key]}`);
+
+                        // SOLO incluir claves que sean opciones válidas de la encuesta
+                        if (poll.options.includes(key)) {
+                            const value = poll.votes[key];
+
+                            // Validar que el valor sea un número válido
+                            if (typeof value === 'number' && !isNaN(value) && value >= 0) {
+                                votes[key] = value;
+                                console.log(`    ✅ Voto válido para "${key}": ${value}`);
+                            } else if (typeof value === 'string') {
+                                const parsed = parseInt(value, 10);
+                                if (!isNaN(parsed) && parsed >= 0) {
+                                    votes[key] = parsed;
+                                    console.log(`    ✅ Voto convertido para "${key}": ${parsed}`);
+                                } else {
+                                    console.warn(`    ⚠️ Valor no válido para "${key}":`, value);
+                                    votes[key] = 0;
+                                }
+                            } else {
+                                console.warn(`    ⚠️ Tipo no válido para "${key}":`, typeof value, value);
+                                votes[key] = 0;
+                            }
+                        } else {
+                            console.warn(`    ⚠️ Key "${key}" no es una opción válida de la encuesta`);
+                        }
+                    });
+
+                    // Inicializar opciones que no tienen votos
+                    poll.options.forEach(option => {
+                        if (!(option in votes)) {
+                            votes[option] = 0;
+                            console.log(`    ℹ️ Inicializando "${option}" con 0 votos`);
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ [VOTES DEBUG] votes no es un objeto válido, inicializando con 0s');
+                    // Inicializar todos con 0
+                    poll.options.forEach(option => {
+                        votes[option] = 0;
+                    });
+                }
+
+                console.log('✅ [VOTES DEBUG] Votos sanitizados:', votes);
+
+                // Calcular votos totales SOLO de las opciones válidas
+                const totalVotes = Object.values(votes).reduce((sum, count) => sum + count, 0);
+                console.log('📊 [VOTES DEBUG] Total de votos calculado:', totalVotes);
+
+                // Generar HTML de opciones con barras de progreso
+                const optionsHtml = poll.options.map((option, index) => {
+                    const voteCount = votes[option] || 0;
+                    const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+
+                    console.log(`  Opción ${index + 1}: "${option}" - ${voteCount} votos (${percentage}%)`);
+
+                    return `
+                        <div class="poll-option-interactive" data-poll-id="${poll.postId}" data-option="${option}">
+                            <div class="poll-option-content">
+                                <span class="poll-option-text">${option}</span>
+                                <span class="poll-option-votes">${voteCount} votos (${percentage}%)</span>
+                            </div>
+                            <div class="poll-progress-bar">
+                                <div class="poll-progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="post-poll-container">
+                        <div class="poll-header">
+                            <i class="fas fa-poll"></i>
+                            <h4 class="poll-question">${poll.question}</h4>
+                        </div>
+                        <div class="poll-options-list">
+                            ${optionsHtml}
+                        </div>
+                        <div class="poll-footer">
+                            <span class="poll-total-votes">${totalVotes} votos totales</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Función auxiliar para limpiar datos de encuestas corruptas
+            async function cleanCorruptedPollData(postId) {
+                try {
+                    console.log('🧹 [POLL CLEANUP] Intentando limpiar datos corruptos del post:', postId);
+
+                    // Obtener datos actuales
+                    const { data: currentPost, error: fetchError } = await window.supabase
+                        .from('community_posts')
+                        .select('attachment_data')
+                        .eq('id', postId)
+                        .single();
+
+                    if (fetchError || !currentPost) {
+                        console.error('❌ Error obteniendo post:', fetchError);
+                        return false;
+                    }
+
+                    const pollData = currentPost.attachment_data;
+                    if (!pollData || !pollData.options || !Array.isArray(pollData.options)) {
+                        console.error('❌ Datos de encuesta inválidos');
+                        return false;
+                    }
+
+                    console.log('📊 Datos actuales:', pollData);
+
+                    // Crear objeto de votos limpio basado en las opciones válidas
+                    const cleanVotes = {};
+                    pollData.options.forEach(option => {
+                        // Si existe un voto para esta opción y es válido, mantenerlo
+                        if (pollData.votes && pollData.votes[option]) {
+                            const value = pollData.votes[option];
+                            if (typeof value === 'number' && !isNaN(value) && value >= 0) {
+                                cleanVotes[option] = value;
+                            } else if (typeof value === 'string') {
+                                const parsed = parseInt(value, 10);
+                                if (!isNaN(parsed) && parsed >= 0) {
+                                    cleanVotes[option] = parsed;
+                                } else {
+                                    cleanVotes[option] = 0;
+                                }
+                            } else {
+                                cleanVotes[option] = 0;
+                            }
+                        } else {
+                            cleanVotes[option] = 0;
+                        }
+                    });
+
+                    console.log('✅ Votos limpiados:', cleanVotes);
+
+                    // Actualizar en la base de datos
+                    const cleanedPollData = {
+                        question: pollData.question,
+                        options: pollData.options,
+                        votes: cleanVotes
+                    };
+
+                    const { error: updateError } = await window.supabase
+                        .from('community_posts')
+                        .update({ attachment_data: cleanedPollData })
+                        .eq('id', postId);
+
+                    if (updateError) {
+                        console.error('❌ Error actualizando datos limpios:', updateError);
+                        return false;
+                    }
+
+                    console.log('✅ Datos de encuesta limpiados exitosamente');
+                    return true;
+
+                } catch (error) {
+                    console.error('❌ Error en cleanCorruptedPollData:', error);
+                    return false;
+                }
+            }
+
+            // Hacer función disponible globalmente para uso manual
+            window.cleanCorruptedPollData = cleanCorruptedPollData;
+
+            // Función para limpiar automáticamente TODAS las encuestas corruptas
+            async function cleanAllCorruptedPolls() {
+                try {
+                    console.log('🧹 [POLL CLEANUP] Buscando encuestas corruptas en la comunidad...');
+
+                    if (!currentCommunity) {
+                        console.warn('⚠️ No hay comunidad activa');
+                        return;
+                    }
+
+                    // Obtener TODOS los posts con encuestas
+                    const { data: pollPosts, error } = await window.supabase
+                        .from('community_posts')
+                        .select('id, attachment_data')
+                        .eq('community_id', currentCommunity.id)
+                        .eq('attachment_type', 'poll');
+
+                    if (error) {
+                        console.error('❌ Error obteniendo encuestas:', error);
+                        return;
+                    }
+
+                    if (!pollPosts || pollPosts.length === 0) {
+                        console.log('ℹ️ No hay encuestas en esta comunidad');
+                        return;
+                    }
+
+                    console.log(`📊 Encontradas ${pollPosts.length} encuestas, verificando integridad...`);
+
+                    let corruptedCount = 0;
+                    let cleanedCount = 0;
+
+                    for (const post of pollPosts) {
+                        const pollData = post.attachment_data;
+
+                        // Verificar si tiene datos corruptos
+                        if (!pollData || !pollData.votes || !pollData.options) {
+                            console.log(`⚠️ Post ${post.id}: Faltan datos básicos, omitiendo...`);
+                            continue;
+                        }
+
+                        // Verificar si hay claves extrañas en votes
+                        const voteKeys = Object.keys(pollData.votes);
+                        const invalidKeys = voteKeys.filter(key => !pollData.options.includes(key));
+
+                        if (invalidKeys.length > 0) {
+                            console.warn(`🔍 Post ${post.id}: Encontradas ${invalidKeys.length} claves inválidas:`, invalidKeys);
+                            corruptedCount++;
+
+                            // Limpiar automáticamente
+                            const cleaned = await cleanCorruptedPollData(post.id);
+                            if (cleaned) {
+                                cleanedCount++;
+                                console.log(`✅ Post ${post.id}: Datos limpiados`);
+                            }
+                        }
+                    }
+
+                    if (corruptedCount === 0) {
+                        console.log('✅ Todas las encuestas tienen datos válidos');
+                    } else {
+                        console.log(`🧹 Limpieza completada: ${cleanedCount}/${corruptedCount} encuestas limpiadas`);
+
+                        // Recargar posts para mostrar datos limpios
+                        await loadPostsFromDatabase();
+                        notifications.success(`${cleanedCount} encuestas limpiadas exitosamente`);
+                    }
+
+                } catch (error) {
+                    console.error('❌ Error en cleanAllCorruptedPolls:', error);
+                }
+            }
+
+            // Hacer función disponible globalmente
+            window.cleanAllCorruptedPolls = cleanAllCorruptedPolls;
+
+            // Función para votar en encuestas
+            async function voteInPoll(postId, option) {
+                try {
+                    console.log('🗳️ [POLL] Iniciando votación en encuesta:', { postId, option });
+
+                    // Verificar autenticación
+                    const userResult = await getCurrentUserForCommunity();
+                    if (!userResult.id) {
+                        notifications.error('Debes iniciar sesión para votar');
+                        return;
+                    }
+
+                    // Verificar que el post existe localmente
+                    const post = posts.find(p => p.id == postId || p.id === Number(postId));
+                    if (!post) {
+                        notifications.error('No se encontró la encuesta');
+                        return;
+                    }
+
+                    // Obtener datos actuales de la encuesta desde la base de datos
+                    const { data: currentPost, error: fetchError } = await window.supabase
+                        .from('community_posts')
+                        .select('attachment_data')
+                        .eq('id', postId)
+                        .single();
+
+                    if (fetchError) {
+                        console.error('❌ Error obteniendo datos de encuesta:', fetchError);
+                        notifications.error('Error al cargar la encuesta');
+                        return;
+                    }
+
+                    const pollData = currentPost.attachment_data || { votes: {} };
+                    const votes = pollData.votes || {};
+
+                    // Incrementar el contador de votos para la opción seleccionada
+                    votes[option] = (parseInt(votes[option]) || 0) + 1;
+
+                    // Actualizar attachment_data en la base de datos
+                    const updatedPollData = {
+                        ...pollData,
+                        votes: votes
+                    };
+
+                    const { error: updateError } = await window.supabase
+                        .from('community_posts')
+                        .update({ attachment_data: updatedPollData })
+                        .eq('id', postId);
+
+                    if (updateError) {
+                        console.error('❌ Error actualizando voto:', updateError);
+                        notifications.error('Error al registrar voto');
+                        return;
+                    }
+
+                    console.log('✅ Voto registrado exitosamente');
+                    notifications.success(`Votaste por: ${option}`);
+
+                    // Recargar posts para mostrar resultados actualizados
+                    await loadPostsFromDatabase();
+
+                } catch (error) {
+                    console.error('❌ Error en voteInPoll:', error);
+                    notifications.error('Error al votar. Inténtalo de nuevo.');
+                }
             }
 
             // resumen de reacciones
@@ -3424,16 +4411,31 @@
                         // Preparar datos para adjuntos
                         let attachmentUrl = null;
                         let attachmentType = null;
+                        let attachmentData = null;
 
                         if (pendingAttachments.length > 0) {
                             const firstAttachment = pendingAttachments[0];
+
+                            // Para encuestas, preparar los datos especiales
+                            if (firstAttachment.type === 'poll') {
+                                attachmentType = 'poll';
+                                attachmentUrl = null; // Las encuestas no usan URL
+                                // Crear estructura de datos para la encuesta
+                                attachmentData = {
+                                    question: firstAttachment.question,
+                                    options: firstAttachment.options,
+                                    votes: {} // Inicializar objeto vacío de votos
+                                };
+                                console.log('📊 Preparando datos de encuesta:', attachmentData);
+                            }
                             // Para videos de YouTube, usar el embed URL
-                            if (firstAttachment.isYoutube && firstAttachment.embed) {
+                            else if (firstAttachment.isYoutube && firstAttachment.embed) {
                                 attachmentUrl = firstAttachment.embed;
+                                attachmentType = firstAttachment.type;
                             } else {
                                 attachmentUrl = firstAttachment.url || firstAttachment.src;
+                                attachmentType = firstAttachment.type;
                             }
-                            attachmentType = firstAttachment.type;
                         }
 
                         // Crear publicación en la base de datos
@@ -3446,7 +4448,8 @@
                                 txt,
                                 null, // title - no estamos usando títulos por ahora
                                 attachmentUrl,
-                                attachmentType
+                                attachmentType,
+                                attachmentData // Agregar datos de encuesta
                             );
                         } catch (createError) {
                             console.warn('⚠️ Error con db.createPost, intentando método directo:', createError);
@@ -3460,7 +4463,8 @@
                                     content: txt,
                                     title: null,
                                     attachment_url: attachmentUrl,
-                                    attachment_type: attachmentType
+                                    attachment_type: attachmentType,
+                                    attachment_data: attachmentData // Agregar datos de encuesta
                                 };
 
                                 const { data, error } = await window.supabase
@@ -9092,7 +10096,32 @@
 
         </div>
     </div>
-            
+
+    <!-- ===================================================================
+         MODAL DE VIDEO DE INTRODUCCIÓN
+         Muestra videos desde la base de datos (tabla community_videos)
+         ================================================================ -->
+    <div class="video-modal" id="introVideoModal" style="display: none;">
+        <div class="video-modal-overlay" id="videoModalOverlay"></div>
+        <div class="video-modal-content">
+            <div class="video-modal-header">
+                <h3 id="videoModalTitle">Video de Introducción</h3>
+                <button class="video-modal-close" id="closeVideoModal" aria-label="Cerrar modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="video-modal-body">
+                <div class="video-player-wrapper" id="videoPlayerWrapper">
+                    <!-- El iframe del video se insertará aquí dinámicamente -->
+                    <div class="video-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando video...</p>
+                    </div>
+                </div>
+                <div class="video-description" id="videoDescription"></div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

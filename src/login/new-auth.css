@@ -1580,9 +1580,30 @@ body {
 }
 
 .btn-primary:disabled {
-    opacity: 0.6;
+    opacity: 0.8;
     cursor: not-allowed;
     transform: none;
+    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.2);
+}
+
+/* Animación de pulso para botón en estado de carga */
+.btn-primary.loading {
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+.btn-primary.loading .btn-loader {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+@keyframes buttonPulse {
+    0%, 100% {
+        box-shadow: 0 4px 16px rgba(0, 102, 204, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 24px rgba(0, 102, 204, 0.5);
+    }
 }
 
 /* Efecto de clic para todos los botones */
@@ -1615,19 +1636,29 @@ body {
 
 .btn-loader {
     position: absolute;
+    right: 20px;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateY(-50%);
     display: none;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
 }
 
 .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid transparent;
-    border-top: 2px solid var(--color-bg-1);
+    width: 18px;
+    height: 18px;
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    border-top: 3px solid #FFFFFF;
+    border-right: 3px solid #FFFFFF;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.6s linear infinite;
+    display: block;
 }
 
 @keyframes spin {
