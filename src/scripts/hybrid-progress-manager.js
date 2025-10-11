@@ -291,8 +291,17 @@ class HybridProgressManager {
             const totalVideos = progressData.totalVideos || 18;
             const completedVideos = progressData.completedVideos || 0;
             
-            // Crear módulos basados en el progreso
-            for (let i = 1; i <= Math.ceil(totalVideos / 3); i++) {
+            // Crear módulos basados en el progreso (6 módulos para el curso de IA)
+            const moduleNames = [
+                '¿Qué es la IA?',
+                'Historia de la IA',
+                'Tipos de IA',
+                'Aplicaciones de la IA',
+                'Ética en la IA',
+                'Futuro de la IA'
+            ];
+            
+            for (let i = 1; i <= 6; i++) {
                 const moduleStart = (i - 1) * 3 + 1;
                 const moduleEnd = Math.min(i * 3, totalVideos);
                 const moduleCompleted = completedVideos >= moduleEnd;
@@ -300,9 +309,12 @@ class HybridProgressManager {
                 
                 modules.push({
                     module_number: i,
-                    module_identifier: `module_${i}`,
+                    module_name: moduleNames[i - 1] || `Módulo ${i}`,
+                    module_identifier: `module-${i}-intro-ia`,
+                    progress_percentage: Math.round(moduleProgress),
                     video_progress_percentage: Math.round(moduleProgress),
                     video_completed: moduleCompleted,
+                    last_video_position: moduleCompleted ? 0 : Math.max(0, (completedVideos - moduleStart + 1) * 100),
                     status: moduleCompleted ? 'completed' : (moduleProgress > 0 ? 'in_progress' : 'not_started')
                 });
             }
@@ -322,11 +334,19 @@ class HybridProgressManager {
             const totalLessons = lessons.length;
             const percentage = Math.round((completedLessons / totalLessons) * 100);
             
-            // Agrupar lecciones en módulos
+            // Agrupar lecciones en módulos (6 módulos para el curso de IA)
             const modules = [];
-            const lessonsPerModule = 3;
+            const moduleNames = [
+                '¿Qué es la IA?',
+                'Historia de la IA',
+                'Tipos de IA',
+                'Aplicaciones de la IA',
+                'Ética en la IA',
+                'Futuro de la IA'
+            ];
+            const lessonsPerModule = Math.ceil(totalLessons / 6);
             
-            for (let i = 0; i < Math.ceil(totalLessons / lessonsPerModule); i++) {
+            for (let i = 0; i < 6; i++) {
                 const moduleStart = i * lessonsPerModule;
                 const moduleEnd = Math.min((i + 1) * lessonsPerModule, totalLessons);
                 const moduleLessons = lessons.slice(moduleStart, moduleEnd);
@@ -335,9 +355,12 @@ class HybridProgressManager {
                 
                 modules.push({
                     module_number: i + 1,
-                    module_identifier: `module_${i + 1}`,
+                    module_name: moduleNames[i] || `Módulo ${i + 1}`,
+                    module_identifier: `module-${i + 1}-intro-ia`,
+                    progress_percentage: moduleProgress,
                     video_progress_percentage: moduleProgress,
                     video_completed: moduleCompleted,
+                    last_video_position: moduleCompleted ? 0 : Math.max(0, (moduleLessons.filter(l => l.completed).length) * 100),
                     status: moduleCompleted ? 'completed' : (moduleProgress > 0 ? 'in_progress' : 'not_started')
                 });
             }

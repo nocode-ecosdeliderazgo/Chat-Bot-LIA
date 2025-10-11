@@ -6977,45 +6977,99 @@ app.post('/api/progress/sync', async (req, res) => {
 
         // Actualizar módulos si se proporcionaron
         if (progressData.modules && Array.isArray(progressData.modules)) {
+            console.log(`📚 Procesando ${progressData.modules.length} módulos...`);
+            
             for (const moduleData of progressData.modules) {
-                const updates = [];
-                const values = [userId, courseProgressId, moduleData.module_number];
-                let paramCount = 3;
-
-                if (moduleData.video_progress_percentage !== undefined) {
-                    updates.push(`video_progress_percentage = $${++paramCount}`);
-                    values.push(moduleData.video_progress_percentage);
-                }
-                if (moduleData.last_video_position !== undefined) {
-                    updates.push(`last_video_position = $${++paramCount}`);
-                    values.push(moduleData.last_video_position);
-                }
-                if (moduleData.video_completed !== undefined) {
-                    updates.push(`video_completed = $${++paramCount}`);
-                    values.push(moduleData.video_completed);
-                }
-                if (moduleData.status !== undefined) {
-                    updates.push(`status = $${++paramCount}`);
-                    values.push(moduleData.status);
-                }
-
-                updates.push(`last_accessed_at = NOW()`, `updated_at = NOW()`);
-
-                if (moduleData.status === 'completed' || moduleData.video_completed === true) {
-                    updates.push(`completed_at = COALESCE(completed_at, NOW())`);
-                }
-                if (moduleData.status === 'in_progress') {
-                    updates.push(`started_at = COALESCE(started_at, NOW())`);
-                }
-
-                const query = `
-                    UPDATE module_progress
-                    SET ${updates.join(', ')}
+                console.log(`📖 Procesando módulo ${moduleData.module_number}:`, moduleData);
+                
+                // Verificar si el módulo ya existe
+                const existingModule = await client.query(`
+                    SELECT id FROM module_progress 
                     WHERE user_id = $1 AND course_progress_id = $2 AND module_number = $3
-                    RETURNING *
-                `;
+                `, [userId, courseProgressId, moduleData.module_number]);
+                
+                if (existingModule.rows.length === 0) {
+                    // Crear nuevo módulo
+                    console.log(`📝 Creando nuevo módulo ${moduleData.module_number}`);
+                    
+                    const newModuleId = require('crypto').randomUUID();
+                    const moduleName = moduleData.module_name || `Módulo ${moduleData.module_number}`;
+                    const moduleIdentifier = moduleData.module_identifier || `module-${moduleData.module_number}`;
+                    
+                    await client.query(`
+                        INSERT INTO module_progress (
+                            id, course_progress_id, user_id, module_number, module_name, module_identifier,
+                            status, progress_percentage, video_progress_percentage, video_completed,
+                            last_video_position, started_at, last_accessed_at, completed_at,
+                            created_at, updated_at
+                        ) VALUES (
+                            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13, NOW(), NOW()
+                        )
+                    `, [
+                        newModuleId,
+                        courseProgressId,
+                        userId,
+                        moduleData.module_number,
+                        moduleName,
+                        moduleIdentifier,
+                        moduleData.status || 'not_started',
+                        moduleData.progress_percentage || 0,
+                        moduleData.video_progress_percentage || 0,
+                        moduleData.video_completed || false,
+                        moduleData.last_video_position || 0,
+                        moduleData.status === 'in_progress' || moduleData.status === 'completed' ? 'NOW()' : null,
+                        moduleData.status === 'completed' ? 'NOW()' : null
+                    ]);
+                    
+                    console.log(`✅ Módulo ${moduleData.module_number} creado exitosamente`);
+                } else {
+                    // Actualizar módulo existente
+                    console.log(`🔄 Actualizando módulo existente ${moduleData.module_number}`);
+                    
+                    const updates = [];
+                    const values = [userId, courseProgressId, moduleData.module_number];
+                    let paramCount = 3;
 
-                await client.query(query, values);
+                    if (moduleData.video_progress_percentage !== undefined) {
+                        updates.push(`video_progress_percentage = $${++paramCount}`);
+                        values.push(moduleData.video_progress_percentage);
+                    }
+                    if (moduleData.progress_percentage !== undefined) {
+                        updates.push(`progress_percentage = $${++paramCount}`);
+                        values.push(moduleData.progress_percentage);
+                    }
+                    if (moduleData.last_video_position !== undefined) {
+                        updates.push(`last_video_position = $${++paramCount}`);
+                        values.push(moduleData.last_video_position);
+                    }
+                    if (moduleData.video_completed !== undefined) {
+                        updates.push(`video_completed = $${++paramCount}`);
+                        values.push(moduleData.video_completed);
+                    }
+                    if (moduleData.status !== undefined) {
+                        updates.push(`status = $${++paramCount}`);
+                        values.push(moduleData.status);
+                    }
+
+                    updates.push(`last_accessed_at = NOW()`, `updated_at = NOW()`);
+
+                    if (moduleData.status === 'completed' || moduleData.video_completed === true) {
+                        updates.push(`completed_at = COALESCE(completed_at, NOW())`);
+                    }
+                    if (moduleData.status === 'in_progress') {
+                        updates.push(`started_at = COALESCE(started_at, NOW())`);
+                    }
+
+                    const query = `
+                        UPDATE module_progress
+                        SET ${updates.join(', ')}
+                        WHERE user_id = $1 AND course_progress_id = $2 AND module_number = $3
+                        RETURNING *
+                    `;
+
+                    await client.query(query, values);
+                    console.log(`✅ Módulo ${moduleData.module_number} actualizado exitosamente`);
+                }
 
                 // Desbloquear siguiente módulo si completó
                 if (moduleData.status === 'completed' || moduleData.video_completed === true) {
