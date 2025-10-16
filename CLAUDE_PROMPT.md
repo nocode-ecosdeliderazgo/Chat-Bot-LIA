@@ -1,238 +1,258 @@
-# PROMPT PARA ELIMINACIÓN SEGURA DE PARTÍCULAS - DISEÑO SIMPLE Y LIMPIO
+# Prompt para Claude: Implementación de Sistema de Autocheck en Chat Online
 
-## OBJETIVO
-Identificar y eliminar de forma segura todas las implementaciones de animaciones de partículas y fondos estáticos con partículas en el proyecto Chat-Bot-LIA, manteniendo un diseño simple y limpio sin dañar el funcionamiento de las páginas.
+## Contexto del Proyecto
+Estás trabajando en el archivo `src/Chat-Online/chat-online.html` que contiene un sistema de cursos online con videos y actividades. El sistema actual tiene:
 
-## CONTEXTO DEL PROYECTO
-Este es un proyecto de chatbot educativo con múltiples páginas que implementan diferentes sistemas de partículas y efectos visuales de fondo. El objetivo es **ELIMINAR TODAS LAS PARTÍCULAS** de forma segura para lograr un diseño más simple y limpio.
+- **Sistema de navegación con flechas**: `VideoNavigationSystem` con botones de navegación anterior/siguiente
+- **Sistema de progreso**: `HybridProgressManager` que sincroniza con base de datos
+- **Videos con clases CSS**: `.video-item.completed` para marcar videos completados
+- **Función de conteo**: `countCompletedVideos()` que cuenta videos completados
 
-### 🎯 OBJETIVOS ESPECÍFICOS:
-1. **Identificar todas las partículas** (dinámicas y estáticas)
-2. **Eliminar archivos JavaScript** de partículas innecesarios
-3. **Limpiar CSS** de estilos de partículas
-4. **Remover elementos HTML** de partículas
-5. **Mantener funcionalidad** de las páginas intacta
-6. **Preservar gradientes y fondos** básicos (sin partículas)
+## Objetivo
+Implementar un sistema de "autocheck" que marque automáticamente los videos como completados y sincronice el progreso con la base de datos, siguiendo estas reglas específicas:
 
----
+## Reglas del Sistema de Autocheck
 
-## ARCHIVOS IDENTIFICADOS PARA ANÁLISIS
+### 1. Navegación con Flechas (Automático)
+**Cuando el usuario navega hacia adelante usando las flechas:**
+- Al hacer clic en la flecha "siguiente" (botón `nextVideoBtn`), el video actual debe marcarse como completado
+- Esto debe incluir:
+  - Agregar la clase `.completed` al elemento `.video-item` correspondiente
+  - Llamar a `updateHeaderProgressBar()` para actualizar la barra de progreso
+  - Sincronizar con la base de datos usando `HybridProgressManager`
 
-### 📁 ARCHIVOS JAVASCRIPT DE PARTÍCULAS (8 archivos)
-```
-src/scripts/particles.js                           # Sistema principal de partículas
-src/scripts/index-particles.js                     # Partículas específicas para index.html
-src/scripts/community-particles-interactive.js     # Partículas para Community
-src/scripts/notices-particles-interactive.js       # Partículas para Notices
-src/scripts/courses-particles-direct.js            # Partículas para courses.html
-src/scripts/cursos-particles-direct.js             # Partículas para cursos.html
-src/scripts/profile-particles-direct.js            # Partículas para profile.html
-src/scripts/email-verification-particles.js        # Partículas para email-verification.html
-```
+**Cuando el usuario navega hacia atrás:**
+- Al hacer clic en la flecha "anterior" (botón `prevVideoBtn`), NO debe marcar ningún video como completado
+- Solo debe cambiar el video activo
 
-### 📁 ARCHIVOS CSS RELACIONADOS (17 archivos)
-```
-src/styles/particles-background.css                # Sistema unificado de partículas
-src/styles/main.css                                # Estilos base con gradientes y glow
-src/styles/recordings.css                          # Gradientes y efectos de fondo
-src/styles/chat.css                                # Fondos para chat
-src/styles/welcome.css                             # Estilos de bienvenida
-src/styles/estadisticas.css                        # Estilos de estadísticas
-src/styles/apps-directory.css                      # Estilos de directorio de apps
-src/styles/animations.css                          # Animaciones generales
-src/styles/profile.css                             # Estilos de perfil
-src/styles/cursos.css                              # Estilos de cursos
-src/styles/email-verification.css                  # Estilos de verificación
-src/styles/coming-soon.css                         # Estilos de "próximamente"
-src/login/new-auth.css                             # Estilos de autenticación
-src/Community/community.css                        # Estilos de comunidad
-src/Notices/notices.css                            # Estilos de noticias
-src/Chat-Online/chat-online.css                    # Estilos de chat online
-src/instructors/styles/instructor-dashboard.css    # Estilos de dashboard instructor
-```
+### 2. Checkboxes Manuales (Con Restricciones)
+**Implementar checkboxes en cada video/actividad con estas reglas:**
+- El usuario puede marcar manualmente un video como completado SOLO si se encuentra en ese módulo
+- El usuario NO puede marcar videos posteriores (futuros) como completados
+- El usuario SÍ puede marcar videos anteriores como completados (en caso de que no estén marcados)
+- Al marcar manualmente, debe sincronizar inmediatamente con la base de datos
 
-### 📁 ARCHIVOS HTML QUE IMPLEMENTAN PARTÍCULAS (17 archivos)
-```
-src/index.html                                     # Página principal con partículas estáticas y dinámicas
-src/login/new-auth.html                            # Login con partículas estáticas
-src/Community/community.html                       # Comunidad con partículas
-src/Community/community-view.html                  # Vista de comunidad
-src/courses.html                                   # Cursos con partículas
-src/cursos.html                                    # Cursos (versión alternativa)
-src/profile.html                                   # Perfil con partículas
-src/estadisticas.html                              # Estadísticas
-src/apps-directory.html                            # Directorio de aplicaciones
-src/Notices/notices.html                           # Noticias
-src/perfil-cuestionario.html                       # Cuestionario de perfil
-src/recordings.html                                # Grabaciones
-src/instructors/instructor-dashboard.html          # Dashboard de instructor
-src/email-verification.html                        # Verificación de email
-src/coming-soon.html                               # Página "próximamente"
-src/q/genai-form.html                              # Formulario GenAI
-src/q/form.html                                    # Formulario general
+### 3. Navegación desde Menú Desplegable
+**Al cambiar de video/actividad desde el menú desplegable izquierdo:**
+- Si se navega a la **siguiente actividad/video inmediata**, el video anterior debe marcarse como completado automáticamente
+- Si se navega a actividades **superiores (no inmediatas)** o **anteriores**, NO debe marcar ningún video como completado
+- La lógica debe determinar si es una navegación "hacia adelante" secuencial
+
+## Implementación Técnica Requerida
+
+### 1. Modificar VideoNavigationSystem
+```javascript
+// En la función navigateToNext()
+navigateToNext() {
+    // ... código existente ...
+    
+    // NUEVO: Marcar video actual como completado antes de navegar
+    this.markCurrentVideoAsCompleted();
+    
+    // ... resto del código existente ...
+}
+
+// NUEVA FUNCIÓN
+markCurrentVideoAsCompleted() {
+    // Implementar lógica para marcar video actual como completado
+    // Incluir sincronización con BD
+}
 ```
 
----
+### 2. Implementar Sistema de Checkboxes
+```javascript
+// NUEVA CLASE: ManualCheckboxManager
+class ManualCheckboxManager {
+    constructor() {
+        this.currentModule = null;
+        this.currentVideoIndex = -1;
+    }
+    
+    // Implementar lógica de restricciones para checkboxes manuales
+    canMarkAsCompleted(videoId) {
+        // Verificar si el video está en el módulo actual
+        // Verificar si no es un video futuro
+    }
+    
+    markVideoCompleted(videoId, isManual = true) {
+        // Marcar video como completado
+        // Sincronizar con BD
+    }
+}
+```
 
-## TAREAS DE ELIMINACIÓN ESPECÍFICAS
+### 3. Modificar Sistema de Navegación del Menú
+```javascript
+// Modificar la función que maneja la selección desde el menú desplegable
+function handleVideoSelectionFromMenu(selectedVideo) {
+    // Determinar si es navegación hacia adelante secuencial
+    const isSequentialForward = this.isSequentialForwardNavigation(selectedVideo);
+    
+    if (isSequentialForward) {
+        // Marcar video anterior como completado
+        this.markPreviousVideoAsCompleted();
+    }
+    
+    // Cambiar al video seleccionado
+    this.selectVideo(selectedVideo);
+}
+```
 
-### 🗑️ TAREA 1: ELIMINACIÓN DE ANIMACIONES DINÁMICAS
-**Objetivo:** Eliminar todas las animaciones de partículas dinámicas (JavaScript/Canvas) de forma segura
+### 4. Función de Sincronización Unificada
+```javascript
+// NUEVA FUNCIÓN: Sincronización unificada
+function syncVideoCompletion(videoId, completionMethod = 'auto') {
+    try {
+        // 1. Marcar visualmente como completado
+        const videoElement = document.querySelector(`[data-video-id="${videoId}"]`);
+        if (videoElement) {
+            videoElement.classList.add('completed');
+        }
+        
+        // 2. Actualizar contadores
+        const videoCounts = countCompletedVideos();
+        updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
+        
+        // 3. Sincronizar con base de datos
+        if (window.hybridProgressManager) {
+            const progressData = {
+                courseId: 'intro-to-ai',
+                completedVideos: videoCounts.completed,
+                totalVideos: videoCounts.total,
+                percentage: Math.round((videoCounts.completed / videoCounts.total) * 100),
+                lastUpdated: new Date().toISOString()
+            };
+            
+            window.hybridProgressManager.saveProgress(progressData);
+            
+            // Forzar sincronización inmediata
+            setTimeout(() => {
+                window.hybridProgressManager.forceSync(progressData);
+            }, 1000);
+        }
+        
+        // 4. Disparar evento personalizado
+        window.dispatchEvent(new CustomEvent('videoCompleted', {
+            detail: { videoId, completionMethod }
+        }));
+        
+        console.log(`✅ Video ${videoId} marcado como completado (${completionMethod})`);
+        
+    } catch (error) {
+        console.error('❌ Error sincronizando completado de video:', error);
+    }
+}
+```
 
-**Archivos a ELIMINAR:**
-- `src/scripts/particles.js` - Sistema principal (ELIMINAR)
-- `src/scripts/index-particles.js` - Implementación específica para index (ELIMINAR)
-- `src/scripts/community-particles-interactive.js` (ELIMINAR)
-- `src/scripts/notices-particles-interactive.js` (ELIMINAR)
-- `src/scripts/courses-particles-direct.js` (ELIMINAR)
-- `src/scripts/cursos-particles-direct.js` (ELIMINAR)
-- `src/scripts/profile-particles-direct.js` (ELIMINAR)
-- `src/scripts/email-verification-particles.js` (ELIMINAR)
+## Estructura de Datos Requerida
 
-**Acciones requeridas:**
-1. **Eliminar archivos JavaScript** de partículas
-2. **Remover referencias** en HTML (`<script src="...particles...">`)
-3. **Eliminar elementos Canvas** (`<canvas id="bgParticles">`)
-4. **Verificar que no hay dependencias** críticas
+### 1. Estado del Sistema
+```javascript
+const AutoCheckSystem = {
+    state: {
+        currentVideoId: null,
+        currentVideoIndex: -1,
+        totalVideos: 0,
+        videosArray: [],
+        currentModule: null,
+        isManualMode: false
+    },
+    
+    // Métodos principales
+    init() { /* Inicialización */ },
+    markVideoCompleted(videoId, method) { /* Marcar como completado */ },
+    canMarkVideo(videoId) { /* Verificar permisos */ },
+    syncWithDatabase() { /* Sincronizar con BD */ }
+};
+```
 
-### 🗑️ TAREA 2: ELIMINACIÓN DE PARTÍCULAS ESTÁTICAS CSS
-**Objetivo:** Eliminar todas las partículas estáticas CSS y sus animaciones
+### 2. Configuración de Checkboxes
+```html
+<!-- Ejemplo de estructura HTML para checkboxes -->
+<div class="video-item" data-video-id="video-1">
+    <input type="checkbox" 
+           class="video-completion-checkbox" 
+           data-video-id="video-1"
+           onchange="handleManualCheckbox(this)">
+    <span class="video-title">Título del Video</span>
+</div>
+```
 
-**Archivos a MODIFICAR:**
-- `src/styles/particles-background.css` - **ELIMINAR COMPLETAMENTE**
-- `src/index.html` - Remover elementos `<div class="particle">`
-- `src/login/new-auth.html` - Remover elementos `<div class="particle">`
-- Todos los archivos HTML con partículas estáticas
+## Consideraciones de UX/UI
 
-**Acciones requeridas:**
-1. **Eliminar archivo CSS** `particles-background.css`
-2. **Remover referencias** en HTML (`<link rel="stylesheet" href="...particles-background.css">`)
-3. **Eliminar elementos HTML** (`<div class="particles-container">`, `<div class="particle">`)
-4. **Limpiar animaciones CSS** (@keyframes float, orbitalMotion, quantumFlicker)
-5. **Preservar gradientes básicos** (sin partículas)
+### 1. Feedback Visual
+- Mostrar notificación cuando se marca automáticamente
+- Indicar visualmente qué videos pueden ser marcados manualmente
+- Deshabilitar checkboxes de videos futuros
 
-### ✅ TAREA 3: PRESERVAR GRADIENTES Y FONDOS BÁSICOS
-**Objetivo:** Mantener gradientes y fondos básicos (SIN partículas) para diseño limpio
+### 2. Estados de Checkbox
+```css
+.video-completion-checkbox {
+    /* Estilo normal */
+}
 
-**Archivos a REVISAR (NO eliminar):**
-- `src/styles/main.css` - Gradientes base (PRESERVAR)
-- `src/styles/recordings.css` - Gradientes específicos (PRESERVAR)
-- `src/styles/chat.css` - Fondos de chat (PRESERVAR)
-- `src/ChatGeneral/chat-general.css` - Fondos alternativos (PRESERVAR)
+.video-completion-checkbox:disabled {
+    /* Estilo para videos futuros */
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
-**Acciones requeridas:**
-1. **Mantener gradientes básicos** (linear-gradient, radial-gradient)
-2. **Preservar colores principales** (#44E5FF, #0077A6, #0A0A0A)
-3. **Eliminar solo efectos de partículas** (glow con partículas, animaciones de partículas)
-4. **Conservar fondos sólidos** y gradientes simples
-5. **Limpiar efectos de blur** relacionados con partículas
+.video-completion-checkbox.auto-completed {
+    /* Estilo para videos marcados automáticamente */
+    background-color: #28a745;
+}
+```
 
-### 🗑️ TAREA 4: LIMPIEZA DE ELEMENTOS HTML
-**Objetivo:** Eliminar todos los elementos HTML relacionados con partículas
+## Validaciones y Edge Cases
 
-**Elementos a ELIMINAR:**
-- `<div class="particles-container">` - Contenedores de partículas (ELIMINAR)
-- `<canvas id="bgParticles">` - Canvas para partículas dinámicas (ELIMINAR)
-- `<div class="particle">` - Partículas individuales (ELIMINAR)
-- `<div class="floating-particle">` - Partículas flotantes (ELIMINAR)
+### 1. Validaciones
+- Verificar que el video existe antes de marcarlo
+- Validar que no se marquen videos futuros manualmente
+- Asegurar sincronización con BD antes de marcar visualmente
 
-**Elementos a REVISAR:**
-- `<div class="bg-glow">` - Efectos de glow (REVISAR - puede mantener sin partículas)
-- `<div class="auth-bg">` - Fondos de autenticación (PRESERVAR gradientes)
-- `<div class="main-bg">` - Fondos principales (PRESERVAR gradientes)
+### 2. Edge Cases
+- Usuario navega muy rápido entre videos
+- Pérdida de conexión durante sincronización
+- Videos que ya están marcados como completados
+- Cambio de módulo durante navegación
 
-**Acciones requeridas:**
-1. **Eliminar contenedores** de partículas en todos los HTML
-2. **Remover canvas** de partículas dinámicas
-3. **Limpiar elementos** de partículas individuales
-4. **Preservar contenedores** de fondo (sin partículas)
-5. **Verificar z-index** después de eliminaciones
+## Testing y Debugging
 
-### ✅ TAREA 5: VERIFICACIÓN Y LIMPIEZA FINAL
-**Objetivo:** Verificar que la eliminación de partículas no afecte la funcionalidad
+### 1. Funciones de Testing
+```javascript
+// Función para probar el sistema
+window.testAutoCheck = function() {
+    console.log('🧪 Probando sistema de autocheck...');
+    // Implementar pruebas
+};
 
-**Verificaciones requeridas:**
-1. **Funcionalidad de páginas** - Todas las páginas deben funcionar normalmente
-2. **Navegación** - Enlaces y botones deben funcionar
-3. **Responsive design** - Diseño debe mantenerse en diferentes pantallas
-4. **Carga de páginas** - Debe ser más rápida sin partículas
-5. **Consistencia visual** - Diseño limpio y uniforme
+// Función para resetear estado
+window.resetAutoCheck = function() {
+    // Limpiar estado y reinicializar
+};
+```
 
-**Limpieza final:**
-1. **Eliminar archivos** JavaScript de partículas
-2. **Limpiar referencias** en HTML
-3. **Remover estilos** CSS de partículas
-4. **Verificar** que no hay errores en consola
-5. **Probar** todas las páginas principales
+### 2. Logging
+- Log detallado de todas las acciones de autocheck
+- Tracking de métodos de completado (auto/manual)
+- Monitoreo de sincronización con BD
 
----
+## Instrucciones de Implementación
 
-## FORMATO DE RESPUESTA ESPERADO
+1. **Paso 1**: Modificar `VideoNavigationSystem.navigateToNext()` para incluir autocheck
+2. **Paso 2**: Implementar `ManualCheckboxManager` para checkboxes manuales
+3. **Paso 3**: Modificar sistema de selección del menú desplegable
+4. **Paso 4**: Crear función unificada de sincronización
+5. **Paso 5**: Agregar validaciones y manejo de errores
+6. **Paso 6**: Implementar feedback visual y notificaciones
+7. **Paso 7**: Agregar funciones de testing y debugging
 
-### 📊 RESUMEN EJECUTIVO
-- Número total de archivos de partículas a eliminar
-- Páginas que serán afectadas por la eliminación
-- Archivos que se pueden eliminar completamente
-- Verificación de que no hay dependencias críticas
+## Notas Importantes
 
-### 🗑️ LISTA DE ELIMINACIÓN
-**Archivos JavaScript a ELIMINAR:**
-- Lista completa de archivos `*-particles-*.js`
-- Referencias en HTML a eliminar
-- Elementos Canvas a remover
+- **NO romper funcionalidad existente**: Mantener toda la funcionalidad actual intacta
+- **Sincronización robusta**: Asegurar que los cambios se guarden en BD
+- **Performance**: Evitar múltiples llamadas innecesarias a la BD
+- **UX consistente**: Mantener la experiencia de usuario fluida
+- **Fallbacks**: Implementar fallbacks en caso de errores de BD
 
-**Archivos CSS a ELIMINAR:**
-- `particles-background.css` (eliminar completamente)
-- Estilos de partículas en otros archivos CSS
-
-**Elementos HTML a ELIMINAR:**
-- Contenedores de partículas en cada página
-- Canvas de partículas dinámicas
-- Partículas individuales
-
-### ✅ VERIFICACIÓN DE SEGURIDAD
-1. **Dependencias críticas** - Confirmar que no hay funcionalidad dependiente
-2. **Funcionalidad preservada** - Todas las páginas funcionarán normalmente
-3. **Diseño limpio** - Gradientes y fondos básicos se mantienen
-4. **Rendimiento mejorado** - Carga más rápida sin partículas
-
-### 🔧 PLAN DE IMPLEMENTACIÓN
-1. **Paso 1:** Eliminar archivos JavaScript de partículas
-2. **Paso 2:** Limpiar referencias en HTML
-3. **Paso 3:** Eliminar archivo CSS de partículas
-4. **Paso 4:** Remover elementos HTML de partículas
-5. **Paso 5:** Verificar funcionamiento de todas las páginas
-
----
-
-## INSTRUCCIONES ESPECÍFICAS PARA CLAUDE
-
-1. **Lee todos los archivos listados** de manera sistemática
-2. **Identifica TODAS las partículas** (dinámicas y estáticas)
-3. **Confirma que NO hay dependencias críticas** en las partículas
-4. **Proporciona lista exacta** de archivos a eliminar
-5. **Incluye código específico** de elementos HTML a remover
-6. **Verifica que la funcionalidad** se mantenga intacta
-7. **Prioriza la eliminación** por seguridad y simplicidad
-
-## CRITERIOS DE EVALUACIÓN
-
-- ✅ **Seguridad:** Eliminación sin dañar funcionalidad
-- ✅ **Completitud:** Todos los archivos de partículas identificados
-- ✅ **Precisión:** Lista exacta de elementos a eliminar
-- ✅ **Verificación:** Confirmación de que no hay dependencias
-- ✅ **Simplicidad:** Diseño más limpio y rápido
-
----
-
-## 🎯 RESULTADO ESPERADO
-
-**Diseño más simple y limpio:**
-- ✅ Sin animaciones de partículas
-- ✅ Sin efectos visuales complejos
-- ✅ Gradientes y fondos básicos preservados
-- ✅ Carga más rápida de páginas
-- ✅ Funcionalidad 100% preservada
-- ✅ Código más mantenible
-
-**NOTA:** El objetivo es lograr un diseño minimalista y profesional eliminando todas las partículas de forma segura.
+Implementa este sistema paso a paso, asegurándote de que cada componente funcione correctamente antes de pasar al siguiente. Usa el sistema existente como base y extiéndelo con la nueva funcionalidad de autocheck.

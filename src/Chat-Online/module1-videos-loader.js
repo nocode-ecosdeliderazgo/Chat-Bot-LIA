@@ -785,6 +785,24 @@ class Module1VideosLoader {
             console.log('🔍 Datos completos del video:', video);
             console.log('🎯 YouTube ID que se usará:', video.youtube_video_id);
 
+            // ✅ AUTOCHECK: Verificar si es navegación secuencial desde menú
+            const previousVideoId = this.currentVideoId;
+            const previousVideoIndex = this.videos.findIndex(v => v.id === previousVideoId);
+            const newVideoIndex = this.videos.findIndex(v => v.id === video.id);
+
+            // Si es navegación secuencial hacia adelante (siguiente video inmediato)
+            if (previousVideoIndex >= 0 && newVideoIndex === previousVideoIndex + 1) {
+                console.log('📋 Navegación secuencial detectada - marcando video anterior');
+                const previousVideo = this.videos[previousVideoIndex];
+                if (previousVideo && typeof window.syncVideoCompletion === 'function') {
+                    window.syncVideoCompletion(previousVideo.id, 'menu_navigation');
+                }
+            } else if (newVideoIndex > previousVideoIndex + 1) {
+                console.log('⏭️ Navegación a video no inmediato - sin autocheck');
+            } else if (newVideoIndex < previousVideoIndex) {
+                console.log('⏮️ Navegación hacia atrás - sin autocheck');
+            }
+
             // Actualizar video activo
             this.currentVideoId = video.id;
 
@@ -792,7 +810,7 @@ class Module1VideosLoader {
             document.querySelectorAll('.video-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             const selectedElement = document.querySelector(`[data-video-id="${video.id}"]`);
             if (selectedElement) {
                 selectedElement.classList.add('active');
@@ -1327,8 +1345,9 @@ class Module1VideosLoader {
                 console.log('🎯 Target del click:', event.target.tagName, event.target.className);
 
                 // Verificar si el click fue en un checkbox
+                // NOTA: Los checkboxes ahora son manejados por ManualCheckboxManager en chat-online.html
                 if (event.target.closest('.lesson-checkbox-container')) {
-                    this.handleCheckboxClick(event);
+                    console.log('☑️ Checkbox click detectado - ManualCheckboxManager lo manejará');
                     return;
                 }
 
