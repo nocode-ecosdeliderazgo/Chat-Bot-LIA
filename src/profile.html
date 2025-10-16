@@ -57,8 +57,6 @@
     </script>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/profile.css">
-    <!-- Estilos específicos para las partículas -->
-    <link rel="stylesheet" href="styles/particles-background.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/images/icono.png">
     
@@ -76,23 +74,10 @@
     <script src="scripts/supabase-client.js"></script>
 </head>
 <body class="body-profile-page">
-    <!-- Partículas de fondo estáticas CSS -->
-    <div class="particles-container">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
-    <!-- Contenedor principal con fondo dinámico -->
+    <!-- Contenedor principal con fondo limpio -->
     <div class="auth-container">
         <div class="auth-bg">
             <div class="bg-glow"></div>
-            <canvas id="bgParticles"></canvas>
         </div>
 
     <!-- Header fijo a ancho completo -->
@@ -387,8 +372,7 @@
     <script src="scripts/profile-debug-utils.js"></script>
     <script src="scripts/profile-manager.js"></script>
     <script src="scripts/file-upload-manager.js"></script>
-    <script src="scripts/profile-avatar-manager.js"></script>
-    <script src="scripts/profile-particles-direct.js"></script>
+    <script src="scripts/profile-avatar-manager.js"></script></script>
     <script src="scripts/avatar-fix-simple.js"></script>
 
     <!-- Script de debugging para verificar campos del formulario -->
