@@ -1107,7 +1107,7 @@ body::-webkit-scrollbar {
 
 .course-card {
     background: var(--course-card-bg);
-    border: 1px solid var(--course-border);
+    border: 2px solid rgba(68,229,255,0.3);
     border-radius: 16px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -2682,7 +2682,7 @@ body::-webkit-scrollbar {
 /* Estilos para las tarjetas de cursos en modo claro */
 [data-theme="light"] .course-card {
     background: rgba(255, 255, 255, 0.85) !important;
-    border: 1px solid rgba(0, 102, 204, 0.15) !important;
+    border: 2px solid rgba(0, 102, 204, 0.4) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 }
 

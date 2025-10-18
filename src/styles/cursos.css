@@ -65,7 +65,7 @@
 /* Estilos específicos para tarjetas en modo claro */
 [data-theme="light"] .course-card {
   background: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid rgba(68, 229, 255, 0.15) !important;
+  border: 2px solid rgba(0, 102, 204, 0.4) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 }
 
@@ -542,7 +542,7 @@ main.container {
   max-width: 1000px;
   margin: 0 auto !important;
 }
-.course-card { display:flex; flex-direction:column; background: var(--card-bg); border:1px solid var(--card-border); border-radius: 16px; overflow:hidden; transition:.25s ease; box-shadow: var(--shadow-card); position:relative; min-width:0; }
+.course-card { display:flex; flex-direction:column; background: var(--card-bg); border:2px solid rgba(68,229,255,0.3); border-radius: 16px; overflow:hidden; transition:.25s ease; box-shadow: var(--shadow-card); position:relative; min-width:0; }
 .course-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card-hover); border-color: var(--turq); }
 .course-thumb { height: 180px; background: #0f1f32; position:relative; overflow:hidden; }
 .course-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
