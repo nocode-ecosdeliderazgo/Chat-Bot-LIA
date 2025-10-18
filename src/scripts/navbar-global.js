@@ -25,37 +25,47 @@ const NavbarGlobal = {
         return `
             <!-- Navigation Bar con funcionalidad sticky -->
             <div class="course-tabs">
-                <button class="tab-button ${activeTab === 'cursos' ? 'active' : ''}"
-                        data-tab="mis-cursos"
-                        onclick="location.href='${basePath}cursos.html'">
-                    <i class='bx bx-collection'></i>
-                    Talleres
-                </button>
-                <button class="tab-button ${activeTab === 'directorio' ? 'active' : ''}"
-                        data-tab="directorio"
-                        onclick="location.href='${basePath}apps-directory.html'">
-                    <i class='bx bx-grid-alt'></i>
-                    Directorio IA
-                </button>
-                <button class="tab-button ${activeTab === 'comunidad' ? 'active' : ''}"
-                        data-tab="comunidad"
-                        onclick="location.href='${basePath}Community/community.html'">
-                    <i class='bx bx-group'></i>
-                    Comunidad
-                </button>
-                <button class="tab-button ${activeTab === 'noticias' ? 'active' : ''}"
-                        data-tab="noticias"
-                        onclick="location.href='${basePath}Notices/notices.html'">
-                    <i class='bx bx-news'></i>
-                    Noticias
-                </button>
+                <!-- Logo/Brand (izquierda) -->
+                <div class="navbar-brand">
+                    <img src="${basePath}assets/images/icono.png" alt="Logo" />
+                </div>
+                
+                <!-- Navegación (centro) -->
+                <div class="navbar-navigation">
+                    <button class="tab-button ${activeTab === 'cursos' ? 'active' : ''}"
+                            data-tab="mis-cursos"
+                            onclick="location.href='${basePath}cursos.html'">
+                        <i class='bx bx-collection'></i>
+                        Talleres
+                    </button>
+                    <button class="tab-button ${activeTab === 'directorio' ? 'active' : ''}"
+                            data-tab="directorio"
+                            onclick="location.href='${basePath}apps-directory.html'">
+                        <i class='bx bx-grid-alt'></i>
+                        Directorio IA
+                    </button>
+                    <button class="tab-button ${activeTab === 'comunidad' ? 'active' : ''}"
+                            data-tab="comunidad"
+                            onclick="location.href='${basePath}Community/community.html'">
+                        <i class='bx bx-group'></i>
+                        Comunidad
+                    </button>
+                    <button class="tab-button ${activeTab === 'noticias' ? 'active' : ''}"
+                            data-tab="noticias"
+                            onclick="location.href='${basePath}Notices/notices.html'">
+                        <i class='bx bx-news'></i>
+                        Noticias
+                    </button>
+                </div>
+                
+                <!-- Usuario (derecha) -->
+                <div class="navbar-user">
+                    <button class="header-profile">
+                        <img id="headerProfileImg" src="${basePath}assets/images/default-avatar.svg" alt="Perfil"
+                             onerror="this.onerror=null; this.src='${basePath}assets/images/default-avatar.svg';" />
+                    </button>
+                </div>
             </div>
-
-            <!-- Botón de perfil -->
-            <button class="header-profile">
-                <img id="headerProfileImg" src="${basePath}assets/images/default-avatar.svg" alt="Perfil"
-                     onerror="this.onerror=null; this.src='${basePath}assets/images/default-avatar.svg';" />
-            </button>
 
             <!-- Menú de perfil completo -->
             <div id="profileMenu" class="profile-menu">

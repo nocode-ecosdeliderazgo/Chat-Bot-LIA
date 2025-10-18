@@ -6,6 +6,8 @@
     <title>Mis Talleres — Lia</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/courses.css">
+    <!-- Navbar global -->
+    <link rel="stylesheet" href="styles/navbar-global.css">
     
     <!-- Estilos para carga dinámica -->
     <style>
@@ -136,60 +138,8 @@
             <div class="bg-glow"></div>
         </div>
 
-    <!-- Header con navbar como en talleres.html -->
-    <header class="catalog-header">
-        <div class="container">
-            <div class="course-tabs">
-                <button class="tab-button active" onclick="location.href='cursos.html'">
-                    <i class='bx bx-collection'></i>
-                    Talleres
-                </button>
-                <button class="tab-button" onclick="location.href='apps-directory.html'">
-                    <i class='bx bx-grid-alt'></i>
-                    Directorio IA
-                </button>
-                <button class="tab-button" onclick="location.href='Community/community.html'">
-                    <i class='bx bx-group'></i>
-                    Comunidad
-                </button>
-                <button class="tab-button" onclick="location.href='Notices/notices.html'">
-                    <i class='bx bx-news'></i>
-                    Noticias
-                </button>
-            </div>
-            <button class="header-profile">
-                <img src="assets/images/icono.png" alt="Perfil" />
-            </button>
-            <div id="profileMenu" class="profile-menu">
-                <div class="pm-header">
-                    
-                    <div>
-                        <div class="pm-name" id="pmName">Usuario</div>
-                        <div class="pm-email" id="pmEmail"></div>
-                    </div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis estadísticas</div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
-                        <i class='bx bx-sun theme-icon-sun'></i>
-                        <i class='bx bx-moon theme-icon-moon'></i>
-                        Cambiar tema
-                    </div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='index.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Navbar Global -->
+    <div id="navbar-container"></div>
 
     <!-- Contenido principal -->
     <main class="courses-main">
@@ -375,7 +325,8 @@
     <script src="scripts/hybrid-progress-manager.js?v=2.0"></script>
     <script src="scripts/dynamic-course-loader.js"></script>
     <script src="scripts/courses.js"></script>
-    <script src="scripts/profile-avatar-manager.js"></script></script>
+    <script src="scripts/profile-avatar-manager.js"></script>
+    <script src="scripts/navbar-global.js"></script>
     <script src="scripts/force-theme-init.js"></script>
     <script src="scripts/theme-manager.js"></script>
     <script src="scripts/theme-toggle.js"></script>
@@ -814,6 +765,12 @@
 
         // Fallback: ejecutar después de 2 segundos si el evento no se dispara
         document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar navbar global
+            if (window.NavbarGlobal) {
+                window.NavbarGlobal.init('cursos', 'cursos');
+                console.log('✅ Navbar global inicializada en courses');
+            }
+            
             setTimeout(() => {
                 if (!progressSync) {
                     console.log('⚠️ Fallback: cargando progreso sin evento');

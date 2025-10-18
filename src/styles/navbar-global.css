@@ -10,28 +10,33 @@
     top: 0;
     left: 0;
     right: 0;
+    width: 100vw;
     z-index: 9999;
+    background: rgba(10, 16, 28, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(68, 229, 255, 0.2);
     pointer-events: none;
-    padding: 20px 0;
+    padding: 0;
 }
 
 /* ===== NAVBAR - ESTILOS BASE STICKY/FIXED ===== */
 #navbar-container .course-tabs {
     display: flex !important;
     align-items: center;
-    justify-content: center;
-    background: rgba(10, 16, 28, 0.98) !important;
-    border-radius: 20px !important;
-    padding: 12px !important;
-    gap: 8px !important;
+    justify-content: space-between !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 20px !important;
+    gap: 0 !important;
     overflow-x: auto;
-    border: 1px solid rgba(0, 102, 204, 0.25) !important;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(68, 229, 255, 0.1) inset !important;
+    border: none !important;
+    box-shadow: none !important;
 
-    /* CRÍTICO: Position fixed para sticky */
+    /* CRÍTICO: Position relative para layout horizontal */
     position: relative !important;
     margin: 0 auto !important;
-    width: min(750px, 95vw) !important;
+    width: 100% !important;
+    max-width: 1200px !important;
 
     /* Permitir interacción */
     pointer-events: auto;
@@ -92,12 +97,12 @@
 
 /* ===== BOTÓN DE PERFIL ===== */
 #navbar-container .header-profile {
-    position: fixed !important;
-    top: 32px !important;
-    right: 20px !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
     z-index: 10000 !important;
-    width: 56px !important;
-    height: 56px !important;
+    width: 48px !important;
+    height: 48px !important;
     border-radius: 50% !important;
     overflow: hidden;
     border: 2px solid rgba(68, 229, 255, 0.35) !important;
@@ -125,7 +130,7 @@
 /* ===== MENÚ DE PERFIL ===== */
 #navbar-container .profile-menu {
     position: fixed !important;
-    top: 96px !important;
+    top: 80px !important;
     right: 20px !important;
     width: 280px;
     background: rgba(10, 16, 28, 0.96) !important;
@@ -225,11 +230,70 @@
     font-size: 18px;
 }
 
+/* ===== NUEVAS SECCIONES DE LA NAVBAR ===== */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+.navbar-brand img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 8px;
+    background: rgba(68, 229, 255, 0.15);
+    border: 2px solid rgba(68, 229, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.navbar-brand img:hover {
+    background: rgba(68, 229, 255, 0.25);
+    border-color: rgba(68, 229, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.navbar-navigation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+}
+
 /* ===== LIGHT MODE ===== */
+[data-theme="light"] #navbar-container {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.15) !important;
+}
+
+[data-theme="light"] .navbar-brand {
+    color: #1a202c;
+}
+
+[data-theme="light"] .navbar-brand img {
+    background: #A0AEC0;
+    border: 2px solid #0066CC;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
+}
+
+[data-theme="light"] .navbar-brand img:hover {
+    background: #718096;
+    border-color: #0052A3;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
+}
+
 [data-theme="light"] #navbar-container .course-tabs {
-    background: rgb(255, 255, 255) !important;
-    border: 1px solid rgba(0, 102, 204, 0.2) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 102, 204, 0.08) inset !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 [data-theme="light"] #navbar-container .tab-button {
@@ -275,19 +339,29 @@
 body.has-global-navbar .main-content,
 body.has-global-navbar main.container,
 body.has-global-navbar .hero-section {
-    padding-top: 100px !important;
+    padding-top: 80px !important;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    #navbar-container {
-        padding: 10px 0;
+    #navbar-container .course-tabs {
+        padding: 0 16px !important;
+        gap: 0 !important;
     }
 
-    #navbar-container .course-tabs {
-        width: min(500px, 96vw) !important;
-        padding: 6px !important;
-        gap: 4px !important;
+    .navbar-brand {
+        font-size: 1rem;
+        gap: 8px;
+    }
+
+    .navbar-brand img {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+
+    .navbar-navigation {
+        gap: 4px;
     }
 
     #navbar-container .tab-button {
@@ -301,29 +375,41 @@ body.has-global-navbar .hero-section {
     }
 
     #navbar-container .header-profile {
-        width: 48px !important;
-        height: 48px !important;
-        top: 22px !important;
+        width: 44px !important;
+        height: 44px !important;
     }
 
     #navbar-container .profile-menu {
         width: 260px;
-        top: 78px !important;
+        top: 70px !important;
     }
 
     body.has-global-navbar .main-content,
     body.has-global-navbar main.container,
     body.has-global-navbar .hero-section {
-        padding-top: 90px !important;
+        padding-top: 70px !important;
     }
 }
 
 @media (max-width: 480px) {
     #navbar-container .course-tabs {
-        width: 96vw !important;
-        padding: 4px !important;
-        gap: 2px !important;
-        border-radius: 16px !important;
+        padding: 0 12px !important;
+        gap: 0 !important;
+    }
+
+    .navbar-brand {
+        font-size: 0.9rem;
+        gap: 6px;
+    }
+
+    .navbar-brand img {
+        width: 32px;
+        height: 32px;
+        padding: 5px;
+    }
+
+    .navbar-navigation {
+        gap: 2px;
     }
 
     #navbar-container .tab-button {
@@ -338,16 +424,14 @@ body.has-global-navbar .hero-section {
     }
 
     #navbar-container .header-profile {
-        width: 44px !important;
-        height: 44px !important;
-        top: 18px !important;
-        right: 16px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
 
     #navbar-container .profile-menu {
         width: calc(100vw - 32px);
         right: 16px !important;
-        top: 70px !important;
+        top: 60px !important;
     }
 }
 
