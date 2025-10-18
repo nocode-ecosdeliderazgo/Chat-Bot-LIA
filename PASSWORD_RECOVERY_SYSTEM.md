@@ -151,7 +151,7 @@ function handleForgotPassword(e) {
 
 **URL Generada**:
 ```
-https://coach-lia-ia.netlify.app/src/login/reset-password.html?token=abc123def456...
+https://aprendeyaplica.ai/src/login/reset-password.html?token=abc123def456...
 ```
 
 ---
@@ -439,22 +439,22 @@ Ir a **Netlify Dashboard** → **Site settings** → **Environment variables**
 
 #### 1. Frontend URL ⭐ **CRÍTICO**
 ```bash
-FRONTEND_URL=https://coach-lia-ia.netlify.app
+FRONTEND_URL=https://aprendeyaplica.ai
 ```
 **Uso**: Genera URLs correctas en los emails de recuperación.
 
 #### 2. Supabase Credentials
 ```bash
-SUPABASE_URL=https://[tu-proyecto].supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 ```
 
 #### 3. SMTP Configuration
 ```bash
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=tu-email@gmail.com
-SMTP_PASS=tu-app-password
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-gmail-app-password-here
 ```
 
 **Nota para Gmail**:
@@ -469,14 +469,14 @@ SMTP_PASS=tu-app-password
 FRONTEND_URL=http://localhost:3000
 
 # Supabase
-SUPABASE_URL=https://[tu-proyecto].supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 # SMTP (Gmail App Password)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=tu-email@gmail.com
-SMTP_PASS=xxxx-xxxx-xxxx-xxxx  # App Password de Gmail
+SMTP_USER=your-email@example.com
+SMTP_PASS=xxxx-xxxx-xxxx-xxxx  # App Password de Gmail (16 caracteres)
 
 # Node
 NODE_ENV=development
@@ -568,7 +568,7 @@ return {
 
 1. **Abrir página de login**:
    ```
-   https://coach-lia-ia.netlify.app/src/login/new-auth.html
+   https://aprendeyaplica.ai/src/login/new-auth.html
    ```
 
 2. **Hacer clic en "¿Olvidaste tu contraseña?"**
@@ -586,7 +586,7 @@ return {
    - ✓ Email recibido (revisar spam si no aparece)
    - ✓ Template HTML renderiza correctamente
    - ✓ Botón "Restablecer mi contraseña" visible
-   - ✓ URL del link es correcta: `https://coach-lia-ia.netlify.app/src/login/reset-password.html?token=...`
+   - ✓ URL del link es correcta: `https://aprendeyaplica.ai/src/login/reset-password.html?token=...`
 
 5. **Hacer clic en el link del email**:
    - ✓ Página `reset-password.html` se carga
@@ -651,7 +651,7 @@ return {
 
 1. **Modificar token en la URL manualmente**:
    ```
-   https://coach-lia-ia.netlify.app/src/login/reset-password.html?token=invalid123
+   https://aprendeyaplica.ai/src/login/reset-password.html?token=invalid123
    ```
 2. **Intentar ingresar nueva contraseña**:
    - ✓ Formulario permite input
@@ -777,8 +777,8 @@ grep "Error enviando email" netlify-functions.log
    # Netlify Dashboard → Environment Variables
    SMTP_HOST = smtp.gmail.com
    SMTP_PORT = 587
-   SMTP_USER = tu-email@gmail.com
-   SMTP_PASS = [App Password de Gmail]
+   SMTP_USER = your-email@example.com
+   SMTP_PASS = your-gmail-app-password-here
    ```
 
 2. **Gmail App Password**:
@@ -815,14 +815,14 @@ Variable `FRONTEND_URL` no configurada en Netlify.
 **Solución**:
 ```bash
 # Netlify Dashboard → Environment Variables → Add new variable
-FRONTEND_URL = https://coach-lia-ia.netlify.app
+FRONTEND_URL = https://aprendeyaplica.ai
 ```
 
 **Verificar**:
 ```bash
 # Solicitar nuevo email de recuperación
 # El link debe ser:
-https://coach-lia-ia.netlify.app/src/login/reset-password.html?token=...
+https://aprendeyaplica.ai/src/login/reset-password.html?token=...
 ```
 
 ---
