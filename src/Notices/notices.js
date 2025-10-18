@@ -162,8 +162,10 @@ class NoticesPage {
             const emailEl = document.getElementById('pmEmail');
             if(nameEl && user.display_name) nameEl.textContent = user.display_name;
             if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
-            if(user.avatar_url){
-                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=user.avatar_url;});
+            // Usar ambos campos con fallback: profile_picture_url (nuevo) y avatar_url (legacy)
+            const avatarUrl = user.profile_picture_url || user.avatar_url;
+            if(avatarUrl){
+                document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img=>{img.src=avatarUrl;});
             }
             }
         }catch(e){
@@ -203,10 +205,11 @@ class NoticesPage {
             const emailEl = document.getElementById('pmEmail');
             if (nameEl) nameEl.textContent = currentUser.display_name || currentUser.username || 'Usuario';
             if (emailEl) emailEl.textContent = currentUser.email || currentUser.user?.email || currentUser.data?.email || '';
-            // avatar
-            if (currentUser.avatar_url) {
+            // avatar - usar ambos campos con fallback: profile_picture_url (nuevo) y avatar_url (legacy)
+            const avatarUrl = currentUser.profile_picture_url || currentUser.avatar_url;
+            if (avatarUrl) {
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
-                    img.src = currentUser.avatar_url;
+                    img.src = avatarUrl;
                 });
             }
         } catch (e) { /* noop */ }
@@ -1137,9 +1140,11 @@ function loadUserDataIntoMenu() {
             if(nameEl && user.display_name) nameEl.textContent = user.display_name;
             if(emailEl) emailEl.textContent = user.email || user.user?.email || user.data?.email || '';
             
-            if(user.avatar_url) {
+            // Usar ambos campos con fallback: profile_picture_url (nuevo) y avatar_url (legacy)
+            const avatarUrl = user.profile_picture_url || user.avatar_url;
+            if(avatarUrl) {
                 document.querySelectorAll('.header-profile img, #profileMenu .pm-avatar img').forEach(img => {
-                    img.src = user.avatar_url;
+                    img.src = avatarUrl;
                 });
             }
         }

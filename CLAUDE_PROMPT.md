@@ -1,314 +1,208 @@
-# Prompt para Claude: Análisis y Unificación de Navbar con Funcionalidad Sticky
+# Prompt para Rediseño de Navbar - Chat-Bot-LIA
 
-## Objetivo
-Analizar profundamente la navbar de `notices.html` y unificar todas las navbars de las páginas principales del proyecto para mantener consistencia visual y funcional, implementando una solución global que preserve la funcionalidad sticky/fixed.
+## Contexto del Proyecto
+Este es un sistema de chatbot educativo con múltiples páginas (Talleres, Directorio IA, Comunidad, Noticias) que actualmente utiliza una navbar flotante centrada. Se requiere transformar el diseño para que la navbar abarque todo el ancho de la pantalla superior, similar a un diseño de navbar tradicional.
 
-## Tarea Paso a Paso
+## Estado Actual de la Navbar
 
-### PASO 1: Análisis Profundo de la Navbar de notices.html
+### Estructura Actual:
+- **Archivo principal**: `src/scripts/navbar-global.js`
+- **Estilos**: `src/styles/navbar-global.css`
+- **Diseño actual**: Navbar flotante centrada con bordes redondeados
+- **Posicionamiento**: Fixed con padding lateral y ancho limitado (750px máximo)
+- **Icono de usuario**: Posicionado de forma independiente (fixed) en la esquina superior derecha
 
-**Analiza detalladamente la navbar de `src/Notices/notices.html` (líneas 23-72) y documenta:**
+### Componentes Actuales:
+1. **Contenedor principal**: `#navbar-container` con `position: fixed`
+2. **Barra de navegación**: `.course-tabs` con ancho limitado y centrado
+3. **Botones de navegación**: 4 botones (Talleres, Directorio IA, Comunidad, Noticias)
+4. **Icono de usuario**: `.header-profile` posicionado independientemente
+5. **Menú de perfil**: `.profile-menu` desplegable
 
-#### 1.1 Estructura HTML
-- **Elementos principales**: Identifica cada componente de la navbar
-- **Jerarquía**: Documenta la estructura de anidación
-- **Atributos**: Analiza todos los atributos (class, id, data-*, onclick, etc.)
-- **Iconografía**: Documenta los iconos utilizados (BoxIcons)
-- **Rutas**: Analiza las rutas de navegación y referencias
+## Objetivo del Rediseño
 
-#### 1.2 Funcionalidad
-- **Navegación**: Cómo funciona el sistema de pestañas
-- **Estado activo**: Cómo se maneja la pestaña activa
-- **Perfil**: Funcionalidad del botón de perfil y menú desplegable
-- **Tema**: Sistema de cambio de tema
-- **Interactividad**: Eventos y comportamientos
+### Cambios Requeridos:
+1. **Navbar de ancho completo**: La navbar debe abarcar todo el ancho de la pantalla (100vw)
+2. **Integración del icono de usuario**: El icono debe estar dentro de la navbar, no flotante
+3. **Diseño horizontal**: Distribución horizontal con logo/icono a la izquierda, navegación al centro, y usuario a la derecha
+4. **Mantener funcionalidad**: Preservar toda la funcionalidad existente (sticky, menú de perfil, etc.)
 
-#### 1.3 Estilos Visuales
-- **Clases CSS**: Identifica todas las clases utilizadas
-- **Layout**: Estructura visual y posicionamiento
-- **Funcionalidad Sticky/Fixed**: Analiza cómo se mantiene fija la navbar
-- **Z-index y posicionamiento**: Documenta los valores de position, top, z-index
-- **Responsive**: Comportamiento en diferentes tamaños
-- **Estados**: Estilos para hover, active, etc.
+### Estructura Deseada:
+```
+[LOGO/BRAND] [NAVEGACIÓN CENTRAL] [ICONO USUARIO]
+```
 
-### PASO 2: Análisis de Impacto en Layout
+## Especificaciones Técnicas
 
-**ANTES de eliminar, analiza el impacto visual:**
+### Archivos a Modificar:
+1. **`src/styles/navbar-global.css`**: Actualizar estilos para navbar de ancho completo
+2. **`src/scripts/navbar-global.js`**: Modificar estructura HTML si es necesario
+3. **Posibles ajustes en páginas individuales** si requieren cambios en el contenedor
 
-#### 2.1 Verificación de Layout
-- **Identifica** si las navbars actuales son `position: fixed` o `position: sticky`
-- **Documenta** el espacio que ocupan las navbars (height, padding, margin)
-- **Verifica** si el contenido principal tiene `padding-top` o `margin-top` para compensar la navbar fija
-- **Identifica** posibles problemas de solapamiento o espacios en blanco
+### Cambios de CSS Requeridos:
 
-#### 2.2 Páginas a Analizar
-- `community.html` - Verificar si la navbar es fija y cómo afecta el layout
-- `cursos.html` - Verificar si la navbar es fija y cómo afecta el layout  
-- `apps-directory.html` - Verificar si la navbar es fija y cómo afecta el layout
+#### 1. Contenedor Principal:
+```css
+#navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw; /* Cambiar de padding lateral a ancho completo */
+    z-index: 9999;
+    background: [color de fondo]; /* Agregar fondo sólido */
+    border-bottom: [borde inferior]; /* Agregar separación visual */
+}
+```
 
-### PASO 3: Eliminación Segura de Navbars Existentes
+#### 2. Barra de Navegación:
+```css
+#navbar-container .course-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Cambiar de center a space-between */
+    width: 100%; /* Ancho completo */
+    max-width: 1200px; /* Ancho máximo para contenido */
+    margin: 0 auto; /* Centrar contenido */
+    padding: 0 20px; /* Padding horizontal */
+    background: transparent; /* Remover fondo de la barra interna */
+    border-radius: 0; /* Remover bordes redondeados */
+    /* Remover sombras y efectos de la barra flotante */
+}
+```
 
-**Elimina completamente las navbars de estas páginas CON PRECAUCIÓN:**
+#### 3. Sección de Navegación:
+```css
+.navbar-navigation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Estilos para los botones de navegación */
+}
+```
 
-#### 3.1 community.html
-- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
-- Eliminar el elemento `<div class="course-tabs">` (líneas 257-275)
-- Eliminar el botón `<button class="header-profile">` (líneas 276-278)
-- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 279-306)
-- **Verificar**: Que no queden espacios en blanco o solapamientos
+#### 4. Icono de Usuario:
+```css
+#navbar-container .header-profile {
+    position: relative; /* Cambiar de fixed a relative */
+    /* Remover posicionamiento absoluto */
+    /* Integrar dentro del flujo de la navbar */
+}
+```
 
-#### 3.2 cursos.html
-- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
-- Eliminar el elemento `<div class="course-tabs">` (líneas 38-55)
-- Eliminar el botón `<button class="header-profile">` (líneas 59-61)
-- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 62-87)
-- **Verificar**: Que no queden espacios en blanco o solapamientos
-
-#### 3.3 apps-directory.html
-- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
-- Eliminar el elemento `<div class="course-tabs">` (líneas 45-62)
-- Eliminar el botón `<button class="header-profile">` (líneas 66-68)
-- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 69-95)
-- **Verificar**: Que no queden espacios en blanco o solapamientos
-
-#### 3.4 notices.html
-- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
-- Eliminar el elemento `<div class="course-tabs">` (líneas 23-41)
-- Eliminar el botón `<button class="header-profile">` (líneas 42-44)
-- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 45-72)
-- **Verificar**: Que no queden espacios en blanco o solapamientos
-
-### PASO 4: Creación del Componente Navbar Global
-
-**Crea un archivo `navbar-global.js` con la funcionalidad sticky preservada:**
-
-#### 4.1 Estructura del Componente
-```javascript
-// navbar-global.js
-const NavbarGlobal = {
-    // Configuración de rutas base por página
-    basePaths: {
-        'community': '../',
-        'cursos': '',
-        'apps-directory': '',
-        'notices': '../'
-    },
-    
-    // Generar navbar con funcionalidad sticky
-    create: function(activeTab, currentPage) {
-        const basePath = this.basePaths[currentPage] || '../';
+### Estructura HTML Sugerida:
+```html
+<div id="navbar-container">
+    <div class="course-tabs">
+        <!-- Logo/Brand (izquierda) -->
+        <div class="navbar-brand">
+            <img src="logo.svg" alt="Logo" />
+            <span>Chat-Bot-LIA</span>
+        </div>
         
-        return `
-            <!-- Navigation Bar con funcionalidad sticky -->
-            <div class="course-tabs">
-                <button class="tab-button ${activeTab === 'cursos' ? 'active' : ''}" 
-                        data-tab="mis-cursos" 
-                        onclick="location.href='${basePath}cursos.html'">
-                    <i class='bx bx-collection'></i>
-                    Talleres
-                </button>
-                <button class="tab-button ${activeTab === 'directorio' ? 'active' : ''}" 
-                        data-tab="directorio" 
-                        onclick="location.href='${basePath}apps-directory.html'">
-                    <i class='bx bx-grid-alt'></i>
-                    Directorio IA
-                </button>
-                <button class="tab-button ${activeTab === 'comunidad' ? 'active' : ''}" 
-                        data-tab="comunidad" 
-                        onclick="location.href='${basePath}Community/community.html'">
-                    <i class='bx bx-group'></i>
-                    Comunidad
-                </button>
-                <button class="tab-button ${activeTab === 'noticias' ? 'active' : ''}" 
-                        data-tab="noticias" 
-                        onclick="location.href='${basePath}Notices/notices.html'">
-                    <i class='bx bx-news'></i>
-                    Noticias
-                </button>
-            </div>
-            
-            <!-- Botón de perfil -->
+        <!-- Navegación (centro) -->
+        <div class="navbar-navigation">
+            <button class="tab-button active">Talleres</button>
+            <button class="tab-button">Directorio IA</button>
+            <button class="tab-button">Comunidad</button>
+            <button class="tab-button">Noticias</button>
+        </div>
+        
+        <!-- Usuario (derecha) -->
+        <div class="navbar-user">
             <button class="header-profile">
-                <img id="headerProfileImg" src="${basePath}assets/images/default-avatar.svg" alt="Perfil" 
-                     onerror="this.onerror=null; this.src='${basePath}assets/images/default-avatar.svg';" />
+                <img src="avatar.svg" alt="Perfil" />
             </button>
-            
-            <!-- Menú de perfil completo -->
-            <div id="profileMenu" class="profile-menu">
-                <div class="pm-header">
-                    <div class="pm-avatar">
-                        <img id="menuProfileImg" src="${basePath}assets/images/default-avatar.svg" alt="Perfil" 
-                             onerror="this.onerror=null; this.src='${basePath}assets/images/default-avatar.svg';"/>
-                    </div>
-                    <div>
-                        <div class="pm-name" id="pmName">Usuario</div>
-                        <div class="pm-email" id="pmEmail">user@example.com</div>
-                    </div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='${basePath}estadisticas.html'">
-                        <i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas
-                    </div>
-                    <div class="pm-item" onclick="location.href='${basePath}courses.html'">
-                        <i class='bx bx-book'></i> Mi aprendizaje
-                    </div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='${basePath}profile.html'">
-                        <i class='bx bx-user'></i> Editar perfil
-                    </div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
-                        <div class="theme-icon-container">
-                            <i class='bx bx-sun theme-icon-sun'></i>
-                            <i class='bx bx-moon theme-icon-moon'></i>
-                        </div>
-                        Cambiar tema
-                    </div>
-                </div>
-                <div class="pm-section">
-                    <div class="pm-item" onclick="location.href='${basePath}index.html'">
-                        <i class='bx bx-log-out'></i> Cerrar sesión
-                    </div>
-                </div>
-            </div>
-        `;
-    },
+        </div>
+    </div>
     
-    // Inicializar navbar en una página específica
-    init: function(activeTab, currentPage) {
-        const navbarContainer = document.getElementById('navbar-container');
-        if (navbarContainer) {
-            navbarContainer.innerHTML = this.create(activeTab, currentPage);
-        }
-    }
-};
+    <!-- Menú de perfil (mantener estructura actual) -->
+    <div id="profileMenu" class="profile-menu">
+        <!-- Contenido del menú existente -->
+    </div>
+</div>
 ```
 
-### PASO 5: Implementación de Navbar Global en las Páginas
+## Consideraciones de Diseño
 
-**Implementa el sistema global en las tres páginas objetivo:**
+### Responsive Design:
+- **Desktop**: Navbar completa con todas las secciones visibles
+- **Tablet**: Mantener estructura pero ajustar espaciado
+- **Mobile**: Considerar menú hamburguesa o navegación colapsada
 
-#### 5.1 Modificaciones en community.html
-- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 255
-- **Incluir script**: Agregar `<script src="../scripts/navbar-global.js"></script>` antes del cierre de `</body>`
-- **Inicializar**: Agregar script de inicialización:
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-    NavbarGlobal.init('comunidad', 'community');
-});
-```
+### Temas (Dark/Light):
+- Mantener soporte para ambos temas
+- Ajustar colores de fondo y texto según el tema activo
+- Preservar contraste y legibilidad
 
-#### 5.2 Modificaciones en cursos.html
-- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 33
-- **Incluir script**: Agregar `<script src="scripts/navbar-global.js"></script>` antes del cierre de `</body>`
-- **Inicializar**: Agregar script de inicialización:
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-    NavbarGlobal.init('cursos', 'cursos');
-});
-```
+### Funcionalidad a Preservar:
+1. **Navegación entre páginas**: Todos los enlaces deben funcionar
+2. **Menú de perfil**: Desplegable con opciones de usuario
+3. **Sticky behavior**: Navbar debe mantenerse fija al hacer scroll
+4. **Carga de avatar**: Sistema de carga de imagen de perfil
+5. **Tema toggle**: Cambio entre modo claro y oscuro
 
-#### 5.3 Modificaciones en apps-directory.html
-- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 40
-- **Incluir script**: Agregar `<script src="scripts/navbar-global.js"></script>` antes del cierre de `</body>`
-- **Inicializar**: Agregar script de inicialización:
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-    NavbarGlobal.init('directorio', 'apps-directory');
-});
-```
+## Colores y Estilos Sugeridos
 
-#### 5.4 Modificaciones en notices.html
-- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 22
-- **Incluir script**: Agregar `<script src="../scripts/navbar-global.js"></script>` antes del cierre de `</body>`
-- **Inicializar**: Agregar script de inicialización:
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-    NavbarGlobal.init('noticias', 'notices');
-});
-```
+### Modo Oscuro:
+- **Fondo navbar**: `rgba(10, 16, 28, 0.95)` con `backdrop-filter: blur(10px)`
+- **Borde inferior**: `1px solid rgba(68, 229, 255, 0.2)`
+- **Texto**: `rgba(255, 255, 255, 0.9)`
+- **Botones activos**: `linear-gradient(135deg, #0066CC, #4A90E2)`
 
-### PASO 6: Verificación de Funcionalidad Sticky
+### Modo Claro:
+- **Fondo navbar**: `rgba(255, 255, 255, 0.95)` con `backdrop-filter: blur(10px)`
+- **Borde inferior**: `1px solid rgba(0, 102, 204, 0.15)`
+- **Texto**: `#1a202c`
+- **Botones activos**: `#0066CC`
 
-**Verificar que la funcionalidad sticky se mantenga:**
+## Instrucciones de Implementación
 
-#### 6.1 Verificación de Estilos CSS
-- **Confirmar** que las clases `.course-tabs` mantengan `position: fixed` o `position: sticky`
-- **Verificar** que el `z-index` sea suficiente para mantenerse sobre el contenido
-- **Comprobar** que el `top: 0` esté aplicado correctamente
+### Paso 1: Backup
+- Crear copia de seguridad de `navbar-global.css` y `navbar-global.js`
 
-#### 6.2 Verificación de Layout
-- **Confirmar** que el contenido principal no se solape con la navbar
-- **Verificar** que no haya espacios en blanco inesperados
-- **Comprobar** que el scroll funcione correctamente
+### Paso 2: Modificar CSS
+- Actualizar `#navbar-container` para ancho completo
+- Modificar `.course-tabs` para layout horizontal
+- Reposicionar `.header-profile` dentro del flujo
+- Ajustar responsive design
 
-#### 6.3 Pruebas de Funcionalidad
-- **Probar** que la navbar se mantenga fija al hacer scroll
-- **Verificar** que los enlaces de navegación funcionen
-- **Comprobar** que el menú de perfil se abra y cierre correctamente
-- **Verificar** que el sistema de cambio de tema funcione
+### Paso 3: Actualizar HTML (si necesario)
+- Modificar estructura en `navbar-global.js` si se requiere
+- Agregar sección de brand/logo
+- Reorganizar elementos en layout horizontal
 
-### PASO 7: Verificación y Validación Final
+### Paso 4: Testing
+- Verificar en todas las páginas (Talleres, Directorio, Comunidad, Noticias)
+- Probar responsive design en diferentes tamaños
+- Validar funcionalidad del menú de perfil
+- Confirmar que los temas funcionan correctamente
 
-#### 7.1 Verificación de Rutas
-- Comprobar que todas las rutas de navegación funcionen correctamente
-- Verificar que las rutas de imágenes y recursos sean correctas
-- Asegurar que los enlaces del menú de perfil apunten a las páginas correctas
-
-#### 7.2 Verificación de Funcionalidad
-- Confirmar que el sistema de pestañas activas funcione
-- Verificar que el menú de perfil se abra y cierre correctamente
-- Comprobar que el sistema de cambio de tema funcione
-- **CRÍTICO**: Verificar que la funcionalidad sticky se mantenga
-
-#### 7.3 Verificación Visual
-- Asegurar que la navbar se vea idéntica en todas las páginas
-- Verificar que los estilos se apliquen correctamente
-- Comprobar que la responsividad funcione
-- **CRÍTICO**: Confirmar que no haya problemas de layout tras la eliminación
-
-## Criterios de Éxito
-
-1. **Consistencia Visual**: Todas las navbars deben verse idénticas
-2. **Funcionalidad Completa**: Todas las características deben funcionar
-3. **Navegación Correcta**: Los enlaces deben llevar a las páginas correctas
-4. **Pestaña Activa**: Cada página debe mostrar su pestaña como activa
-5. **Rutas Correctas**: Todas las rutas deben ser válidas según la estructura del proyecto
-6. **Funcionalidad Sticky**: La navbar debe mantenerse fija al hacer scroll
-7. **Layout Preservado**: No debe haber problemas visuales tras la eliminación
-8. **Sistema Global**: El componente debe ser reutilizable y mantenible
+### Paso 5: Ajustes Finales
+- Refinar espaciado y alineación
+- Optimizar para diferentes resoluciones
+- Asegurar accesibilidad
 
 ## Notas Importantes
 
-- **Preservar**: Mantener toda la funcionalidad existente de cada página
-- **No Duplicar**: Evitar duplicar elementos o funcionalidades
-- **Orden**: Mantener el orden lógico de los elementos
-- **Compatibilidad**: Asegurar que los scripts existentes sigan funcionando
-- **Estilos**: Verificar que los estilos CSS existentes no se vean afectados
-- **Funcionalidad Sticky**: CRÍTICO - La navbar debe mantenerse fija al hacer scroll
-- **Layout**: CRÍTICO - No debe haber problemas visuales tras eliminar navbars existentes
-- **Rutas**: Ajustar correctamente las rutas según la ubicación de cada página
+1. **Preservar funcionalidad existente**: No romper ninguna característica actual
+2. **Mantener compatibilidad**: Asegurar que funcione en todas las páginas
+3. **Performance**: No agregar elementos que afecten la velocidad
+4. **Accesibilidad**: Mantener navegación por teclado y lectores de pantalla
+5. **Consistencia**: Asegurar que el diseño sea coherente con el resto de la aplicación
 
-## Archivos a Modificar
+## Resultado Esperado
 
-1. `src/Notices/notices.html` (actualizar para usar sistema global)
-2. `src/Community/community.html`
-3. `src/cursos.html`
-4. `src/apps-directory.html`
-5. `src/scripts/navbar-global.js` (NUEVO - crear)
+Una navbar moderna que:
+- Abarca todo el ancho de la pantalla
+- Tiene distribución horizontal clara (logo - navegación - usuario)
+- Mantiene toda la funcionalidad existente
+- Es responsive y accesible
+- Se integra perfectamente con el diseño actual de la aplicación
+- Soporta ambos temas (claro/oscuro)
 
-## Archivo de Referencia
+---
 
-- `src/Notices/notices.html` (líneas 23-72) - Navbar modelo a implementar
-
-## Flujo de Implementación Recomendado
-
-1. **Crear** `navbar-global.js` primero
-2. **Analizar** el impacto en layout de cada página (4 páginas)
-3. **Eliminar** navbars existentes una por una (4 páginas)
-4. **Implementar** el sistema global en cada página (4 páginas)
-5. **Verificar** funcionalidad sticky en cada página
-6. **Probar** navegación entre páginas
-7. **Validar** que no haya problemas visuales
+**Fecha de creación**: $(date)
+**Versión**: 1.0
+**Estado**: Pendiente de implementación

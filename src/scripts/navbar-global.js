@@ -119,6 +119,25 @@ const NavbarGlobal = {
             // Cargar datos del usuario
             this.loadUserData();
 
+            // Sistema de reintentos para asegurar que el avatar se cargue
+            // Similar a ProfileAvatarManager
+            console.log('🎯 NavbarGlobal: Configurando reintentos para cargar avatar');
+            const retryIntervals = [500, 1000, 2000];
+            retryIntervals.forEach(delay => {
+                setTimeout(async () => {
+                    console.log(`🔄 NavbarGlobal: Reintento de carga de avatar (después de ${delay}ms)`);
+                    await this.loadUserAvatar();
+                }, delay);
+            });
+
+            // También después del evento load
+            window.addEventListener('load', async () => {
+                console.log('🔄 NavbarGlobal: Window load event - reintentando carga de avatar');
+                setTimeout(async () => {
+                    await this.loadUserAvatar();
+                }, 300);
+            });
+
             console.log(`✅ Navbar global inicializada - Página: ${currentPage}, Tab activa: ${activeTab}`);
         } else {
             console.error('❌ No se encontró el contenedor #navbar-container');
@@ -254,8 +273,8 @@ const NavbarGlobal = {
                 console.log('✅ Email de usuario actualizado:', displayEmail);
             }
 
-            // Cargar avatar si existe
-            this.loadUserAvatar();
+            // Cargar avatar si existe (await para esperar a Supabase)
+            await this.loadUserAvatar();
 
         } catch (error) {
             console.warn('⚠️ Error cargando datos del usuario:', error);
@@ -263,9 +282,9 @@ const NavbarGlobal = {
     },
 
     /**
-     * Carga el avatar del usuario
+     * Carga el avatar del usuario (async para esperar a Supabase)
      */
-    loadUserAvatar: function() {
+    loadUserAvatar: async function() {
         try {
             // Obtener datos del usuario desde múltiples fuentes
             let userData = null;
@@ -280,21 +299,39 @@ const NavbarGlobal = {
                 }
             }
 
+            // Intentar cargar avatar actualizado desde Supabase
+            if (window.supabase && userData && userData.id) {
+                try {
+                    console.log('🔍 NavbarGlobal: Consultando avatar desde Supabase...');
+                    const { data: userFromDB, error } = await window.supabase
+                        .from('users')
+                        .select('profile_picture_url')
+                        .eq('id', userData.id)
+                        .single();
+
+                    if (!error && userFromDB && userFromDB.profile_picture_url) {
+                        console.log('✅ NavbarGlobal: Avatar encontrado en Supabase');
+                        // Actualizar userData con el avatar de Supabase
+                        userData.profile_picture_url = userFromDB.profile_picture_url;
+
+                        // Actualizar localStorage para futuros usos
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                    }
+                } catch (supabaseError) {
+                    console.warn('⚠️ NavbarGlobal: Error consultando Supabase para avatar:', supabaseError);
+                }
+            }
+
             const headerProfileImg = document.querySelector('#navbar-container #headerProfileImg');
             const menuProfileImg = document.querySelector('#navbar-container #menuProfileImg');
 
-            // Intentar cargar avatar desde diferentes fuentes
+            // Intentar cargar avatar desde diferentes fuentes con fallback dual
+            // SOPORTE DUAL: profile_picture_url (nuevo) y avatar_url (legacy)
             let avatarUrl = null;
 
             if (userData) {
-                // 1. Desde userData.profile_picture_url (usado por profile-avatar-manager)
-                if (userData.profile_picture_url) {
-                    avatarUrl = userData.profile_picture_url;
-                }
-                // 2. Desde userData.avatar_url
-                else if (userData.avatar_url) {
-                    avatarUrl = userData.avatar_url;
-                }
+                // Usar fallback para ambos campos: profile_picture_url (Supabase) y avatar_url (legacy)
+                avatarUrl = userData.profile_picture_url || userData.avatar_url;
             }
 
             // 3. Desde localStorage directo

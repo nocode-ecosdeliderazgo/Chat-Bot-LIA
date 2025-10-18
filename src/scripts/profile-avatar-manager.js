@@ -101,31 +101,28 @@ class ProfileAvatarManager {
             });
         }
 
-        // Función específica para Community y Notices con múltiples intentos
-        if (window.location.pathname.includes('/Community/') || window.location.pathname.includes('/Notices/')) {
-            console.log('🎯 Página de Community/Notices detectada - configurando actualizaciones periódicas');
+        // Múltiples intentos para asegurar que los avatares se actualicen EN TODAS LAS PÁGINAS
+        // NUEVO: Generalizados para apps-directory, cursos, notices, community
+        console.log('🎯 Configurando actualizaciones periódicas de avatares para todas las páginas');
 
-            // Múltiples intentos para asegurar que los avatares se actualicen
-            // IMPORTANTE: Ahora espera a que Supabase responda antes del primer intento
-            const updateIntervals = [500, 1000, 2000];
-            updateIntervals.forEach(delay => {
-                setTimeout(async () => {
-                    console.log(`🔄 Actualizando avatares (intento después de ${delay}ms)`);
-                    // Refrescar desde Supabase en cada intento
-                    await this.loadAvatarFromSupabase();
-                    this.updateProfileAvatars();
-                }, delay);
-            });
+        const updateIntervals = [500, 1000, 2000];
+        updateIntervals.forEach(delay => {
+            setTimeout(async () => {
+                console.log(`🔄 Actualizando avatares (intento después de ${delay}ms)`);
+                // Refrescar desde Supabase en cada intento
+                await this.loadAvatarFromSupabase();
+                this.updateProfileAvatars();
+            }, delay);
+        });
 
-            // También después del evento load
-            window.addEventListener('load', () => {
-                console.log('🔄 Window load event - actualizando avatares');
-                setTimeout(async () => {
-                    await this.loadAvatarFromSupabase();
-                    this.updateProfileAvatars();
-                }, 300);
-            });
-        }
+        // También después del evento load
+        window.addEventListener('load', () => {
+            console.log('🔄 Window load event - actualizando avatares');
+            setTimeout(async () => {
+                await this.loadAvatarFromSupabase();
+                this.updateProfileAvatars();
+            }, 300);
+        });
 
         // Escuchar cambios en localStorage para actualizar en tiempo real
         window.addEventListener('storage', (e) => {
@@ -218,8 +215,9 @@ class ProfileAvatarManager {
             const currentUser = JSON.parse(raw);
 
             // Si no tenemos URL de Supabase, usar la de localStorage
+            // SOPORTE DUAL: profile_picture_url (nuevo) y avatar_url (legacy)
             if (!profilePictureUrl) {
-                profilePictureUrl = currentUser.profile_picture_url;
+                profilePictureUrl = currentUser.profile_picture_url || currentUser.avatar_url;
             }
             // Determinar la ruta por defecto basada en la ubicación actual
             const currentPath = window.location.pathname;
