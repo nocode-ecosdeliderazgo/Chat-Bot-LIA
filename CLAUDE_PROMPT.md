@@ -1,386 +1,258 @@
-# Prompt para Claude: Sistema de Progreso de Cursos con Base de Datos
+# Prompt para Claude: Implementación de Sistema de Autocheck en Chat Online
 
-## Contexto del Problema
+## Contexto del Proyecto
+Estás trabajando en el archivo `src/Chat-Online/chat-online.html` que contiene un sistema de cursos online con videos y actividades. El sistema actual tiene:
 
-El sistema actual de progreso de cursos en el Chat-Bot-LIA tiene los siguientes problemas identificados:
-
-### 1. **Problemas de Conexión a Base de Datos**
-- Las conexiones a la BD fallan frecuentemente
-- Inconsistencias entre localStorage y datos de la BD
-- Múltiples sistemas de progreso que no están sincronizados
-- APIs que no responden correctamente en producción
-
-### 2. **Sistema Actual de Progreso**
-- **chat-online.html**: Usa `CourseProgressManagerV2` y `YouTubeProgressTracker`
-- **courses.html**: Carga progreso desde localStorage con `loadCourseProgress()`
-- **Base de datos**: Tiene esquema completo en `BDStructureBackup.sql` con tablas:
-  - `course_progress` - Progreso general del curso
-  - `module_progress` - Progreso por módulos
-  - `video_section_progress` - Progreso por secciones de video
-  - `user_progress` - Progreso detallado por video
-
-### 3. **APIs Existentes**
-- `/api/users/:userId/course/:courseId/progress` - Obtener progreso
-- `/api/users/:userId/course/:courseId/module/:moduleNumber/progress` - Actualizar módulo
-- Netlify Functions: `course-progress.js`, `module-progress.js`, `video-progress.js`
+- **Sistema de navegación con flechas**: `VideoNavigationSystem` con botones de navegación anterior/siguiente
+- **Sistema de progreso**: `HybridProgressManager` que sincroniza con base de datos
+- **Videos con clases CSS**: `.video-item.completed` para marcar videos completados
+- **Función de conteo**: `countCompletedVideos()` que cuenta videos completados
 
 ## Objetivo
+Implementar un sistema de "autocheck" que marque automáticamente los videos como completados y sincronice el progreso con la base de datos, siguiendo estas reglas específicas:
 
-Desarrollar un sistema robusto y eficiente que:
-1. **Sincronice correctamente** el progreso entre localStorage y base de datos
-2. **Maneje fallos de conexión** de forma elegante
-3. **Mantenga consistencia** entre todas las páginas
-4. **Optimice las consultas** a la base de datos
-5. **Implemente retry logic** para conexiones fallidas
+## Reglas del Sistema de Autocheck
 
-## Análisis Técnico Detallado
+### 1. Navegación con Flechas (Automático)
+**Cuando el usuario navega hacia adelante usando las flechas:**
+- Al hacer clic en la flecha "siguiente" (botón `nextVideoBtn`), el video actual debe marcarse como completado
+- Esto debe incluir:
+  - Agregar la clase `.completed` al elemento `.video-item` correspondiente
+  - Llamar a `updateHeaderProgressBar()` para actualizar la barra de progreso
+  - Sincronizar con la base de datos usando `HybridProgressManager`
 
-### Estructura Actual del Sistema
+**Cuando el usuario navega hacia atrás:**
+- Al hacer clic en la flecha "anterior" (botón `prevVideoBtn`), NO debe marcar ningún video como completado
+- Solo debe cambiar el video activo
 
-#### Frontend (chat-online.html)
+### 2. Checkboxes Manuales (Con Restricciones)
+**Implementar checkboxes en cada video/actividad con estas reglas:**
+- El usuario puede marcar manualmente un video como completado SOLO si se encuentra en ese módulo
+- El usuario NO puede marcar videos posteriores (futuros) como completados
+- El usuario SÍ puede marcar videos anteriores como completados (en caso de que no estén marcados)
+- Al marcar manualmente, debe sincronizar inmediatamente con la base de datos
+
+### 3. Navegación desde Menú Desplegable
+**Al cambiar de video/actividad desde el menú desplegable izquierdo:**
+- Si se navega a la **siguiente actividad/video inmediata**, el video anterior debe marcarse como completado automáticamente
+- Si se navega a actividades **superiores (no inmediatas)** o **anteriores**, NO debe marcar ningún video como completado
+- La lógica debe determinar si es una navegación "hacia adelante" secuencial
+
+## Implementación Técnica Requerida
+
+### 1. Modificar VideoNavigationSystem
 ```javascript
-// CourseProgressManagerV2 - Gestión principal
-class CourseProgressManagerV2 {
+// En la función navigateToNext()
+navigateToNext() {
+    // ... código existente ...
+    
+    // NUEVO: Marcar video actual como completado antes de navegar
+    this.markCurrentVideoAsCompleted();
+    
+    // ... resto del código existente ...
+}
+
+// NUEVA FUNCIÓN
+markCurrentVideoAsCompleted() {
+    // Implementar lógica para marcar video actual como completado
+    // Incluir sincronización con BD
+}
+```
+
+### 2. Implementar Sistema de Checkboxes
+```javascript
+// NUEVA CLASE: ManualCheckboxManager
+class ManualCheckboxManager {
     constructor() {
-        this.userId = null;
-        this.courseId = '550e8400-e29b-41d4-a716-446655440001';
-        this.currentProgress = null;
-        this.apiBaseUrl = this.getApiBaseUrl();
+        this.currentModule = null;
+        this.currentVideoIndex = -1;
     }
     
-    // Métodos principales:
-    // - loadInitialProgress()
-    // - loadModulesProgress()
-    // - updateProgressImmediate()
-    // - setupAutoSave()
-}
-```
-
-#### Frontend (courses.html)
-```javascript
-// Carga progreso desde localStorage
-function loadCourseProgress() {
-    const savedProgress = localStorage.getItem('courseProgress_chatgpt-gemini');
-    if (savedProgress) {
-        const progressData = JSON.parse(savedProgress);
-        // Actualiza UI con datos locales
+    // Implementar lógica de restricciones para checkboxes manuales
+    canMarkAsCompleted(videoId) {
+        // Verificar si el video está en el módulo actual
+        // Verificar si no es un video futuro
+    }
+    
+    markVideoCompleted(videoId, isManual = true) {
+        // Marcar video como completado
+        // Sincronizar con BD
     }
 }
 ```
 
-#### Base de Datos (PostgreSQL)
-```sql
--- Tabla principal de progreso
-CREATE TABLE course_progress (
-    id UUID PRIMARY KEY,
-    user_id UUID NOT NULL,
-    course_identifier TEXT NOT NULL,
-    overall_progress_percentage INTEGER DEFAULT 0,
-    status TEXT DEFAULT 'not_started',
-    -- ... más campos
-);
-
--- Tabla de progreso por módulos
-CREATE TABLE module_progress (
-    id UUID PRIMARY KEY,
-    course_progress_id UUID NOT NULL,
-    user_id UUID NOT NULL,
-    module_number INTEGER NOT NULL,
-    video_progress_percentage INTEGER DEFAULT 0,
-    video_completed BOOLEAN DEFAULT FALSE,
-    -- ... más campos
-);
-```
-
-### Problemas Identificados
-
-1. **Doble Sistema de Almacenamiento**
-   - localStorage para persistencia local
-   - Base de datos para persistencia global
-   - No hay sincronización automática entre ambos
-
-2. **Manejo de Errores Insuficiente**
-   - No hay retry logic para conexiones fallidas
-   - Fallback a localStorage no está implementado correctamente
-   - Errores de API no se manejan de forma elegante
-
-3. **Inconsistencias en APIs**
-   - Múltiples endpoints para la misma funcionalidad
-   - Diferentes formatos de respuesta
-   - Falta de validación de datos
-
-4. **Problemas de Performance**
-   - Consultas frecuentes sin cache
-   - No hay debouncing en actualizaciones
-   - Múltiples llamadas simultáneas
-
-## Solución Propuesta
-
-### 1. **Sistema de Sincronización Híbrido**
-
+### 3. Modificar Sistema de Navegación del Menú
 ```javascript
-class HybridProgressManager {
-    constructor() {
-        this.localStorage = new LocalStorageManager();
-        this.database = new DatabaseManager();
-        this.syncQueue = new SyncQueue();
-        this.isOnline = navigator.onLine;
+// Modificar la función que maneja la selección desde el menú desplegable
+function handleVideoSelectionFromMenu(selectedVideo) {
+    // Determinar si es navegación hacia adelante secuencial
+    const isSequentialForward = this.isSequentialForwardNavigation(selectedVideo);
+    
+    if (isSequentialForward) {
+        // Marcar video anterior como completado
+        this.markPreviousVideoAsCompleted();
     }
     
-    async saveProgress(progressData) {
-        // 1. Guardar en localStorage inmediatamente
-        await this.localStorage.save(progressData);
-        
-        // 2. Intentar guardar en BD
-        try {
-            await this.database.save(progressData);
-            // Marcar como sincronizado
-            await this.localStorage.markAsSynced(progressData.id);
-        } catch (error) {
-            // Agregar a cola de sincronización
-            this.syncQueue.add(progressData);
-        }
-    }
-    
-    async loadProgress() {
-        // 1. Cargar desde localStorage (rápido)
-        const localData = await this.localStorage.load();
-        
-        // 2. Intentar sincronizar con BD en background
-        if (this.isOnline) {
-            this.syncInBackground();
-        }
-        
-        return localData;
-    }
+    // Cambiar al video seleccionado
+    this.selectVideo(selectedVideo);
 }
 ```
 
-### 2. **Manejo Robusto de Conexiones**
-
+### 4. Función de Sincronización Unificada
 ```javascript
-class DatabaseManager {
-    constructor() {
-        this.maxRetries = 3;
-        this.retryDelay = 1000;
-        this.timeout = 10000;
-    }
-    
-    async makeRequest(endpoint, options = {}) {
-        for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-                
-                const response = await fetch(endpoint, {
-                    ...options,
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.warn(`Intento ${attempt}/${this.maxRetries} falló:`, error.message);
-                
-                if (attempt === this.maxRetries) {
-                    throw new Error(`Falló después de ${this.maxRetries} intentos: ${error.message}`);
-                }
-                
-                // Esperar antes del siguiente intento
-                await this.delay(this.retryDelay * attempt);
-            }
-        }
-    }
-}
-```
-
-### 3. **Sistema de Cache Inteligente**
-
-```javascript
-class ProgressCache {
-    constructor() {
-        this.cache = new Map();
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutos
-        this.maxCacheSize = 100;
-    }
-    
-    get(key) {
-        const item = this.cache.get(key);
-        if (!item) return null;
-        
-        if (Date.now() - item.timestamp > this.cacheTimeout) {
-            this.cache.delete(key);
-            return null;
-        }
-        
-        return item.data;
-    }
-    
-    set(key, data) {
-        // Limpiar cache si está lleno
-        if (this.cache.size >= this.maxCacheSize) {
-            const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
-        }
-        
-        this.cache.set(key, {
-            data,
-            timestamp: Date.now()
-        });
-    }
-}
-```
-
-### 4. **API Unificada y Optimizada**
-
-```javascript
-// Endpoint unificado para progreso
-app.post('/api/progress/sync', async (req, res) => {
+// NUEVA FUNCIÓN: Sincronización unificada
+function syncVideoCompletion(videoId, completionMethod = 'auto') {
     try {
-        const { userId, courseId, progressData } = req.body;
-        
-        // Validar datos
-        const validation = validateProgressData(progressData);
-        if (!validation.isValid) {
-            return res.status(400).json({
-                success: false,
-                error: 'Datos inválidos',
-                details: validation.errors
-            });
+        // 1. Marcar visualmente como completado
+        const videoElement = document.querySelector(`[data-video-id="${videoId}"]`);
+        if (videoElement) {
+            videoElement.classList.add('completed');
         }
         
-        // Procesar en transacción
-        const result = await db.transaction(async (trx) => {
-            // Actualizar progreso del curso
-            await trx('course_progress')
-                .where({ user_id: userId, course_identifier: courseId })
-                .update({
-                    overall_progress_percentage: progressData.overallPercentage,
-                    last_accessed_at: new Date(),
-                    updated_at: new Date()
-                });
-            
-            // Actualizar progreso de módulos
-            for (const module of progressData.modules) {
-                await trx('module_progress')
-                    .where({ 
-                        user_id: userId, 
-                        course_progress_id: progressData.courseProgressId,
-                        module_number: module.number 
-                    })
-                    .update({
-                        progress_percentage: module.progressPercentage,
-                        video_progress_percentage: module.videoProgressPercentage,
-                        video_completed: module.videoCompleted,
-                        last_video_position: module.lastVideoPosition,
-                        updated_at: new Date()
-                    });
-            }
-            
-            return { success: true };
-        });
+        // 2. Actualizar contadores
+        const videoCounts = countCompletedVideos();
+        updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
         
-        res.json(result);
+        // 3. Sincronizar con base de datos
+        if (window.hybridProgressManager) {
+            const progressData = {
+                courseId: 'intro-to-ai',
+                completedVideos: videoCounts.completed,
+                totalVideos: videoCounts.total,
+                percentage: Math.round((videoCounts.completed / videoCounts.total) * 100),
+                lastUpdated: new Date().toISOString()
+            };
+            
+            window.hybridProgressManager.saveProgress(progressData);
+            
+            // Forzar sincronización inmediata
+            setTimeout(() => {
+                window.hybridProgressManager.forceSync(progressData);
+            }, 1000);
+        }
+        
+        // 4. Disparar evento personalizado
+        window.dispatchEvent(new CustomEvent('videoCompleted', {
+            detail: { videoId, completionMethod }
+        }));
+        
+        console.log(`✅ Video ${videoId} marcado como completado (${completionMethod})`);
         
     } catch (error) {
-        console.error('Error sincronizando progreso:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Error interno del servidor'
-        });
+        console.error('❌ Error sincronizando completado de video:', error);
     }
-});
+}
 ```
 
-## Implementación Paso a Paso
+## Estructura de Datos Requerida
 
-### Paso 1: Crear el Sistema Híbrido
-1. Implementar `HybridProgressManager`
-2. Crear `LocalStorageManager` con versionado
-3. Implementar `DatabaseManager` con retry logic
-4. Crear `SyncQueue` para sincronización diferida
+### 1. Estado del Sistema
+```javascript
+const AutoCheckSystem = {
+    state: {
+        currentVideoId: null,
+        currentVideoIndex: -1,
+        totalVideos: 0,
+        videosArray: [],
+        currentModule: null,
+        isManualMode: false
+    },
+    
+    // Métodos principales
+    init() { /* Inicialización */ },
+    markVideoCompleted(videoId, method) { /* Marcar como completado */ },
+    canMarkVideo(videoId) { /* Verificar permisos */ },
+    syncWithDatabase() { /* Sincronizar con BD */ }
+};
+```
 
-### Paso 2: Optimizar las APIs
-1. Unificar endpoints de progreso
-2. Implementar validación de datos
-3. Agregar logging detallado
-4. Optimizar consultas SQL
+### 2. Configuración de Checkboxes
+```html
+<!-- Ejemplo de estructura HTML para checkboxes -->
+<div class="video-item" data-video-id="video-1">
+    <input type="checkbox" 
+           class="video-completion-checkbox" 
+           data-video-id="video-1"
+           onchange="handleManualCheckbox(this)">
+    <span class="video-title">Título del Video</span>
+</div>
+```
 
-### Paso 3: Mejorar el Frontend
-1. Actualizar `CourseProgressManagerV2`
-2. Implementar cache inteligente
-3. Agregar indicadores de sincronización
-4. Mejorar manejo de errores
+## Consideraciones de UX/UI
 
-### Paso 4: Testing y Validación
-1. Probar con conexión intermitente
-2. Validar sincronización entre páginas
-3. Verificar performance
-4. Probar casos edge
+### 1. Feedback Visual
+- Mostrar notificación cuando se marca automáticamente
+- Indicar visualmente qué videos pueden ser marcados manualmente
+- Deshabilitar checkboxes de videos futuros
 
-## Consideraciones Especiales
+### 2. Estados de Checkbox
+```css
+.video-completion-checkbox {
+    /* Estilo normal */
+}
 
-### 1. **Compatibilidad con Sistema Existente**
-- Mantener compatibilidad con localStorage actual
-- Migrar datos existentes gradualmente
-- No romper funcionalidad actual
+.video-completion-checkbox:disabled {
+    /* Estilo para videos futuros */
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
-### 2. **Performance**
-- Implementar debouncing en actualizaciones
-- Usar Web Workers para sincronización
-- Optimizar consultas SQL
+.video-completion-checkbox.auto-completed {
+    /* Estilo para videos marcados automáticamente */
+    background-color: #28a745;
+}
+```
 
-### 3. **Experiencia de Usuario**
-- Mostrar estado de sincronización
-- Permitir trabajo offline
-- Recuperación automática de errores
+## Validaciones y Edge Cases
 
-### 4. **Monitoreo**
-- Logging detallado de errores
-- Métricas de performance
-- Alertas de fallos de sincronización
+### 1. Validaciones
+- Verificar que el video existe antes de marcarlo
+- Validar que no se marquen videos futuros manualmente
+- Asegurar sincronización con BD antes de marcar visualmente
 
-## Archivos a Modificar
+### 2. Edge Cases
+- Usuario navega muy rápido entre videos
+- Pérdida de conexión durante sincronización
+- Videos que ya están marcados como completados
+- Cambio de módulo durante navegación
 
-### Frontend
-- `src/scripts/course-progress-manager-v2.js` - Actualizar con sistema híbrido
-- `src/scripts/youtube-progress-tracker.js` - Mejorar manejo de errores
-- `src/Chat-Online/chat-online.html` - Integrar nuevo sistema
-- `src/courses.html` - Sincronizar con BD
+## Testing y Debugging
 
-### Backend
-- `netlify/functions/course-progress.js` - Optimizar
-- `netlify/functions/module-progress.js` - Unificar
-- `server.js` - Agregar endpoints unificados
-- `api/courses.js` - Mejorar validación
+### 1. Funciones de Testing
+```javascript
+// Función para probar el sistema
+window.testAutoCheck = function() {
+    console.log('🧪 Probando sistema de autocheck...');
+    // Implementar pruebas
+};
 
-### Base de Datos
-- `BDStructureBackup.sql` - Optimizar índices
-- Agregar triggers para sincronización automática
-- Implementar funciones de limpieza
+// Función para resetear estado
+window.resetAutoCheck = function() {
+    // Limpiar estado y reinicializar
+};
+```
 
-## Métricas de Éxito
+### 2. Logging
+- Log detallado de todas las acciones de autocheck
+- Tracking de métodos de completado (auto/manual)
+- Monitoreo de sincronización con BD
 
-1. **Confiabilidad**: 99%+ de sincronización exitosa
-2. **Performance**: <500ms para cargar progreso
-3. **Disponibilidad**: Funcionar offline por 24h+
-4. **Consistencia**: 0% de pérdida de datos
+## Instrucciones de Implementación
 
-## Conclusión
+1. **Paso 1**: Modificar `VideoNavigationSystem.navigateToNext()` para incluir autocheck
+2. **Paso 2**: Implementar `ManualCheckboxManager` para checkboxes manuales
+3. **Paso 3**: Modificar sistema de selección del menú desplegable
+4. **Paso 4**: Crear función unificada de sincronización
+5. **Paso 5**: Agregar validaciones y manejo de errores
+6. **Paso 6**: Implementar feedback visual y notificaciones
+7. **Paso 7**: Agregar funciones de testing y debugging
 
-Este sistema híbrido resolverá los problemas actuales de conexión a BD mientras mantiene una experiencia de usuario fluida. La implementación debe ser gradual para no interrumpir el servicio actual.
+## Notas Importantes
 
-**Prioridad de implementación:**
-1. Sistema híbrido básico
-2. Manejo robusto de errores
-3. Optimización de APIs
-4. Mejoras de UX
-5. Monitoreo y métricas
+- **NO romper funcionalidad existente**: Mantener toda la funcionalidad actual intacta
+- **Sincronización robusta**: Asegurar que los cambios se guarden en BD
+- **Performance**: Evitar múltiples llamadas innecesarias a la BD
+- **UX consistente**: Mantener la experiencia de usuario fluida
+- **Fallbacks**: Implementar fallbacks en caso de errores de BD
 
-¿Estás listo para comenzar con la implementación del Paso 1?
+Implementa este sistema paso a paso, asegurándote de que cada componente funcione correctamente antes de pasar al siguiente. Usa el sistema existente como base y extiéndelo con la nueva funcionalidad de autocheck.

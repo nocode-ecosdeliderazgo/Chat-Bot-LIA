@@ -616,30 +616,9 @@
         </svg>
     </button>
 
-    <!-- Fondo avanzado como en new-auth -->
+    <!-- Fondo limpio -->
     <div class="auth-bg">
         <div class="bg-glow"></div>
-        <canvas id="bgParticles"></canvas>
-    </div>
-    
-    <!-- Partículas flotantes mejoradas -->
-    <div class="particles-container">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
     </div>
 
     <!-- Header simple con navbar por defecto (sin perfil) -->
@@ -833,109 +812,7 @@
 
     <!-- Scripts -->
     <script src="scripts/supabase-client.js"></script>
-    <script src="scripts/particles.js"></script>
     <script src="scripts/estadisticas.js"></script>
-    
-    <!-- Script de partículas de fondo (como new-auth) -->
-    <script>
-        // Sistema de partículas del canvas (como new-auth)
-        const canvas = document.getElementById('bgParticles');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            let particles = [];
-            
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            
-            function createParticle() {
-                return {
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 3 + 1,
-                    speedX: (Math.random() - 0.5) * 0.5,
-                    speedY: (Math.random() - 0.5) * 0.5,
-                    opacity: Math.random() * 0.5 + 0.2,
-                    color: Math.random() > 0.5 ? '#44E5FF' : '#0077A6'
-                };
-            }
-            
-            function initParticles() {
-                particles = [];
-                for (let i = 0; i < 50; i++) {
-                    particles.push(createParticle());
-                }
-            }
-            
-            function updateParticles() {
-                particles.forEach(particle => {
-                    particle.x += particle.speedX;
-                    particle.y += particle.speedY;
-                    
-                    if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
-                    if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
-                    
-                    particle.opacity += (Math.random() - 0.5) * 0.01;
-                    particle.opacity = Math.max(0.1, Math.min(0.7, particle.opacity));
-                });
-            }
-            
-            function drawParticles() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                particles.forEach(particle => {
-                    ctx.beginPath();
-                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                    ctx.fillStyle = particle.color;
-                    ctx.globalAlpha = particle.opacity;
-                    ctx.fill();
-                    
-                    // Agregar glow
-                    ctx.shadowColor = particle.color;
-                    ctx.shadowBlur = 10;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                });
-            }
-            
-            function connectParticles() {
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dx = particles[i].x - particles[j].x;
-                        const dy = particles[i].y - particles[j].y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (distance < 120) {
-                            ctx.beginPath();
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.strokeStyle = '#44E5FF';
-                            ctx.globalAlpha = (120 - distance) / 120 * 0.2;
-                            ctx.lineWidth = 1;
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
-            
-            function animate() {
-                updateParticles();
-                drawParticles();
-                connectParticles();
-                requestAnimationFrame(animate);
-            }
-            
-            window.addEventListener('resize', () => {
-                resizeCanvas();
-                initParticles();
-            });
-            
-            resizeCanvas();
-            initParticles();
-            animate();
-        }
-    </script>
     
     <script>
         // Variables globales para el radar chart
