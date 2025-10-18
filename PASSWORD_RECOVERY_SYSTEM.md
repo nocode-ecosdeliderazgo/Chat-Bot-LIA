@@ -151,8 +151,9 @@ function handleForgotPassword(e) {
 
 **URL Generada**:
 ```
-https://aprendeyaplica.ai/src/login/reset-password.html?token=abc123def456...
+https://aprendeyaplica.ai/login/reset-password.html?token=abc123def456...
 ```
+**Nota**: La ruta NO incluye `/src/` porque en Netlify el directorio `src` se publica como raíz del sitio.
 
 ---
 
@@ -568,7 +569,7 @@ return {
 
 1. **Abrir página de login**:
    ```
-   https://aprendeyaplica.ai/src/login/new-auth.html
+   https://aprendeyaplica.ai/login/new-auth.html
    ```
 
 2. **Hacer clic en "¿Olvidaste tu contraseña?"**
@@ -586,7 +587,7 @@ return {
    - ✓ Email recibido (revisar spam si no aparece)
    - ✓ Template HTML renderiza correctamente
    - ✓ Botón "Restablecer mi contraseña" visible
-   - ✓ URL del link es correcta: `https://aprendeyaplica.ai/src/login/reset-password.html?token=...`
+   - ✓ URL del link es correcta: `https://aprendeyaplica.ai/login/reset-password.html?token=...`
 
 5. **Hacer clic en el link del email**:
    - ✓ Página `reset-password.html` se carga
@@ -651,7 +652,7 @@ return {
 
 1. **Modificar token en la URL manualmente**:
    ```
-   https://aprendeyaplica.ai/src/login/reset-password.html?token=invalid123
+   https://aprendeyaplica.ai/login/reset-password.html?token=invalid123
    ```
 2. **Intentar ingresar nueva contraseña**:
    - ✓ Formulario permite input
@@ -822,7 +823,7 @@ FRONTEND_URL = https://aprendeyaplica.ai
 ```bash
 # Solicitar nuevo email de recuperación
 # El link debe ser:
-https://aprendeyaplica.ai/src/login/reset-password.html?token=...
+https://aprendeyaplica.ai/login/reset-password.html?token=...
 ```
 
 ---

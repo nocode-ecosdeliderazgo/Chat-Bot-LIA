@@ -278,8 +278,9 @@ El equipo de Aprende y Aplica IA
         }
 
         // URL corregida: ahora apunta a reset-password.html en producción
+        // Nota: En Netlify el directorio 'src' es la raíz, por lo que no se incluye en la URL
         const frontendUrl = process.env.FRONTEND_URL || 'https://aprendeyaplica.ai';
-        const resetUrl = `${frontendUrl}/src/login/reset-password.html?token=${resetToken}`;
+        const resetUrl = `${frontendUrl}/login/reset-password.html?token=${resetToken}`;
         const subject = 'Recuperación de Contraseña - Aprende y Aplica IA';
         const htmlContent = this.generatePasswordResetEmailHTML(resetUrl, resetToken, username);
 
