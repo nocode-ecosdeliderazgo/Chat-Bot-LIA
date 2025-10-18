@@ -239,7 +239,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- BoxIcons - iconografía principal -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+
+    <!-- Navbar Global CSS - Sistema unificado con máxima prioridad -->
+    <link rel="stylesheet" href="/styles/navbar-global.css">
+
     <!-- Global theme setup - Configuración global del tema -->
     <script src="/scripts/global-theme-setup.js"></script>
     
@@ -254,56 +257,8 @@
         </div>
 
 
-    <!-- Navigation Bar -->
-    <div class="course-tabs">
-        <button class="tab-button" onclick="location.href='../cursos.html'">
-            <i class='bx bx-collection'></i>
-            Talleres
-        </button>
-        <button class="tab-button" onclick="location.href='../apps-directory.html'">
-            <i class='bx bx-grid-alt'></i>
-            Directorio IA
-        </button>
-        <button class="tab-button active" data-tab="comunidad">
-            <i class='bx bx-group'></i>
-            Comunidad
-        </button>
-        <button class="tab-button" onclick="location.href='../Notices/notices.html'">
-            <i class='bx bx-news'></i>
-            Noticias
-        </button>
-    </div>
-    <button class="header-profile">
-        <img id="headerProfileImg" src="/assets/images/default-avatar.svg" alt="Perfil" onerror="this.onerror=null; this.src='/assets/images/default-avatar.svg';" />
-    </button>
-    <div id="profileMenu" class="profile-menu">
-        <div class="pm-header">
-            <div class="pm-avatar"><img id="menuProfileImg" src="/assets/images/default-avatar.svg" alt="Perfil" onerror="this.onerror=null; this.src='/assets/images/default-avatar.svg';"/></div>
-            <div>
-                <div class="pm-name" id="pmName">Usuario</div>
-                <div class="pm-email" id="pmEmail">user@example.com</div>
-            </div>
-        </div>
-        <div class="pm-section">
-            <div class="pm-item" onclick="location.href='../estadisticas.html'"><i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas</div>
-            <div class="pm-item" onclick="location.href='../courses.html'"><i class='bx bx-book'></i> Mi aprendizaje</div>
-        </div>
-        <div class="pm-section">
-            <div class="pm-item" onclick="location.href='../profile.html'"><i class='bx bx-user'></i> Editar perfil</div>
-        </div>
-        <div class="pm-section">
-            <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
-                <div class="theme-icon-container">
-                    <i class='bx bx-sun theme-icon-sun'></i>
-                    <i class='bx bx-moon theme-icon-moon'></i>
-                </div>
-                Cambiar tema
-            </div>
-        </div>
-        <div class="pm-section">
-            <div class="pm-item" onclick="location.href='../index.html'"><i class='bx bx-log-out'></i> Cerrar sesión</div>
-        </div>
-    </div>
+    <!-- Navigation Bar - Sistema Global -->
+    <div id="navbar-container"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -516,7 +471,16 @@
     <script src="/scripts/profile-avatar-manager.js"></script>
     <script src="/Community/community.js"></script>
     <script src="/scripts/force-theme-init.js"></script>
-    <script src="/scripts/theme-manager.js"></script></script>
+    <script src="/scripts/theme-manager.js"></script>
+
+    <!-- Navbar Global - Sistema unificado -->
+    <script src="/scripts/navbar-global.js"></script>
+    <script>
+        // Inicializar navbar global para Community
+        document.addEventListener('DOMContentLoaded', function() {
+            NavbarGlobal.init('comunidad', 'community');
+        });
+    </script>
 </body>
 </html>
 

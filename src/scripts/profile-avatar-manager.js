@@ -289,11 +289,16 @@ class ProfileAvatarManager {
             });
 
             console.log(`📊 Avatares encontrados: ${totalImagesFound}, actualizados: ${totalImagesUpdated}`);
-            
+
             if (profilePictureUrl) {
                 // console.log('✅ Avatares de perfil actualizados con foto personalizada:', profilePictureUrl);
             } else {
                 // console.log('ℹ️ Avatares de perfil actualizados con imagen por defecto');
+            }
+
+            // Re-inicializar menú de perfil si está disponible
+            if (typeof window.reinitProfileMenu === 'function') {
+                window.reinitProfileMenu();
             }
         } catch (error) {
             // console.error('❌ Error actualizando avatares de perfil:', error);

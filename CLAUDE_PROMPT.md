@@ -1,258 +1,314 @@
-# Prompt para Claude: Implementación de Sistema de Autocheck en Chat Online
-
-## Contexto del Proyecto
-Estás trabajando en el archivo `src/Chat-Online/chat-online.html` que contiene un sistema de cursos online con videos y actividades. El sistema actual tiene:
-
-- **Sistema de navegación con flechas**: `VideoNavigationSystem` con botones de navegación anterior/siguiente
-- **Sistema de progreso**: `HybridProgressManager` que sincroniza con base de datos
-- **Videos con clases CSS**: `.video-item.completed` para marcar videos completados
-- **Función de conteo**: `countCompletedVideos()` que cuenta videos completados
+# Prompt para Claude: Análisis y Unificación de Navbar con Funcionalidad Sticky
 
 ## Objetivo
-Implementar un sistema de "autocheck" que marque automáticamente los videos como completados y sincronice el progreso con la base de datos, siguiendo estas reglas específicas:
+Analizar profundamente la navbar de `notices.html` y unificar todas las navbars de las páginas principales del proyecto para mantener consistencia visual y funcional, implementando una solución global que preserve la funcionalidad sticky/fixed.
 
-## Reglas del Sistema de Autocheck
+## Tarea Paso a Paso
 
-### 1. Navegación con Flechas (Automático)
-**Cuando el usuario navega hacia adelante usando las flechas:**
-- Al hacer clic en la flecha "siguiente" (botón `nextVideoBtn`), el video actual debe marcarse como completado
-- Esto debe incluir:
-  - Agregar la clase `.completed` al elemento `.video-item` correspondiente
-  - Llamar a `updateHeaderProgressBar()` para actualizar la barra de progreso
-  - Sincronizar con la base de datos usando `HybridProgressManager`
+### PASO 1: Análisis Profundo de la Navbar de notices.html
 
-**Cuando el usuario navega hacia atrás:**
-- Al hacer clic en la flecha "anterior" (botón `prevVideoBtn`), NO debe marcar ningún video como completado
-- Solo debe cambiar el video activo
+**Analiza detalladamente la navbar de `src/Notices/notices.html` (líneas 23-72) y documenta:**
 
-### 2. Checkboxes Manuales (Con Restricciones)
-**Implementar checkboxes en cada video/actividad con estas reglas:**
-- El usuario puede marcar manualmente un video como completado SOLO si se encuentra en ese módulo
-- El usuario NO puede marcar videos posteriores (futuros) como completados
-- El usuario SÍ puede marcar videos anteriores como completados (en caso de que no estén marcados)
-- Al marcar manualmente, debe sincronizar inmediatamente con la base de datos
+#### 1.1 Estructura HTML
+- **Elementos principales**: Identifica cada componente de la navbar
+- **Jerarquía**: Documenta la estructura de anidación
+- **Atributos**: Analiza todos los atributos (class, id, data-*, onclick, etc.)
+- **Iconografía**: Documenta los iconos utilizados (BoxIcons)
+- **Rutas**: Analiza las rutas de navegación y referencias
 
-### 3. Navegación desde Menú Desplegable
-**Al cambiar de video/actividad desde el menú desplegable izquierdo:**
-- Si se navega a la **siguiente actividad/video inmediata**, el video anterior debe marcarse como completado automáticamente
-- Si se navega a actividades **superiores (no inmediatas)** o **anteriores**, NO debe marcar ningún video como completado
-- La lógica debe determinar si es una navegación "hacia adelante" secuencial
+#### 1.2 Funcionalidad
+- **Navegación**: Cómo funciona el sistema de pestañas
+- **Estado activo**: Cómo se maneja la pestaña activa
+- **Perfil**: Funcionalidad del botón de perfil y menú desplegable
+- **Tema**: Sistema de cambio de tema
+- **Interactividad**: Eventos y comportamientos
 
-## Implementación Técnica Requerida
+#### 1.3 Estilos Visuales
+- **Clases CSS**: Identifica todas las clases utilizadas
+- **Layout**: Estructura visual y posicionamiento
+- **Funcionalidad Sticky/Fixed**: Analiza cómo se mantiene fija la navbar
+- **Z-index y posicionamiento**: Documenta los valores de position, top, z-index
+- **Responsive**: Comportamiento en diferentes tamaños
+- **Estados**: Estilos para hover, active, etc.
 
-### 1. Modificar VideoNavigationSystem
+### PASO 2: Análisis de Impacto en Layout
+
+**ANTES de eliminar, analiza el impacto visual:**
+
+#### 2.1 Verificación de Layout
+- **Identifica** si las navbars actuales son `position: fixed` o `position: sticky`
+- **Documenta** el espacio que ocupan las navbars (height, padding, margin)
+- **Verifica** si el contenido principal tiene `padding-top` o `margin-top` para compensar la navbar fija
+- **Identifica** posibles problemas de solapamiento o espacios en blanco
+
+#### 2.2 Páginas a Analizar
+- `community.html` - Verificar si la navbar es fija y cómo afecta el layout
+- `cursos.html` - Verificar si la navbar es fija y cómo afecta el layout  
+- `apps-directory.html` - Verificar si la navbar es fija y cómo afecta el layout
+
+### PASO 3: Eliminación Segura de Navbars Existentes
+
+**Elimina completamente las navbars de estas páginas CON PRECAUCIÓN:**
+
+#### 3.1 community.html
+- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
+- Eliminar el elemento `<div class="course-tabs">` (líneas 257-275)
+- Eliminar el botón `<button class="header-profile">` (líneas 276-278)
+- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 279-306)
+- **Verificar**: Que no queden espacios en blanco o solapamientos
+
+#### 3.2 cursos.html
+- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
+- Eliminar el elemento `<div class="course-tabs">` (líneas 38-55)
+- Eliminar el botón `<button class="header-profile">` (líneas 59-61)
+- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 62-87)
+- **Verificar**: Que no queden espacios en blanco o solapamientos
+
+#### 3.3 apps-directory.html
+- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
+- Eliminar el elemento `<div class="course-tabs">` (líneas 45-62)
+- Eliminar el botón `<button class="header-profile">` (líneas 66-68)
+- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 69-95)
+- **Verificar**: Que no queden espacios en blanco o solapamientos
+
+#### 3.4 notices.html
+- **PRECAUCIÓN**: Verificar que el contenido principal no se vea afectado
+- Eliminar el elemento `<div class="course-tabs">` (líneas 23-41)
+- Eliminar el botón `<button class="header-profile">` (líneas 42-44)
+- Eliminar el menú `<div id="profileMenu" class="profile-menu">` (líneas 45-72)
+- **Verificar**: Que no queden espacios en blanco o solapamientos
+
+### PASO 4: Creación del Componente Navbar Global
+
+**Crea un archivo `navbar-global.js` con la funcionalidad sticky preservada:**
+
+#### 4.1 Estructura del Componente
 ```javascript
-// En la función navigateToNext()
-navigateToNext() {
-    // ... código existente ...
-    
-    // NUEVO: Marcar video actual como completado antes de navegar
-    this.markCurrentVideoAsCompleted();
-    
-    // ... resto del código existente ...
-}
-
-// NUEVA FUNCIÓN
-markCurrentVideoAsCompleted() {
-    // Implementar lógica para marcar video actual como completado
-    // Incluir sincronización con BD
-}
-```
-
-### 2. Implementar Sistema de Checkboxes
-```javascript
-// NUEVA CLASE: ManualCheckboxManager
-class ManualCheckboxManager {
-    constructor() {
-        this.currentModule = null;
-        this.currentVideoIndex = -1;
-    }
-    
-    // Implementar lógica de restricciones para checkboxes manuales
-    canMarkAsCompleted(videoId) {
-        // Verificar si el video está en el módulo actual
-        // Verificar si no es un video futuro
-    }
-    
-    markVideoCompleted(videoId, isManual = true) {
-        // Marcar video como completado
-        // Sincronizar con BD
-    }
-}
-```
-
-### 3. Modificar Sistema de Navegación del Menú
-```javascript
-// Modificar la función que maneja la selección desde el menú desplegable
-function handleVideoSelectionFromMenu(selectedVideo) {
-    // Determinar si es navegación hacia adelante secuencial
-    const isSequentialForward = this.isSequentialForwardNavigation(selectedVideo);
-    
-    if (isSequentialForward) {
-        // Marcar video anterior como completado
-        this.markPreviousVideoAsCompleted();
-    }
-    
-    // Cambiar al video seleccionado
-    this.selectVideo(selectedVideo);
-}
-```
-
-### 4. Función de Sincronización Unificada
-```javascript
-// NUEVA FUNCIÓN: Sincronización unificada
-function syncVideoCompletion(videoId, completionMethod = 'auto') {
-    try {
-        // 1. Marcar visualmente como completado
-        const videoElement = document.querySelector(`[data-video-id="${videoId}"]`);
-        if (videoElement) {
-            videoElement.classList.add('completed');
-        }
-        
-        // 2. Actualizar contadores
-        const videoCounts = countCompletedVideos();
-        updateHeaderProgressBar(videoCounts.completed, videoCounts.total);
-        
-        // 3. Sincronizar con base de datos
-        if (window.hybridProgressManager) {
-            const progressData = {
-                courseId: 'intro-to-ai',
-                completedVideos: videoCounts.completed,
-                totalVideos: videoCounts.total,
-                percentage: Math.round((videoCounts.completed / videoCounts.total) * 100),
-                lastUpdated: new Date().toISOString()
-            };
-            
-            window.hybridProgressManager.saveProgress(progressData);
-            
-            // Forzar sincronización inmediata
-            setTimeout(() => {
-                window.hybridProgressManager.forceSync(progressData);
-            }, 1000);
-        }
-        
-        // 4. Disparar evento personalizado
-        window.dispatchEvent(new CustomEvent('videoCompleted', {
-            detail: { videoId, completionMethod }
-        }));
-        
-        console.log(`✅ Video ${videoId} marcado como completado (${completionMethod})`);
-        
-    } catch (error) {
-        console.error('❌ Error sincronizando completado de video:', error);
-    }
-}
-```
-
-## Estructura de Datos Requerida
-
-### 1. Estado del Sistema
-```javascript
-const AutoCheckSystem = {
-    state: {
-        currentVideoId: null,
-        currentVideoIndex: -1,
-        totalVideos: 0,
-        videosArray: [],
-        currentModule: null,
-        isManualMode: false
+// navbar-global.js
+const NavbarGlobal = {
+    // Configuración de rutas base por página
+    basePaths: {
+        'community': '../',
+        'cursos': '',
+        'apps-directory': '',
+        'notices': '../'
     },
     
-    // Métodos principales
-    init() { /* Inicialización */ },
-    markVideoCompleted(videoId, method) { /* Marcar como completado */ },
-    canMarkVideo(videoId) { /* Verificar permisos */ },
-    syncWithDatabase() { /* Sincronizar con BD */ }
+    // Generar navbar con funcionalidad sticky
+    create: function(activeTab, currentPage) {
+        const basePath = this.basePaths[currentPage] || '../';
+        
+        return `
+            <!-- Navigation Bar con funcionalidad sticky -->
+            <div class="course-tabs">
+                <button class="tab-button ${activeTab === 'cursos' ? 'active' : ''}" 
+                        data-tab="mis-cursos" 
+                        onclick="location.href='${basePath}cursos.html'">
+                    <i class='bx bx-collection'></i>
+                    Talleres
+                </button>
+                <button class="tab-button ${activeTab === 'directorio' ? 'active' : ''}" 
+                        data-tab="directorio" 
+                        onclick="location.href='${basePath}apps-directory.html'">
+                    <i class='bx bx-grid-alt'></i>
+                    Directorio IA
+                </button>
+                <button class="tab-button ${activeTab === 'comunidad' ? 'active' : ''}" 
+                        data-tab="comunidad" 
+                        onclick="location.href='${basePath}Community/community.html'">
+                    <i class='bx bx-group'></i>
+                    Comunidad
+                </button>
+                <button class="tab-button ${activeTab === 'noticias' ? 'active' : ''}" 
+                        data-tab="noticias" 
+                        onclick="location.href='${basePath}Notices/notices.html'">
+                    <i class='bx bx-news'></i>
+                    Noticias
+                </button>
+            </div>
+            
+            <!-- Botón de perfil -->
+            <button class="header-profile">
+                <img id="headerProfileImg" src="${basePath}assets/images/default-avatar.svg" alt="Perfil" 
+                     onerror="this.onerror=null; this.src='${basePath}assets/images/default-avatar.svg';" />
+            </button>
+            
+            <!-- Menú de perfil completo -->
+            <div id="profileMenu" class="profile-menu">
+                <div class="pm-header">
+                    <div class="pm-avatar">
+                        <img id="menuProfileImg" src="${basePath}assets/images/default-avatar.svg" alt="Perfil" 
+                             onerror="this.onerror=null; this.src='${basePath}assets/images/default-avatar.svg';"/>
+                    </div>
+                    <div>
+                        <div class="pm-name" id="pmName">Usuario</div>
+                        <div class="pm-email" id="pmEmail">user@example.com</div>
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='${basePath}estadisticas.html'">
+                        <i class='bx bx-bar-chart-alt-2'></i> Mis Estadísticas
+                    </div>
+                    <div class="pm-item" onclick="location.href='${basePath}courses.html'">
+                        <i class='bx bx-book'></i> Mi aprendizaje
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='${basePath}profile.html'">
+                        <i class='bx bx-user'></i> Editar perfil
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" id="themeToggle" onclick="toggleTheme()">
+                        <div class="theme-icon-container">
+                            <i class='bx bx-sun theme-icon-sun'></i>
+                            <i class='bx bx-moon theme-icon-moon'></i>
+                        </div>
+                        Cambiar tema
+                    </div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-item" onclick="location.href='${basePath}index.html'">
+                        <i class='bx bx-log-out'></i> Cerrar sesión
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+    
+    // Inicializar navbar en una página específica
+    init: function(activeTab, currentPage) {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (navbarContainer) {
+            navbarContainer.innerHTML = this.create(activeTab, currentPage);
+        }
+    }
 };
 ```
 
-### 2. Configuración de Checkboxes
-```html
-<!-- Ejemplo de estructura HTML para checkboxes -->
-<div class="video-item" data-video-id="video-1">
-    <input type="checkbox" 
-           class="video-completion-checkbox" 
-           data-video-id="video-1"
-           onchange="handleManualCheckbox(this)">
-    <span class="video-title">Título del Video</span>
-</div>
-```
+### PASO 5: Implementación de Navbar Global en las Páginas
 
-## Consideraciones de UX/UI
+**Implementa el sistema global en las tres páginas objetivo:**
 
-### 1. Feedback Visual
-- Mostrar notificación cuando se marca automáticamente
-- Indicar visualmente qué videos pueden ser marcados manualmente
-- Deshabilitar checkboxes de videos futuros
-
-### 2. Estados de Checkbox
-```css
-.video-completion-checkbox {
-    /* Estilo normal */
-}
-
-.video-completion-checkbox:disabled {
-    /* Estilo para videos futuros */
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.video-completion-checkbox.auto-completed {
-    /* Estilo para videos marcados automáticamente */
-    background-color: #28a745;
-}
-```
-
-## Validaciones y Edge Cases
-
-### 1. Validaciones
-- Verificar que el video existe antes de marcarlo
-- Validar que no se marquen videos futuros manualmente
-- Asegurar sincronización con BD antes de marcar visualmente
-
-### 2. Edge Cases
-- Usuario navega muy rápido entre videos
-- Pérdida de conexión durante sincronización
-- Videos que ya están marcados como completados
-- Cambio de módulo durante navegación
-
-## Testing y Debugging
-
-### 1. Funciones de Testing
+#### 5.1 Modificaciones en community.html
+- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 255
+- **Incluir script**: Agregar `<script src="../scripts/navbar-global.js"></script>` antes del cierre de `</body>`
+- **Inicializar**: Agregar script de inicialización:
 ```javascript
-// Función para probar el sistema
-window.testAutoCheck = function() {
-    console.log('🧪 Probando sistema de autocheck...');
-    // Implementar pruebas
-};
-
-// Función para resetear estado
-window.resetAutoCheck = function() {
-    // Limpiar estado y reinicializar
-};
+document.addEventListener('DOMContentLoaded', function() {
+    NavbarGlobal.init('comunidad', 'community');
+});
 ```
 
-### 2. Logging
-- Log detallado de todas las acciones de autocheck
-- Tracking de métodos de completado (auto/manual)
-- Monitoreo de sincronización con BD
+#### 5.2 Modificaciones en cursos.html
+- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 33
+- **Incluir script**: Agregar `<script src="scripts/navbar-global.js"></script>` antes del cierre de `</body>`
+- **Inicializar**: Agregar script de inicialización:
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    NavbarGlobal.init('cursos', 'cursos');
+});
+```
 
-## Instrucciones de Implementación
+#### 5.3 Modificaciones en apps-directory.html
+- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 40
+- **Incluir script**: Agregar `<script src="scripts/navbar-global.js"></script>` antes del cierre de `</body>`
+- **Inicializar**: Agregar script de inicialización:
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    NavbarGlobal.init('directorio', 'apps-directory');
+});
+```
 
-1. **Paso 1**: Modificar `VideoNavigationSystem.navigateToNext()` para incluir autocheck
-2. **Paso 2**: Implementar `ManualCheckboxManager` para checkboxes manuales
-3. **Paso 3**: Modificar sistema de selección del menú desplegable
-4. **Paso 4**: Crear función unificada de sincronización
-5. **Paso 5**: Agregar validaciones y manejo de errores
-6. **Paso 6**: Implementar feedback visual y notificaciones
-7. **Paso 7**: Agregar funciones de testing y debugging
+#### 5.4 Modificaciones en notices.html
+- **Agregar contenedor**: Insertar `<div id="navbar-container"></div>` después de la línea 22
+- **Incluir script**: Agregar `<script src="../scripts/navbar-global.js"></script>` antes del cierre de `</body>`
+- **Inicializar**: Agregar script de inicialización:
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    NavbarGlobal.init('noticias', 'notices');
+});
+```
+
+### PASO 6: Verificación de Funcionalidad Sticky
+
+**Verificar que la funcionalidad sticky se mantenga:**
+
+#### 6.1 Verificación de Estilos CSS
+- **Confirmar** que las clases `.course-tabs` mantengan `position: fixed` o `position: sticky`
+- **Verificar** que el `z-index` sea suficiente para mantenerse sobre el contenido
+- **Comprobar** que el `top: 0` esté aplicado correctamente
+
+#### 6.2 Verificación de Layout
+- **Confirmar** que el contenido principal no se solape con la navbar
+- **Verificar** que no haya espacios en blanco inesperados
+- **Comprobar** que el scroll funcione correctamente
+
+#### 6.3 Pruebas de Funcionalidad
+- **Probar** que la navbar se mantenga fija al hacer scroll
+- **Verificar** que los enlaces de navegación funcionen
+- **Comprobar** que el menú de perfil se abra y cierre correctamente
+- **Verificar** que el sistema de cambio de tema funcione
+
+### PASO 7: Verificación y Validación Final
+
+#### 7.1 Verificación de Rutas
+- Comprobar que todas las rutas de navegación funcionen correctamente
+- Verificar que las rutas de imágenes y recursos sean correctas
+- Asegurar que los enlaces del menú de perfil apunten a las páginas correctas
+
+#### 7.2 Verificación de Funcionalidad
+- Confirmar que el sistema de pestañas activas funcione
+- Verificar que el menú de perfil se abra y cierre correctamente
+- Comprobar que el sistema de cambio de tema funcione
+- **CRÍTICO**: Verificar que la funcionalidad sticky se mantenga
+
+#### 7.3 Verificación Visual
+- Asegurar que la navbar se vea idéntica en todas las páginas
+- Verificar que los estilos se apliquen correctamente
+- Comprobar que la responsividad funcione
+- **CRÍTICO**: Confirmar que no haya problemas de layout tras la eliminación
+
+## Criterios de Éxito
+
+1. **Consistencia Visual**: Todas las navbars deben verse idénticas
+2. **Funcionalidad Completa**: Todas las características deben funcionar
+3. **Navegación Correcta**: Los enlaces deben llevar a las páginas correctas
+4. **Pestaña Activa**: Cada página debe mostrar su pestaña como activa
+5. **Rutas Correctas**: Todas las rutas deben ser válidas según la estructura del proyecto
+6. **Funcionalidad Sticky**: La navbar debe mantenerse fija al hacer scroll
+7. **Layout Preservado**: No debe haber problemas visuales tras la eliminación
+8. **Sistema Global**: El componente debe ser reutilizable y mantenible
 
 ## Notas Importantes
 
-- **NO romper funcionalidad existente**: Mantener toda la funcionalidad actual intacta
-- **Sincronización robusta**: Asegurar que los cambios se guarden en BD
-- **Performance**: Evitar múltiples llamadas innecesarias a la BD
-- **UX consistente**: Mantener la experiencia de usuario fluida
-- **Fallbacks**: Implementar fallbacks en caso de errores de BD
+- **Preservar**: Mantener toda la funcionalidad existente de cada página
+- **No Duplicar**: Evitar duplicar elementos o funcionalidades
+- **Orden**: Mantener el orden lógico de los elementos
+- **Compatibilidad**: Asegurar que los scripts existentes sigan funcionando
+- **Estilos**: Verificar que los estilos CSS existentes no se vean afectados
+- **Funcionalidad Sticky**: CRÍTICO - La navbar debe mantenerse fija al hacer scroll
+- **Layout**: CRÍTICO - No debe haber problemas visuales tras eliminar navbars existentes
+- **Rutas**: Ajustar correctamente las rutas según la ubicación de cada página
 
-Implementa este sistema paso a paso, asegurándote de que cada componente funcione correctamente antes de pasar al siguiente. Usa el sistema existente como base y extiéndelo con la nueva funcionalidad de autocheck.
+## Archivos a Modificar
+
+1. `src/Notices/notices.html` (actualizar para usar sistema global)
+2. `src/Community/community.html`
+3. `src/cursos.html`
+4. `src/apps-directory.html`
+5. `src/scripts/navbar-global.js` (NUEVO - crear)
+
+## Archivo de Referencia
+
+- `src/Notices/notices.html` (líneas 23-72) - Navbar modelo a implementar
+
+## Flujo de Implementación Recomendado
+
+1. **Crear** `navbar-global.js` primero
+2. **Analizar** el impacto en layout de cada página (4 páginas)
+3. **Eliminar** navbars existentes una por una (4 páginas)
+4. **Implementar** el sistema global en cada página (4 páginas)
+5. **Verificar** funcionalidad sticky en cada página
+6. **Probar** navegación entre páginas
+7. **Validar** que no haya problemas visuales

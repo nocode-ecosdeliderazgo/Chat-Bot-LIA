@@ -1,0 +1,377 @@
+/**
+ * NAVBAR GLOBAL - ESTILOS UNIFICADOS
+ * Sistema de navbar sticky/fixed con máxima prioridad para todas las páginas
+ * Asegura consistencia visual y funcionalidad sticky en toda la aplicación
+ */
+
+/* ===== CONTENEDOR DE LA NAVBAR ===== */
+#navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    pointer-events: none;
+    padding: 20px 0;
+}
+
+/* ===== NAVBAR - ESTILOS BASE STICKY/FIXED ===== */
+#navbar-container .course-tabs {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 16, 28, 0.98) !important;
+    border-radius: 20px !important;
+    padding: 12px !important;
+    gap: 8px !important;
+    overflow-x: auto;
+    border: 1px solid rgba(0, 102, 204, 0.25) !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(68, 229, 255, 0.1) inset !important;
+
+    /* CRÍTICO: Position fixed para sticky */
+    position: relative !important;
+    margin: 0 auto !important;
+    width: min(750px, 95vw) !important;
+
+    /* Permitir interacción */
+    pointer-events: auto;
+
+    /* Ocultar scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    min-height: 64px;
+}
+
+#navbar-container .course-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+/* ===== BOTONES DE PESTAÑA ===== */
+#navbar-container .tab-button {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px !important;
+    background: transparent !important;
+    border: none;
+    border-radius: 14px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.95rem !important;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    user-select: none;
+}
+
+#navbar-container .tab-button i {
+    font-size: 20px !important;
+    transition: transform 0.3s ease;
+}
+
+#navbar-container .tab-button:hover {
+    background: rgba(0, 102, 204, 0.15) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    transform: translateY(-2px);
+}
+
+#navbar-container .tab-button:hover i {
+    transform: scale(1.1);
+}
+
+#navbar-container .tab-button.active {
+    background: linear-gradient(135deg, #0066CC, #4A90E2) !important;
+    color: white !important;
+    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.4) !important;
+}
+
+#navbar-container .tab-button.active i {
+    color: white !important;
+}
+
+/* ===== BOTÓN DE PERFIL ===== */
+#navbar-container .header-profile {
+    position: fixed !important;
+    top: 32px !important;
+    right: 20px !important;
+    z-index: 10000 !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    overflow: hidden;
+    border: 2px solid rgba(68, 229, 255, 0.35) !important;
+    padding: 0;
+    background: rgba(7, 17, 36, 0.4) !important;
+    cursor: pointer;
+    display: block !important;
+    pointer-events: auto;
+    transition: all 0.3s ease;
+}
+
+#navbar-container .header-profile:hover {
+    border-color: rgba(68, 229, 255, 0.6) !important;
+    box-shadow: 0 0 20px rgba(68, 229, 255, 0.3) !important;
+    transform: scale(1.05);
+}
+
+#navbar-container .header-profile img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+    display: block !important;
+}
+
+/* ===== MENÚ DE PERFIL ===== */
+#navbar-container .profile-menu {
+    position: fixed !important;
+    top: 96px !important;
+    right: 20px !important;
+    width: 280px;
+    background: rgba(10, 16, 28, 0.96) !important;
+    border: 1px solid rgba(68, 229, 255, 0.18) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.45) !important;
+    backdrop-filter: blur(10px) !important;
+    display: none;
+    z-index: 10001 !important;
+    overflow: hidden;
+    pointer-events: auto;
+    animation: slideDown 0.3s ease;
+}
+
+#navbar-container .profile-menu.show {
+    display: block !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Secciones del menú de perfil */
+#navbar-container .pm-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.12);
+}
+
+#navbar-container .pm-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(68, 229, 255, 0.25);
+}
+
+#navbar-container .pm-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#navbar-container .pm-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+}
+
+#navbar-container .pm-email {
+    font-size: 13px;
+    color: #8fb2bf;
+}
+
+#navbar-container .pm-section {
+    border-top: 1px solid rgba(68, 229, 255, 0.08);
+}
+
+#navbar-container .pm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#navbar-container .pm-item:hover {
+    background: rgba(68, 229, 255, 0.1);
+    color: rgba(255, 255, 255, 1);
+}
+
+#navbar-container .pm-item i {
+    font-size: 18px;
+    color: rgba(68, 229, 255, 0.7);
+}
+
+/* Tema toggle específico */
+#navbar-container .theme-icon-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#navbar-container .theme-icon-sun,
+#navbar-container .theme-icon-moon {
+    font-size: 18px;
+}
+
+/* ===== LIGHT MODE ===== */
+[data-theme="light"] #navbar-container .course-tabs {
+    background: rgb(255, 255, 255) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 102, 204, 0.08) inset !important;
+}
+
+[data-theme="light"] #navbar-container .tab-button {
+    color: #4A5568 !important;
+}
+
+[data-theme="light"] #navbar-container .tab-button:hover {
+    background: rgba(0, 102, 204, 0.1) !important;
+    color: #0066CC !important;
+}
+
+[data-theme="light"] #navbar-container .tab-button.active {
+    background: #0066CC !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="light"] #navbar-container .profile-menu {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme="light"] #navbar-container .pm-name {
+    color: #1a202c;
+}
+
+[data-theme="light"] #navbar-container .pm-email {
+    color: #718096;
+}
+
+[data-theme="light"] #navbar-container .pm-item {
+    color: #4A5568;
+}
+
+[data-theme="light"] #navbar-container .pm-item:hover {
+    background: rgba(0, 102, 204, 0.08);
+    color: #1a202c;
+}
+
+/* ===== AJUSTES DE CONTENIDO PRINCIPAL ===== */
+/* Asegurar que el contenido no se solape con la navbar fixed */
+body.has-global-navbar .main-content,
+body.has-global-navbar main.container,
+body.has-global-navbar .hero-section {
+    padding-top: 100px !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    #navbar-container {
+        padding: 10px 0;
+    }
+
+    #navbar-container .course-tabs {
+        width: min(500px, 96vw) !important;
+        padding: 6px !important;
+        gap: 4px !important;
+    }
+
+    #navbar-container .tab-button {
+        padding: 10px 14px !important;
+        font-size: 0.85rem !important;
+        gap: 6px;
+    }
+
+    #navbar-container .tab-button i {
+        font-size: 18px !important;
+    }
+
+    #navbar-container .header-profile {
+        width: 48px !important;
+        height: 48px !important;
+        top: 22px !important;
+    }
+
+    #navbar-container .profile-menu {
+        width: 260px;
+        top: 78px !important;
+    }
+
+    body.has-global-navbar .main-content,
+    body.has-global-navbar main.container,
+    body.has-global-navbar .hero-section {
+        padding-top: 90px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #navbar-container .course-tabs {
+        width: 96vw !important;
+        padding: 4px !important;
+        gap: 2px !important;
+        border-radius: 16px !important;
+    }
+
+    #navbar-container .tab-button {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        gap: 4px;
+        border-radius: 12px !important;
+    }
+
+    #navbar-container .tab-button i {
+        font-size: 16px !important;
+    }
+
+    #navbar-container .header-profile {
+        width: 44px !important;
+        height: 44px !important;
+        top: 18px !important;
+        right: 16px !important;
+    }
+
+    #navbar-container .profile-menu {
+        width: calc(100vw - 32px);
+        right: 16px !important;
+        top: 70px !important;
+    }
+}
+
+/* ===== ANIMACIONES Y TRANSICIONES ===== */
+@keyframes navbarShimmer {
+    0%, 100% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(100%);
+    }
+}
+
+#navbar-container .course-tabs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0, 102, 204, 0.6) 50%,
+        transparent 100%);
+    animation: navbarShimmer 4s ease-in-out infinite;
+    pointer-events: none;
+}
