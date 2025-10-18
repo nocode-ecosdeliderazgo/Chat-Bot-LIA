@@ -84,6 +84,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/forgot-password"
+  to   = "/.netlify/functions/forgot-password"
+  status = 200
+
+[[redirects]]
+  from = "/api/reset-password"
+  to   = "/.netlify/functions/reset-password"
+  status = 200
+
+[[redirects]]
   from = "/api/openai"
   to   = "/.netlify/functions/openai"
   status = 200

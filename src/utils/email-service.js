@@ -277,7 +277,9 @@ El equipo de Aprende y Aplica IA
             throw new Error('Servicio de email no configurado');
         }
 
-        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/src/login/new-auth.html?token=${resetToken}`;
+        // URL corregida: ahora apunta a reset-password.html en producción
+        const frontendUrl = process.env.FRONTEND_URL || 'https://coach-lia-ia.netlify.app';
+        const resetUrl = `${frontendUrl}/src/login/reset-password.html?token=${resetToken}`;
         const subject = 'Recuperación de Contraseña - Aprende y Aplica IA';
         const htmlContent = this.generatePasswordResetEmailHTML(resetUrl, resetToken, username);
 
