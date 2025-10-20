@@ -1495,10 +1495,18 @@ body[data-theme="light"] .bg-glow-global::before,
     margin: 0 auto;
 }
 
+.news-grid.hidden {
+    display: none;
+}
+
 .news-list {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: var(--spacing-md);
+}
+
+.news-list:not(.hidden) {
+    display: flex;
 }
 
 .news-list.hidden {

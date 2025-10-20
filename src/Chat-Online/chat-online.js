@@ -392,7 +392,11 @@ class ChatOnline {
         this.setupProgressDots();
         
         // Inicializar el sistema simple de módulos estilo Coursera
-        window.initializeSimpleModuleSystem();
+        if (typeof window.initializeSimpleModuleSystem === 'function') {
+            window.initializeSimpleModuleSystem();
+        } else {
+            console.warn('⚠️ initializeSimpleModuleSystem no está disponible aún');
+        }
         
         // Los eventos se manejan directamente en el HTML con onclick
     }
@@ -3046,7 +3050,7 @@ class ChatOnline {
         // Detectar si estamos en Netlify
         return window.location.hostname.includes('netlify') || 
                window.location.hostname.includes('.app') ||
-               process?.env?.NETLIFY === 'true';
+               (typeof process !== 'undefined' && process?.env?.NETLIFY === 'true');
     }
 
     async waitForSupabase(maxWaitTime = 5000) {
@@ -6445,7 +6449,7 @@ class ChatOnline {
                 notePanelOverlay.classList.add('active');
                 
                 // Llenar campos inmediatamente
-        const titleInput = document.getElementById('noteTitleInput');
+                const titleInput = document.getElementById('noteTitleInput');
                 const contentEditor = document.getElementById('noteEditor');
                 
                 if (titleInput) titleInput.value = note.title || '';
@@ -6458,18 +6462,18 @@ class ChatOnline {
                 if (contentEditor) contentEditor.focus();
                 
                 console.log('🚀 Modal abierto instantáneamente con datos de la nota:', note.title);
+            } else {
+                console.error('❌ Modal overlay no encontrado, usando editor interno como fallback');
+                // Fallback al editor interno si el modal no existe
+                this.showNotesCreator();
+                
+                // Llenar los campos con los datos de la nota
+                const titleInput = document.getElementById('noteTitleInputCreator');
+                const contentEditor = document.getElementById('noteContentEditor');
+                
+                if (titleInput) titleInput.value = note.title || '';
+                if (contentEditor) contentEditor.innerHTML = note.content || '';
             }
-        } else {
-            console.error('❌ Modal overlay no encontrado, usando editor interno como fallback');
-            // Fallback al editor interno si el modal no existe
-            this.showNotesCreator();
-            
-            // Llenar los campos con los datos de la nota
-            const titleInput = document.getElementById('noteTitleInputCreator');
-            const contentEditor = document.getElementById('noteContentEditor');
-            
-            if (titleInput) titleInput.value = note.title || '';
-            if (contentEditor) contentEditor.innerHTML = note.content || '';
         }
     }
     
@@ -6507,7 +6511,7 @@ class ChatOnline {
     }
     
     createNoteHTML(note) {
-        const tagsHTML = note.tags.map(tag => `
+        const tagsHTML = (note.tags && Array.isArray(note.tags) ? note.tags : []).map(tag => `
             <span class="tag">
                 <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
@@ -9548,8 +9552,8 @@ async function getFirstVideoIdFromDatabase(moduleNumber) {
         }
     }
 
-    // Obtener API base URL con detección de entorno
-    getApiBaseUrl() {
+// Obtener API base URL con detección de entorno
+function getApiBaseUrl() {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const currentPort = window.location.port;
         const isNetlify = window.location.hostname.includes('netlify') || 
@@ -9567,7 +9571,6 @@ async function getFirstVideoIdFromDatabase(moduleNumber) {
             return '/api';
         }
     }
-}
 
 console.log('✅ Funciones del sistema simple de módulos definidas');
 

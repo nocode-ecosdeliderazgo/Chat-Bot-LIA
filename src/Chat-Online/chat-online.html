@@ -4441,6 +4441,238 @@
                 height: 14px;
             }
         }
+
+        /* ===== ESTILOS PARA MENÚ DERECHO DIVIDIDO ===== */
+        
+        /* Estado Colapsado */
+        .collapsed-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-toggle-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 12px;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            border-radius: 12px;
+            color: var(--glass-text-primary);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .menu-toggle-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+            border-color: rgba(0, 102, 204, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
+        }
+
+        .toggle-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-icon img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .toggle-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .menu-toggle-btn span {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Estado Expandido */
+        .expanded-menu {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .expanded-menu .collapse-btn {
+            align-self: flex-start;
+            margin: 16px 16px 0 16px;
+        }
+
+        .lia-menu .lia-assistant-section,
+        .notes-menu .notes-section,
+        .notes-menu .notes-creator-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 16px 16px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Estilos específicos para el contenido de LIA */
+        .lia-menu .lia-assistant-section {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: flex !important;
+        }
+
+        .lia-menu .lia-assistant-section .lia-header {
+            flex-shrink: 0;
+            margin-bottom: 16px;
+        }
+
+        .lia-menu .lia-assistant-section .lia-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .lia-menu .lia-assistant-section .lia-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .lia-menu .lia-assistant-section .lia-input {
+            flex-shrink: 0;
+        }
+
+        /* Estilos de depuración temporal para LIA */
+        .lia-menu .lia-assistant-section * {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .lia-menu .lia-assistant-section .lia-header h3 {
+            color: var(--glass-text-primary) !important;
+            font-size: 18px !important;
+        }
+
+        .lia-menu .lia-assistant-section .lia-message {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(0, 102, 204, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+            margin-bottom: 12px !important;
+        }
+
+        /* Estados de Visibilidad */
+        /* Estado inicial: colapsado */
+        .right-panel.collapsed .collapsed-menu {
+            display: flex;
+        }
+
+        .right-panel.collapsed .expanded-menu {
+            display: none;
+        }
+
+        /* Estado LIA expandido */
+        .right-panel.lia-expanded .collapsed-menu {
+            display: none;
+        }
+
+        .right-panel.lia-expanded .lia-menu {
+            display: flex;
+        }
+
+        .right-panel.lia-expanded .notes-menu {
+            display: none;
+        }
+
+        /* Estado Notas expandido */
+        .right-panel.notes-expanded .collapsed-menu {
+            display: none;
+        }
+
+        .right-panel.notes-expanded .lia-menu {
+            display: none;
+        }
+
+        .right-panel.notes-expanded .notes-menu {
+            display: flex;
+        }
+
+        /* Responsive para botones de toggle */
+        @media (max-width: 768px) {
+            .menu-toggle-btn {
+                min-width: 70px;
+                padding: 12px 8px;
+            }
+            
+            .toggle-icon {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .toggle-icon img {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .toggle-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .menu-toggle-btn span {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .collapsed-menu {
+                padding: 12px;
+                gap: 8px;
+            }
+            
+            .menu-toggle-btn {
+                min-width: 60px;
+                padding: 10px 6px;
+            }
+            
+            .toggle-icon {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .toggle-icon img {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toggle-icon svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .menu-toggle-btn span {
+                font-size: 10px;
+            }
+        }
     </style>
     <!-- Favicon -->
     <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
@@ -5097,17 +5329,39 @@ Cargando información...
 
 
         <!-- Panel Derecho - LIA Assistant y Notas -->
-        <aside class="right-panel" id="sidebarRight">
-            <button class="collapse-btn collapse-btn-left" id="collapseRight" title="Ocultar/mostrar panel">
-                <span class="collapse-icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            </button>
+        <aside class="right-panel collapsed" id="sidebarRight">
+            <!-- Estado Colapsado: Dos botones separados -->
+            <div class="collapsed-menu" id="collapsedMenu">
+                <button class="menu-toggle-btn lia-toggle" id="liaToggleBtn" title="Abrir LIA Assistant">
+                    <div class="toggle-icon">
+                        <img src="/assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+                    </div>
+                    <span>LIA</span>
+                </button>
+                
+                <button class="menu-toggle-btn notes-toggle" id="notesToggleBtn" title="Abrir Notas">
+                    <div class="toggle-icon">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                        </svg>
+                    </div>
+                    <span>Notas</span>
+                </button>
+            </div>
             
-            <!-- LIA Assistant -->
-            <div class="lia-assistant-section">
+            <!-- Estado Expandido: Menú LIA -->
+            <div class="expanded-menu lia-menu" id="liaMenu" style="display: none;">
+                <button class="collapse-btn collapse-btn-left" id="collapseLia" title="Cerrar LIA">
+                    <span class="collapse-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </button>
+                
+                <!-- Contenido LIA Assistant (mantener estructura actual) -->
+                <div class="lia-assistant-section">
                 <div class="lia-header">
                     <h3>
                         <div class="lia-avatar">
@@ -5184,9 +5438,20 @@ Cargando información...
                     </div>
                 </div>
             </div>
+            </div>
             
-            <!-- Mis Notas -->
-            <div class="notes-section">
+            <!-- Estado Expandido: Menú Notas -->
+            <div class="expanded-menu notes-menu" id="notesMenu" style="display: none;">
+                <button class="collapse-btn collapse-btn-left" id="collapseNotes" title="Cerrar Notas">
+                    <span class="collapse-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </button>
+                
+                <!-- Contenido Notas (mantener estructura actual) -->
+                <div class="notes-section">
                 <div class="notes-header">
                     <h3>
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -5211,7 +5476,7 @@ Cargando información...
                                 <path d="M21 21l-4.35-4.35"/>
                             </svg>
                         </button>
-                        <button class="action-btn" id="collapseNotes" title="Colapsar Notas">
+                        <button class="action-btn" id="collapseNotesOld" title="Colapsar Notas">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="6,9 12,15 18,9"/>
                             </svg>
@@ -5482,6 +5747,7 @@ Cargando información...
                         <button class="btn-insert" id="linkModalInsert">Insertar Enlace</button>
                     </div>
                 </div>
+            </div>
             </div>
         </aside>
     </main>
@@ -7115,6 +7381,164 @@ INSTRUCCIONES:
     <script>
         console.log('🔧 Script inline para cargar notas - INICIADO');
 
+        // Función simple para crear HTML de nota con highlighting opcional
+        function createSimpleNoteHTML(note, searchTerm = '') {
+            const rawModule = note && typeof note.module === 'string' ? note.module.trim() : '';
+            const normalizedModule = rawModule.normalize ? rawModule.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawModule;
+            const shouldShowModule = normalizedModule && normalizedModule.toLowerCase() !== 'sin modulo';
+            const moduleLabel = shouldShowModule ? rawModule : '';
+            
+            // Aplicar highlighting si hay término de búsqueda
+            let title = note.title || 'Sin título';
+            let content = (note.content || '').substring(0, 100) + ((note.content || '').length > 100 ? '...' : '');
+            
+            if (searchTerm) {
+                const highlightClass = 'search-highlight';
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                
+                title = title.replace(regex, `<span class="${highlightClass}">$1</span>`);
+                content = content.replace(regex, `<span class="${highlightClass}">$1</span>`);
+            }
+
+            return `
+                <div class="note-item animate-in" data-note-id="${note.id}">
+                    <div class="note-header">
+                        <div class="note-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                            </svg>
+                            ${title}
+                        </div>
+                        <div class="note-time">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            ${new Date(note.timestamp || note.updatedAt).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div class="note-content">
+                        <p>${content}</p>
+                    </div>
+                    ${moduleLabel ? `<div class="note-module"><span>${moduleLabel}</span></div>` : ''}
+                    <button class="note-delete-btn" onclick="deleteNote(${note.id})" title="Eliminar nota">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                            <line x1="10" y1="11" x2="10" y2="17"/>
+                            <line x1="14" y1="11" x2="14" y2="17"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Función para agregar event listeners a las notas
+        function attachNoteClickListeners(container, notes) {
+            if (!container || !Array.isArray(notes)) {
+                console.error('❌ attachNoteClickListeners: container o notes no válidos');
+                return;
+            }
+
+            console.log('🔗 Agregando event listeners a', notes.length, 'notas');
+            const noteItems = container.querySelectorAll('.note-item');
+            noteItems.forEach((item) => {
+                item.addEventListener('click', (event) => {
+                    // Verificar si el clic fue en el botón de eliminar
+                    if (event.target.closest('.note-delete-btn')) {
+                        console.log('🚫 Clic en botón de eliminar detectado, evitando apertura del modal');
+                        return; // No hacer nada, dejar que el onclick del botón maneje la eliminación
+                    }
+                    const datasetId = item.getAttribute('data-note-id');
+                    const noteData = notes.find((n) => String(n.id) === datasetId);
+                    const idToUse = noteData ? noteData.id : datasetId;
+                    
+                    console.log('🖱️ [NOTES] Click en nota:', { datasetId, noteData: !!noteData, idToUse });
+
+                    // Función para intentar abrir la nota con reintentos
+                    function tryOpenNote(noteId, retries = 0) {
+                        console.log(`🚀 [NOTES] Abriendo nota ${noteId} instantáneamente...`);
+                        
+                        // Verificar si chatOnline está disponible inmediatamente
+                        if (window.chatOnline && typeof window.chatOnline.openNoteForEditing === 'function') {
+                            console.log('✅ [NOTES] chatOnline disponible, abriendo nota inmediatamente');
+                            try {
+                                window.chatOnline.openNoteForEditing(noteId);
+                                return; // Salir inmediatamente si funciona
+                            } catch (error) {
+                                console.error('❌ [NOTES] Error al abrir nota:', error);
+                                openNoteFallback(noteId);
+                                return;
+                            }
+                        }
+                        
+                        // Solo si chatOnline no está disponible, intentar rápidamente (máximo 3 intentos)
+                        if (retries < 3) {
+                            console.log(`⏳ [NOTES] chatOnline no disponible, reintentando rápidamente... (${retries + 1}/3)`);
+                            setTimeout(() => tryOpenNote(noteId, retries + 1), 50); // Solo 50ms de espera
+                        } else {
+                            console.error('❌ [NOTES] chatOnline no disponible después de 3 intentos, usando fallback');
+                            openNoteFallback(noteId);
+                        }
+                    }
+                    
+                    // Función de fallback para abrir nota manualmente
+                    function openNoteFallback(noteId) {
+                        console.log('🚀 [NOTES] Abriendo nota usando fallback instantáneo...');
+                        
+                        // Buscar la nota en localStorage (optimizado)
+                        const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
+                        const note = notes.find(n => String(n.id) === String(noteId));
+                        
+                        if (!note) {
+                            console.error('❌ [NOTES] Nota no encontrada:', noteId);
+                            alert('No se pudo encontrar la nota. Por favor, recarga la página e intenta nuevamente.');
+                            return;
+                        }
+                        
+                        // Usar openNotePanel si está disponible (más rápido)
+                        if (typeof window.openNotePanel === 'function') {
+                            console.log('✅ [NOTES] Abriendo modal usando openNotePanel (instantáneo)');
+                            window.openNotePanel(note);
+                            return;
+                        }
+                        
+                        // Fallback directo sin delays
+                        console.log('✅ [NOTES] Abriendo modal overlay directamente (instantáneo)');
+                        const notePanelOverlay = document.getElementById('notePanelOverlay');
+                        if (notePanelOverlay) {
+                            // Mostrar el modal inmediatamente
+                            notePanelOverlay.style.display = 'flex';
+                            notePanelOverlay.classList.add('active');
+                            
+                            // Llenar campos inmediatamente
+                            const titleInput = document.getElementById('noteTitleInput');
+                            const contentEditor = document.getElementById('noteEditor');
+                            
+                            if (titleInput) titleInput.value = note.title || '';
+                            if (contentEditor) contentEditor.innerHTML = note.content || '';
+                            
+                            // Configurar la variable global para el modal overlay
+                            window.currentEditingNote = note;
+                            
+                            // Enfocar el editor inmediatamente
+                            if (contentEditor) contentEditor.focus();
+                            
+                            console.log('✅ [NOTES] Modal abierto instantáneamente con datos de la nota:', note.title);
+                        } else {
+                            console.error('❌ [NOTES] Modal overlay no encontrado');
+                            alert('El editor de notas no está disponible. Por favor, recarga la página e intenta nuevamente.');
+                        }
+                    }
+                    
+                    tryOpenNote(idToUse);
+                });
+            });
+            
+            console.log('✅ Event listeners agregados correctamente');
+        }
+
         function cargarNotasInmediatamente() {
             console.log('🔍 Verificando autenticación de usuario...');
 
@@ -8551,123 +8975,201 @@ ${context}`;
 
     <!-- Funcionalidad mejorada de colapso del panel derecho -->
     <script>
-        // Funcionalidad mejorada de colapso del panel derecho
+        // Funcionalidad del menú derecho dividido (LIA y Notas)
         document.addEventListener('DOMContentLoaded', function() {
-            const collapseRight = document.getElementById('collapseRight');
-            const sidebarRight = document.getElementById('sidebarRight');
+            // Variables de estado
+            let rightPanelPinned = false;
+            let currentRightMenu = 'collapsed'; // 'collapsed', 'lia', 'notes'
             
-            if (collapseRight && sidebarRight) {
+            const sidebarRight = document.getElementById('sidebarRight');
+            const liaToggleBtn = document.getElementById('liaToggleBtn');
+            const notesToggleBtn = document.getElementById('notesToggleBtn');
+            const collapseLia = document.getElementById('collapseLia');
+            const collapseNotes = document.getElementById('collapseNotes');
+            
+            console.log('🔧 [DEBUG] Elementos encontrados:');
+            console.log('  - sidebarRight:', !!sidebarRight);
+            console.log('  - liaToggleBtn:', !!liaToggleBtn);
+            console.log('  - notesToggleBtn:', !!notesToggleBtn);
+            console.log('  - collapseLia:', !!collapseLia);
+            console.log('  - collapseNotes:', !!collapseNotes);
+            
+            if (!sidebarRight) {
+                console.warn('⚠️ Panel derecho no encontrado');
+                return;
+            }
+            
+            // Función para mostrar menú colapsado
+            function showCollapsedMenu() {
+                sidebarRight.className = 'right-panel collapsed';
+                currentRightMenu = 'collapsed';
+                localStorage.setItem('rightPanelState', 'collapsed');
+            }
+            
+            // Hacer funciones disponibles globalmente para debugging
+            window.showCollapsedMenu = showCollapsedMenu;
+            
+            // Función para mostrar menú LIA
+            function showLiaMenu() {
+                console.log('🔧 [DEBUG] showLiaMenu llamada');
+                sidebarRight.className = 'right-panel lia-expanded';
+                currentRightMenu = 'lia';
+                localStorage.setItem('rightPanelState', 'lia');
                 
-                // Restaurar estado desde localStorage
-                const isCollapsed = localStorage.getItem('rightPanelCollapsed') === 'true';
-                if (isCollapsed) {
-                    sidebarRight.classList.add('collapsed');
-                    // Actualizar tooltip
-                    collapseRight.title = 'Expandir panel';
-                } else {
-                    collapseRight.title = 'Ocultar panel';
-                }
+                console.log('🔧 [DEBUG] Clase aplicada:', sidebarRight.className);
                 
-                // Event listener para el botón de colapso
-                collapseRight.addEventListener('click', function(e) {
-                    e.preventDefault();
+                // Asegurar que el contenido sea visible
+                setTimeout(() => {
+                    const liaSection = document.querySelector('.lia-assistant-section');
+                    console.log('🔧 [DEBUG] liaSection encontrado:', !!liaSection);
                     
-                    // Aplicar animación de salida antes del colapso
-                    if (!sidebarRight.classList.contains('collapsed')) {
-                        // Pre-animación de contenido antes del colapso
-                        const contentSections = sidebarRight.querySelectorAll(
-                            '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
-                        );
+                    if (liaSection) {
+                        console.log('🔧 [DEBUG] Aplicando estilos a liaSection');
+                        liaSection.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                        liaSection.style.opacity = '1';
+                        liaSection.style.visibility = 'visible';
+                        liaSection.style.display = 'flex';
+                        liaSection.style.transform = 'translateX(0)';
+                        liaSection.style.height = '100%';
                         
-                        contentSections.forEach((section, index) => {
-                            section.style.transition = 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)';
-                            section.style.opacity = '0';
-                            section.style.transform = 'translateX(20px)';
-                        });
+                        // Verificar que el contenido esté visible
+                        const liaHeader = liaSection.querySelector('.lia-header');
+                        const liaChat = liaSection.querySelector('.lia-chat');
+                        console.log('🔧 [DEBUG] liaHeader:', !!liaHeader);
+                        console.log('🔧 [DEBUG] liaChat:', !!liaChat);
                         
-                        // Aplicar colapso después de la animación
-                        setTimeout(() => {
-                            sidebarRight.classList.add('collapsed');
-                            collapseRight.title = 'Expandir panel';
-                            // Desfijar panel cuando se colapsa manualmente
-                            rightPanelPinned = false;
-                        }, 200);
+                        if (liaHeader) {
+                            liaHeader.style.display = 'block';
+                            liaHeader.style.opacity = '1';
+                        }
                         
+                        if (liaChat) {
+                            liaChat.style.display = 'flex';
+                            liaChat.style.opacity = '1';
+                        }
                     } else {
-                        // Expandir inmediatamente
-                        sidebarRight.classList.remove('collapsed');
-                        collapseRight.title = 'Ocultar panel';
-                        
-                        // Re-animar contenido al expandir
-                        setTimeout(() => {
-                            const contentSections = sidebarRight.querySelectorAll(
-                                '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
-                            );
-                            contentSections.forEach((section, index) => {
-                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-                                section.style.opacity = '1';
-                                section.style.transform = 'translateX(0)';
-                            });
-                        }, 50);
+                        console.error('❌ [DEBUG] liaSection no encontrado');
                     }
-                    
-                    const isNowCollapsed = sidebarRight.classList.contains('collapsed');
-                    
-                    // Guardar estado en localStorage
-                    localStorage.setItem('rightPanelCollapsed', isNowCollapsed);
-                    
-                    // Emitir evento personalizado para otros componentes
-                    window.dispatchEvent(new CustomEvent('rightPanelToggled', {
-                        detail: { 
-                            collapsed: isNowCollapsed,
-                            timestamp: Date.now(),
-                            source: 'user-action'
-                        }
-                    }));
-                });
+                }, 50);
+            }
+            
+            // Hacer funciones disponibles globalmente para debugging
+            window.showLiaMenu = showLiaMenu;
+            
+            // Función para mostrar menú Notas
+            function showNotesMenu() {
+                sidebarRight.className = 'right-panel notes-expanded';
+                currentRightMenu = 'notes';
+                localStorage.setItem('rightPanelState', 'notes');
                 
-                // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && !sidebarRight.classList.contains('collapsed')) {
-                        // Verificar si algún elemento del panel derecho tiene foco
-                        const activeElement = document.activeElement;
-                        const isInsideRightPanel = sidebarRight.contains(activeElement);
-                        
-                        if (isInsideRightPanel) {
-                            collapseRight.click();
-                            collapseRight.focus();
-                        }
+                // Animar entrada del contenido
+                setTimeout(() => {
+                    const notesSection = document.querySelector('.notes-section');
+                    if (notesSection) {
+                        notesSection.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+                        notesSection.style.opacity = '1';
+                        notesSection.style.transform = 'translateX(0)';
                     }
+                }, 50);
+            }
+            
+            // Hacer funciones disponibles globalmente para debugging
+            window.showNotesMenu = showNotesMenu;
+            
+            // Función de ayuda para debugging del menú
+            window.debugMenu = function() {
+                console.log('🔧 [DEBUG] Funciones de menú disponibles:');
+                console.log('  - showCollapsedMenu() - Cerrar menú (mostrar botones)');
+                console.log('  - showLiaMenu() - Abrir menú LIA');
+                console.log('  - showNotesMenu() - Abrir menú Notas');
+                console.log('  - debugMenu() - Mostrar esta ayuda');
+                console.log('🔧 [DEBUG] Estado actual del menú:', currentRightMenu);
+                console.log('🔧 [DEBUG] Clase actual del panel:', document.getElementById('sidebarRight')?.className);
+            };
+            
+            // Event listeners para los botones de toggle
+            if (liaToggleBtn) {
+                console.log('🔧 [DEBUG] liaToggleBtn encontrado, agregando event listener');
+                liaToggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('🔧 [DEBUG] Botón LIA clickeado');
+                    showLiaMenu();
                 });
-                
-                // Accesibilidad: manejo de teclado para el botón
-                collapseRight.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        collapseRight.click();
+            } else {
+                console.error('❌ [DEBUG] liaToggleBtn no encontrado');
+            }
+            
+            if (notesToggleBtn) {
+                notesToggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showNotesMenu();
+                });
+            }
+            
+            if (collapseLia) {
+                collapseLia.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showCollapsedMenu();
+                });
+            }
+            
+            if (collapseNotes) {
+                collapseNotes.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showCollapsedMenu();
+                });
+            }
+            
+            // Restaurar estado desde localStorage
+            const savedState = localStorage.getItem('rightPanelState') || 'collapsed';
+            if (savedState === 'lia') {
+                showLiaMenu();
+            } else if (savedState === 'notes') {
+                showNotesMenu();
+            } else {
+                showCollapsedMenu();
+            }
+            
+            // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && currentRightMenu !== 'collapsed') {
+                    // Verificar si algún elemento del panel derecho tiene foco
+                    const activeElement = document.activeElement;
+                    const isInsideRightPanel = sidebarRight.contains(activeElement);
+                    
+                    if (isInsideRightPanel) {
+                        showCollapsedMenu();
                     }
-                });
-                
-                // Observador de cambios de tamaño de ventana para ajuste responsive
-                if (window.ResizeObserver) {
-                    const resizeObserver = new ResizeObserver(entries => {
-                        for (let entry of entries) {
-                            const { width } = entry.contentRect;
-                            
-                            // Ajustar comportamiento según tamaño de pantalla
-                            if (width <= 768) {
-                                // En móvil/tablet, mantener comportamiento estándar
-                                sidebarRight.style.pointerEvents = 'auto';
-                            }
+                }
+            });
+            
+            // Accesibilidad: manejo de teclado para los botones
+            [liaToggleBtn, notesToggleBtn, collapseLia, collapseNotes].forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            btn.click();
                         }
                     });
-                    
-                    resizeObserver.observe(document.body);
                 }
+            });
+            
+            // Observador de cambios de tamaño de ventana para ajuste responsive
+            if (window.ResizeObserver) {
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        const { width } = entry.contentRect;
+                        
+                        // Ajustar comportamiento según tamaño de pantalla
+                        if (width <= 768) {
+                            // En móvil/tablet, mantener comportamiento estándar
+                            sidebarRight.style.pointerEvents = 'auto';
+                        }
+                    }
+                });
                 
-                // Estado inicial logging
-            } else {
-                console.warn('⚠️ Elementos del panel derecho no encontrados');
+                resizeObserver.observe(document.body);
             }
         });
 
@@ -8842,49 +9344,8 @@ ${context}`;
                 });
             }
             
-            // Auto-expansión del panel derecho con hover
-            if (sidebarRight) {
-                sidebarRight.addEventListener('mouseenter', function(e) {
-                    // Solo expandir si el panel está colapsado
-                    if (sidebarRight.classList.contains('collapsed')) {
-                        sidebarRight.classList.remove('collapsed');
-                        collapseRight.title = 'Ocultar panel';
-                        
-                        // Re-animar contenido al expandir
-                        setTimeout(() => {
-                            const contentSections = sidebarRight.querySelectorAll(
-                                '.lia-assistant-section, .notes-creator-section, .notes-section, .course-materials-section, .community-content'
-                            );
-                            contentSections.forEach((section, index) => {
-                                section.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-                                section.style.opacity = '1';
-                                section.style.transform = 'translateX(0)';
-                            });
-                        }, 50);
-                        
-                        // Guardar estado en localStorage
-                        localStorage.setItem('rightPanelCollapsed', false);
-                        
-                        // Emitir evento personalizado
-                        window.dispatchEvent(new CustomEvent('rightPanelToggled', {
-                            detail: { 
-                                collapsed: false,
-                                timestamp: Date.now(),
-                                source: 'auto-expand-hover'
-                            }
-                        }));
-                        
-                    }
-                });
-                
-                
-                // Fijar panel derecho al hacer clic
-                sidebarRight.addEventListener('click', function(e) {
-                    if (!sidebarRight.classList.contains('collapsed')) {
-                        rightPanelPinned = true;
-                    }
-                });
-            }
+            // Funcionalidad de hover para el panel derecho (deshabilitada en la nueva implementación)
+            // Los paneles ahora se controlan explícitamente con los botones de toggle
             
             // Los event listeners de desfijación están integrados en los event listeners principales de colapso
             
@@ -8919,35 +9380,8 @@ ${context}`;
                 });
             }
             
-            if (sidebarRight) {
-                sidebarRight.addEventListener('mouseleave', function(e) {
-                    if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
-                        // Pequeño delay para evitar cierre accidental
-                        setTimeout(() => {
-                            if (!rightPanelPinned && !sidebarRight.classList.contains('collapsed')) {
-                                sidebarRight.classList.add('collapsed');
-                                collapseRight.title = 'Expandir panel';
-                                rightPanelPinned = false; // Desfijar cuando se colapsa automáticamente
-                                
-                                // Guardar estado en localStorage
-                                localStorage.setItem('rightPanelCollapsed', true);
-                                
-                                // Emitir evento personalizado
-                                window.dispatchEvent(new CustomEvent('rightPanelToggled', {
-                                    detail: { 
-                                        collapsed: true,
-                                        timestamp: Date.now(),
-                                        source: 'auto-collapse-hover'
-                                    }
-                                }));
-                                
-                            } else {
-                            }
-                        }, 300);
-                    } else {
-                    }
-                });
-            }
+            // Auto-colapso del panel derecho deshabilitado en la nueva implementación
+            // Los paneles ahora se controlan explícitamente con los botones de toggle
             
             // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
             document.addEventListener('keydown', function(e) {
@@ -11831,110 +12265,6 @@ Generado desde Coach LIA IA - ${currentDate}
             let searchTimeout;
             let allNotes = []; // Almacenar todas las notas para búsqueda
             
-            // Función para agregar event listeners a las notas
-            function attachNoteClickListeners(container, notes) {
-                if (!container || !Array.isArray(notes)) {
-                    console.error('❌ attachNoteClickListeners: container o notes no válidos');
-                    return;
-                }
-
-                console.log('🔗 Agregando event listeners a', notes.length, 'notas');
-                const noteItems = container.querySelectorAll('.note-item');
-                noteItems.forEach((item) => {
-                    item.addEventListener('click', (event) => {
-                        // Verificar si el clic fue en el botón de eliminar
-                        if (event.target.closest('.note-delete-btn')) {
-                            console.log('🚫 Clic en botón de eliminar detectado, evitando apertura del modal');
-                            return; // No hacer nada, dejar que el onclick del botón maneje la eliminación
-                        }
-                        const datasetId = item.getAttribute('data-note-id');
-                        const noteData = notes.find((n) => String(n.id) === datasetId);
-                        const idToUse = noteData ? noteData.id : datasetId;
-                        
-                        console.log('🖱️ [NOTES] Click en nota:', { datasetId, noteData: !!noteData, idToUse });
-
-                        // Función para intentar abrir la nota con reintentos
-                        function tryOpenNote(noteId, retries = 0) {
-                            console.log(`🚀 [NOTES] Abriendo nota ${noteId} instantáneamente...`);
-                            
-                            // Verificar si chatOnline está disponible inmediatamente
-                            if (window.chatOnline && typeof window.chatOnline.openNoteForEditing === 'function') {
-                                console.log('✅ [NOTES] chatOnline disponible, abriendo nota inmediatamente');
-                                try {
-                                    window.chatOnline.openNoteForEditing(noteId);
-                                    return; // Salir inmediatamente si funciona
-                                } catch (error) {
-                                    console.error('❌ [NOTES] Error al abrir nota:', error);
-                                    openNoteFallback(noteId);
-                                    return;
-                                }
-                            }
-                            
-                            // Solo si chatOnline no está disponible, intentar rápidamente (máximo 3 intentos)
-                            if (retries < 3) {
-                                console.log(`⏳ [NOTES] chatOnline no disponible, reintentando rápidamente... (${retries + 1}/3)`);
-                                setTimeout(() => tryOpenNote(noteId, retries + 1), 50); // Solo 50ms de espera
-                            } else {
-                                console.error('❌ [NOTES] chatOnline no disponible después de 3 intentos, usando fallback');
-                                openNoteFallback(noteId);
-                            }
-                        }
-                        
-                        // Función de fallback para abrir nota manualmente
-                        function openNoteFallback(noteId) {
-                            console.log('🚀 [NOTES] Abriendo nota usando fallback instantáneo...');
-                            
-                            // Buscar la nota en localStorage (optimizado)
-                            const notes = JSON.parse(localStorage.getItem('lia_notes') || '[]');
-                            const note = notes.find(n => String(n.id) === String(noteId));
-                            
-                            if (!note) {
-                                console.error('❌ [NOTES] Nota no encontrada:', noteId);
-                                alert('No se pudo encontrar la nota. Por favor, recarga la página e intenta nuevamente.');
-                                return;
-                            }
-                            
-                            // Usar openNotePanel si está disponible (más rápido)
-                            if (typeof window.openNotePanel === 'function') {
-                                console.log('✅ [NOTES] Abriendo modal usando openNotePanel (instantáneo)');
-                                window.openNotePanel(note);
-                                return;
-                            }
-                            
-                            // Fallback directo sin delays
-                            console.log('✅ [NOTES] Abriendo modal overlay directamente (instantáneo)');
-                            const notePanelOverlay = document.getElementById('notePanelOverlay');
-                            if (notePanelOverlay) {
-                                // Mostrar el modal inmediatamente
-                                notePanelOverlay.style.display = 'flex';
-                                notePanelOverlay.classList.add('active');
-                                
-                                // Llenar campos inmediatamente
-                                const titleInput = document.getElementById('noteTitleInput');
-                                const contentEditor = document.getElementById('noteEditor');
-                                
-                                if (titleInput) titleInput.value = note.title || '';
-                                if (contentEditor) contentEditor.innerHTML = note.content || '';
-                                
-                                // Configurar la variable global para el modal overlay
-                                window.currentEditingNote = note;
-                                
-                                // Enfocar el editor inmediatamente
-                                if (contentEditor) contentEditor.focus();
-                                
-                                console.log('✅ [NOTES] Modal abierto instantáneamente con datos de la nota:', note.title);
-                            } else {
-                                console.error('❌ [NOTES] Modal overlay no encontrado');
-                                alert('El editor de notas no está disponible. Por favor, recarga la página e intenta nuevamente.');
-                            }
-                        }
-                        
-                        tryOpenNote(idToUse);
-                    });
-                });
-                
-                console.log('✅ Event listeners agregados correctamente');
-            }
             
             // Función simple para crear HTML de nota con highlighting opcional
             function createSimpleNoteHTML(note, searchTerm = '') {

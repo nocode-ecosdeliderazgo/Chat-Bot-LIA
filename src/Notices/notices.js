@@ -16,10 +16,24 @@ class NoticesPage {
 
     init() {
         this.setupEventListeners();
+        this.initializeView();
         this.loadNewsData();
         this.setupAnimations();
         this.fillUserHeader();
         this.setupThemeListener();
+    }
+
+    // ===== VIEW INITIALIZATION =====
+    initializeView() {
+        // Ensure initial view state is correct
+        const newsGrid = document.getElementById('newsGrid');
+        const newsList = document.getElementById('newsList');
+        
+        if (newsGrid && newsList) {
+            // Set initial state: grid visible, list hidden
+            newsGrid.classList.remove('hidden');
+            newsList.classList.add('hidden');
+        }
     }
 
     // ===== EVENT LISTENERS =====
