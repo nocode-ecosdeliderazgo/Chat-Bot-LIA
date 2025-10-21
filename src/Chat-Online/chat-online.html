@@ -4443,7 +4443,16 @@
         }
 
         /* ===== ESTILOS PARA MENÚ DERECHO DIVIDIDO ===== */
-        
+
+        /* right-panel cuando menús están expandidos - Sin padding ni limitaciones */
+        .right-panel.lia-expanded,
+        .right-panel.notes-expanded {
+            padding: 0 !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important; /* Sin scroll en el contenedor */
+        }
+
         /* Estado Colapsado */
         .collapsed-menu {
             display: flex;
@@ -4505,12 +4514,13 @@
             letter-spacing: 0.5px;
         }
 
-        /* Estado Expandido */
+        /* Estado Expandido - Ocupa 100% de altura */
         .expanded-menu {
             display: flex;
             flex-direction: column;
-            height: 100%;
+            height: 100vh !important; /* Altura completa del viewport */
             width: 100%;
+            position: relative;
         }
 
         .expanded-menu .collapse-btn {
@@ -4518,15 +4528,26 @@
             margin: 16px 16px 0 16px;
         }
 
+        /* Estilos para botones de cerrar de menús divididos - Solo posición fija */
+        #collapseLia,
+        #collapseNotes {
+            position: fixed !important;
+            top: 8px !important;
+            right: 16px !important;
+            z-index: 1000 !important;
+        }
+
+        /* LIA Menu - Ocupa TODO el espacio vertical */
         .lia-menu .lia-assistant-section,
         .notes-menu .notes-section,
         .notes-menu .notes-creator-section {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 16px 16px 16px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+            flex: 1 1 auto !important; /* Crece para llenar espacio */
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            min-height: 0 !important; /* Permite que flex funcione correctamente */
+            padding: 48px 16px 16px 16px !important; /* Espacio superior para el botón fijo */
+            overflow: hidden !important; /* Evita scroll en el contenedor */
         }
 
         /* Estilos específicos para el contenido de LIA */
@@ -4536,29 +4557,36 @@
             box-shadow: none;
             opacity: 1 !important;
             visibility: visible !important;
-            display: flex !important;
         }
 
         .lia-menu .lia-assistant-section .lia-header {
-            flex-shrink: 0;
+            flex-shrink: 0 !important; /* No se encoge */
             margin-bottom: 16px;
         }
 
         .lia-menu .lia-assistant-section .lia-chat {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
+            flex: 1 1 auto !important; /* Ocupa TODO el espacio restante */
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+            max-height: none !important; /* SIN límite de altura */
+            height: 100% !important; /* Usa toda la altura disponible */
+            overflow: hidden !important;
         }
 
         .lia-menu .lia-assistant-section .lia-messages {
-            flex: 1;
-            overflow-y: auto;
+            flex: 1 1 auto !important; /* Crece para llenar todo el espacio disponible */
+            overflow-y: auto !important; /* Scroll solo en mensajes */
             margin-bottom: 16px;
+            padding-right: 8px;
+            max-height: none !important; /* SIN límite de altura */
+            min-height: 0 !important; /* Permite que flex funcione */
+            height: auto !important; /* Altura automática basada en flex */
         }
 
         .lia-menu .lia-assistant-section .lia-input {
-            flex-shrink: 0;
+            flex-shrink: 0 !important; /* Input siempre en la parte inferior */
+            margin-top: auto; /* Empuja al fondo */
         }
 
         /* Estilos de depuración temporal para LIA */
@@ -5351,17 +5379,17 @@ Cargando información...
             </div>
             
             <!-- Estado Expandido: Menú LIA -->
-            <div class="expanded-menu lia-menu" id="liaMenu" style="display: none;">
+            <div class="expanded-menu lia-menu" id="liaMenu">
                 <button class="collapse-btn collapse-btn-left" id="collapseLia" title="Cerrar LIA">
-                    <span class="collapse-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                            <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </span>
-                </button>
-                
+                <span class="collapse-icon">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M11 18l6-6-6-6M5 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </button>
+            
                 <!-- Contenido LIA Assistant (mantener estructura actual) -->
-                <div class="lia-assistant-section">
+            <div class="lia-assistant-section">
                 <div class="lia-header">
                     <h3>
                         <div class="lia-avatar">
@@ -5435,13 +5463,13 @@ Cargando información...
                                 </svg>
                             </button>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            </div>
             
             <!-- Estado Expandido: Menú Notas -->
-            <div class="expanded-menu notes-menu" id="notesMenu" style="display: none;">
+            <div class="expanded-menu notes-menu" id="notesMenu">
                 <button class="collapse-btn collapse-btn-left" id="collapseNotes" title="Cerrar Notas">
                     <span class="collapse-icon">
                         <svg viewBox="0 0 24 24" width="16" height="16">
@@ -5451,7 +5479,7 @@ Cargando información...
                 </button>
                 
                 <!-- Contenido Notas (mantener estructura actual) -->
-                <div class="notes-section">
+            <div class="notes-section">
                 <div class="notes-header">
                     <h3>
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -5746,8 +5774,8 @@ Cargando información...
                         <button class="btn-cancel" id="linkModalCancel">Cancelar</button>
                         <button class="btn-insert" id="linkModalInsert">Insertar Enlace</button>
                     </div>
+                    </div>
                 </div>
-            </div>
             </div>
         </aside>
     </main>
@@ -9001,9 +9029,18 @@ ${context}`;
             
             // Función para mostrar menú colapsado
             function showCollapsedMenu() {
+                console.log('🔧 [DEBUG] showCollapsedMenu llamada');
                 sidebarRight.className = 'right-panel collapsed';
                 currentRightMenu = 'collapsed';
                 localStorage.setItem('rightPanelState', 'collapsed');
+
+                // Ocultar ambos menús expandidos
+                const liaMenu = document.getElementById('liaMenu');
+                const notesMenu = document.getElementById('notesMenu');
+                if (liaMenu) liaMenu.style.display = 'none';
+                if (notesMenu) notesMenu.style.display = 'none';
+
+                console.log('🔧 [DEBUG] Ambos menús ocultados');
             }
             
             // Hacer funciones disponibles globalmente para debugging
@@ -9015,11 +9052,19 @@ ${context}`;
                 sidebarRight.className = 'right-panel lia-expanded';
                 currentRightMenu = 'lia';
                 localStorage.setItem('rightPanelState', 'lia');
-                
+
+                // Controlar display de menús explícitamente
+                const liaMenu = document.getElementById('liaMenu');
+                const notesMenu = document.getElementById('notesMenu');
+                if (liaMenu) liaMenu.style.display = 'flex';
+                if (notesMenu) notesMenu.style.display = 'none';
+
                 console.log('🔧 [DEBUG] Clase aplicada:', sidebarRight.className);
+                console.log('🔧 [DEBUG] liaMenu display:', liaMenu?.style.display);
+                console.log('🔧 [DEBUG] notesMenu display:', notesMenu?.style.display);
                 
                 // Asegurar que el contenido sea visible
-                setTimeout(() => {
+                        setTimeout(() => {
                     const liaSection = document.querySelector('.lia-assistant-section');
                     console.log('🔧 [DEBUG] liaSection encontrado:', !!liaSection);
                     
@@ -9029,6 +9074,12 @@ ${context}`;
                         liaSection.style.opacity = '1';
                         liaSection.style.visibility = 'visible';
                         liaSection.style.display = 'flex';
+                        
+                        // Verificar que el contenido esté visible
+                        console.log('🔧 [DEBUG] Verificando visibilidad del contenido de LIA:');
+                        console.log('  - liaSection display:', liaSection.style.display);
+                        console.log('  - liaSection opacity:', liaSection.style.opacity);
+                        console.log('  - liaSection visibility:', liaSection.style.visibility);
                         liaSection.style.transform = 'translateX(0)';
                         liaSection.style.height = '100%';
                         
@@ -9058,23 +9109,61 @@ ${context}`;
             
             // Función para mostrar menú Notas
             function showNotesMenu() {
+                console.log('🔧 [DEBUG] showNotesMenu llamada');
                 sidebarRight.className = 'right-panel notes-expanded';
                 currentRightMenu = 'notes';
                 localStorage.setItem('rightPanelState', 'notes');
-                
+
+                // Controlar display de menús explícitamente
+                const liaMenu = document.getElementById('liaMenu');
+                const notesMenu = document.getElementById('notesMenu');
+                if (liaMenu) liaMenu.style.display = 'none';
+                if (notesMenu) notesMenu.style.display = 'flex';
+
+                console.log('🔧 [DEBUG] Clase aplicada:', sidebarRight.className);
+                console.log('🔧 [DEBUG] liaMenu display:', liaMenu?.style.display);
+                console.log('🔧 [DEBUG] notesMenu display:', notesMenu?.style.display);
+
                 // Animar entrada del contenido
                 setTimeout(() => {
                     const notesSection = document.querySelector('.notes-section');
                     if (notesSection) {
                         notesSection.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
                         notesSection.style.opacity = '1';
+                        notesSection.style.visibility = 'visible';
                         notesSection.style.transform = 'translateX(0)';
+                        console.log('🔧 [DEBUG] notesSection estilos aplicados');
                     }
                 }, 50);
             }
-            
+                    
             // Hacer funciones disponibles globalmente para debugging
             window.showNotesMenu = showNotesMenu;
+            
+            // Función para forzar la visibilidad del contenido de LIA
+            window.forceLiaVisibility = function() {
+                console.log('🔧 [DEBUG] Forzando visibilidad del contenido de LIA...');
+                
+                const liaSection = document.querySelector('.lia-assistant-section');
+                if (liaSection) {
+                    liaSection.style.display = 'flex';
+                    liaSection.style.opacity = '1';
+                    liaSection.style.visibility = 'visible';
+                    liaSection.style.height = '100%';
+                    liaSection.style.flexDirection = 'column';
+                    
+                    // Forzar visibilidad de todos los elementos hijos
+                    const allElements = liaSection.querySelectorAll('*');
+                    allElements.forEach(el => {
+                        el.style.opacity = '1';
+                        el.style.visibility = 'visible';
+                    });
+                    
+                    console.log('✅ [DEBUG] Visibilidad forzada aplicada');
+                } else {
+                    console.error('❌ [DEBUG] liaSection no encontrado');
+                }
+            };
             
             // Función de ayuda para debugging del menú
             window.debugMenu = function() {
@@ -9082,9 +9171,28 @@ ${context}`;
                 console.log('  - showCollapsedMenu() - Cerrar menú (mostrar botones)');
                 console.log('  - showLiaMenu() - Abrir menú LIA');
                 console.log('  - showNotesMenu() - Abrir menú Notas');
+                console.log('  - forceLiaVisibility() - Forzar visibilidad del contenido de LIA');
                 console.log('  - debugMenu() - Mostrar esta ayuda');
                 console.log('🔧 [DEBUG] Estado actual del menú:', currentRightMenu);
                 console.log('🔧 [DEBUG] Clase actual del panel:', document.getElementById('sidebarRight')?.className);
+                
+                // Verificar elementos específicos
+                const sidebarRight = document.getElementById('sidebarRight');
+                const liaMenu = document.getElementById('liaMenu');
+                const liaSection = document.querySelector('.lia-assistant-section');
+                
+                console.log('🔧 [DEBUG] Elementos del menú:');
+                console.log('  - sidebarRight:', !!sidebarRight);
+                console.log('  - liaMenu:', !!liaMenu);
+                console.log('  - liaSection:', !!liaSection);
+                
+                if (liaSection) {
+                    console.log('🔧 [DEBUG] Estilos de liaSection:');
+                    console.log('  - display:', liaSection.style.display);
+                    console.log('  - opacity:', liaSection.style.opacity);
+                    console.log('  - visibility:', liaSection.style.visibility);
+                    console.log('  - height:', liaSection.style.height);
+                }
             };
             
             // Event listeners para los botones de toggle
@@ -9107,69 +9215,141 @@ ${context}`;
             }
             
             if (collapseLia) {
-                collapseLia.addEventListener('click', function(e) {
+                // Clonar el botón para remover TODOS los event listeners antiguos
+                const newCollapseLia = collapseLia.cloneNode(true);
+                collapseLia.parentNode.replaceChild(newCollapseLia, collapseLia);
+
+                // Agregar el nuevo event listener al botón limpio
+                newCollapseLia.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopImmediatePropagation(); // Detener otros listeners
+                    console.log('🔧 [DEBUG] Botón collapseLia clickeado - cerrando menú de LIA');
                     showCollapsedMenu();
-                });
+                }, true); // Captura en fase capturing para ejecutarse primero
+
+                console.log('✅ [DEBUG] Event listener de collapseLia configurado correctamente');
             }
             
             if (collapseNotes) {
-                collapseNotes.addEventListener('click', function(e) {
+                // Clonar el botón para remover TODOS los event listeners antiguos
+                const newCollapseNotes = collapseNotes.cloneNode(true);
+                collapseNotes.parentNode.replaceChild(newCollapseNotes, collapseNotes);
+
+                // Agregar el nuevo event listener al botón limpio
+                newCollapseNotes.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopImmediatePropagation(); // Detener otros listeners
+                    console.log('🔧 [DEBUG] Botón collapseNotes clickeado - cerrando menú de Notas');
                     showCollapsedMenu();
-                });
+                }, true); // Captura en fase capturing para ejecutarse primero
+
+                console.log('✅ [DEBUG] Event listener de collapseNotes configurado correctamente');
             }
             
-            // Restaurar estado desde localStorage
-            const savedState = localStorage.getItem('rightPanelState') || 'collapsed';
-            if (savedState === 'lia') {
+            // Restaurar estado desde localStorage (por defecto abrir LIA)
+            const savedState = localStorage.getItem('rightPanelState');
+
+            // Limpiar estado 'collapsed' si existe y forzar LIA
+            if (savedState === 'collapsed') {
+                console.log('🔧 [DEBUG] Limpiando estado colapsado del localStorage');
+                localStorage.removeItem('rightPanelState');
+                console.log('🔧 [DEBUG] Forzando apertura del menú LIA');
                 showLiaMenu();
-            } else if (savedState === 'notes') {
-                showNotesMenu();
             } else {
-                showCollapsedMenu();
+                const defaultState = 'lia'; // Valor por defecto
+                console.log('🔧 [DEBUG] Estado guardado:', savedState || defaultState);
+
+                if (savedState === 'lia') {
+                    console.log('🔧 [DEBUG] Abriendo menú LIA');
+                    showLiaMenu();
+                } else if (savedState === 'notes') {
+                    console.log('🔧 [DEBUG] Abriendo menú Notas');
+                    showNotesMenu();
+                } else {
+                    console.log('🔧 [DEBUG] Abriendo menú LIA por defecto');
+                    showLiaMenu();
+                }
             }
-            
-            // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
-            document.addEventListener('keydown', function(e) {
+
+            // ==================== FUNCIONES DE UTILIDAD ====================
+
+            // Función para limpiar el estado del menú
+            window.clearMenuState = function() {
+                console.log('🔧 [DEBUG] Limpiando estado del menú...');
+                localStorage.removeItem('rightPanelState');
+                console.log('🔧 [DEBUG] Estado limpiado, forzando menú LIA');
+                showLiaMenu();
+            };
+
+            // Función para resetear a estado por defecto
+            window.resetMenuToDefault = function() {
+                console.log('🔧 [DEBUG] Reseteando menú a estado por defecto...');
+                localStorage.removeItem('rightPanelState');
+                showLiaMenu();
+                console.log('✅ [DEBUG] Menú reseteado a LIA');
+            };
+
+            // Función para verificar estado inicial del menú
+            window.checkMenuState = function() {
+                const savedState = localStorage.getItem('rightPanelState');
+                const currentClass = document.getElementById('sidebarRight')?.className;
+
+                console.log('🔧 [DEBUG] Estado del menú:');
+                console.log('  - localStorage:', savedState);
+                console.log('  - Clase actual:', currentClass);
+                console.log('  - Menú visible:', currentClass?.includes('lia-expanded') ? 'LIA' : (currentClass?.includes('notes-expanded') ? 'Notas' : 'Colapsado'));
+
+                return {
+                    savedState: savedState,
+                    currentClass: currentClass,
+                    isLiaVisible: currentClass?.includes('lia-expanded') || false,
+                    isNotesVisible: currentClass?.includes('notes-expanded') || false,
+                    isCollapsed: currentClass?.includes('collapsed') || false
+                };
+            };
+
+            // ==================== FIN FUNCIONES DE UTILIDAD ====================
+
+                // Funcionalidad adicional: colapsar con tecla Escape cuando el panel está enfocado
+                document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && currentRightMenu !== 'collapsed') {
-                    // Verificar si algún elemento del panel derecho tiene foco
-                    const activeElement = document.activeElement;
-                    const isInsideRightPanel = sidebarRight.contains(activeElement);
-                    
-                    if (isInsideRightPanel) {
-                        showCollapsedMenu();
-                    }
-                }
-            });
-            
-            // Accesibilidad: manejo de teclado para los botones
-            [liaToggleBtn, notesToggleBtn, collapseLia, collapseNotes].forEach(btn => {
-                if (btn) {
-                    btn.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            btn.click();
-                        }
-                    });
-                }
-            });
-            
-            // Observador de cambios de tamaño de ventana para ajuste responsive
-            if (window.ResizeObserver) {
-                const resizeObserver = new ResizeObserver(entries => {
-                    for (let entry of entries) {
-                        const { width } = entry.contentRect;
+                        // Verificar si algún elemento del panel derecho tiene foco
+                        const activeElement = document.activeElement;
+                        const isInsideRightPanel = sidebarRight.contains(activeElement);
                         
-                        // Ajustar comportamiento según tamaño de pantalla
-                        if (width <= 768) {
-                            // En móvil/tablet, mantener comportamiento estándar
-                            sidebarRight.style.pointerEvents = 'auto';
+                        if (isInsideRightPanel) {
+                        showCollapsedMenu();
                         }
                     }
                 });
                 
-                resizeObserver.observe(document.body);
+            // Accesibilidad: manejo de teclado para los botones
+            [liaToggleBtn, notesToggleBtn, collapseLia, collapseNotes].forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                            btn.click();
+                        }
+                    });
+                    }
+                });
+                
+                // Observador de cambios de tamaño de ventana para ajuste responsive
+                if (window.ResizeObserver) {
+                    const resizeObserver = new ResizeObserver(entries => {
+                        for (let entry of entries) {
+                            const { width } = entry.contentRect;
+                            
+                            // Ajustar comportamiento según tamaño de pantalla
+                            if (width <= 768) {
+                                // En móvil/tablet, mantener comportamiento estándar
+                                sidebarRight.style.pointerEvents = 'auto';
+                            }
+                        }
+                    });
+                    
+                    resizeObserver.observe(document.body);
             }
         });
 

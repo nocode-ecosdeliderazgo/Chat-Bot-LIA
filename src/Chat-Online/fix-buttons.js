@@ -142,13 +142,17 @@ function fixNotesButtons() {
         console.warn('⚠️ [FIX-BUTTONS] searchNotesBtn no encontrado');
     }
 
+    // COMENTADO: El botón #collapseNotes ahora es manejado por el sistema de menús divididos
+    // Este botón ahora cierra TODO el menú de notas y vuelve a los botones colapsados
+    // NO debe ser manejado por fix-buttons.js
+    /*
     // Botón Colapsar Notas
     const collapseNotes = document.getElementById('collapseNotes');
     if (collapseNotes) {
         // Remover listeners existentes
         const newBtn = collapseNotes.cloneNode(true);
         collapseNotes.parentNode.replaceChild(newBtn, collapseNotes);
-        
+
         // Agregar nuevo listener
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -159,6 +163,8 @@ function fixNotesButtons() {
     } else {
         console.warn('⚠️ [FIX-BUTTONS] collapseNotes no encontrado');
     }
+    */
+    console.log('ℹ️ [FIX-BUTTONS] collapseNotes omitido - manejado por sistema de menús divididos');
 
     // Botones del editor de notas
     fixNotesEditorButtons();

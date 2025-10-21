@@ -3360,6 +3360,10 @@ class ChatOnline {
             console.error('❌ Botón searchNotesBtn no encontrado');
         }
         
+        // COMENTADO: El botón #collapseNotes ahora es manejado por el sistema de menús divididos en chat-online.html
+        // Este botón ahora cierra TODO el menú de notas y vuelve a los botones colapsados
+        // Para colapsar solo la sección de notas internamente, usar #collapseNotesOld
+        /*
         if (collapseNotesBtn) {
             collapseNotesBtn.removeEventListener('click', this.handleCollapseNotesClick);
             this.handleCollapseNotesClick = () => {
@@ -3371,6 +3375,7 @@ class ChatOnline {
         } else {
             console.error('❌ Botón collapseNotesBtn no encontrado');
         }
+        */
     }
     
     addNewNote() {
@@ -3770,6 +3775,12 @@ class ChatOnline {
         const fontSizeOptions = document.querySelectorAll('.font-size-option');
         const fontSizeText = document.querySelector('.font-size-text');
         const editor = document.getElementById('noteContentEditor');
+        
+        // Verificar que fontSizeBtn existe antes de agregar event listener
+        if (!fontSizeBtn) {
+            console.warn('⚠️ fontSizeBtn no encontrado, saltando configuración de selector de tamaño de fuente');
+            return;
+        }
         
         // Toggle dropdown
         fontSizeBtn.addEventListener('click', (e) => {
