@@ -156,7 +156,7 @@ class VideoPlayer {
                     </div>
                     
                     <div class="controls-right">
-                        <button class="control-btn bookmark-btn" title="Añadir marcador (B)">
+                        <button class="control-btn chat-online__action-btn--bookmark" title="Añadir marcador (B)">
                             <i class="fas fa-bookmark"></i>
                         </button>
                         
@@ -239,7 +239,7 @@ class VideoPlayer {
         this.setupProgressBar(controlsOverlay);
 
         // Bookmark
-        controlsOverlay.querySelector('.bookmark-btn').addEventListener('click', () => {
+        controlsOverlay.querySelector('.chat-online__action-btn--bookmark').addEventListener('click', () => {
             this.addBookmark();
         });
 

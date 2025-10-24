@@ -1,0 +1,332 @@
+/* ===== HEADER BAJO Y CON BORDES REDONDEADOS ===== */
+.chat-online__header {
+    padding: 0.3rem 1.2rem 0.3rem 0.8rem;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    position: relative;
+}
+
+.chat-online__header-content {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Botón de regreso con estilo de pestañas */
+.chat-online__back-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(68, 229, 255, 0.15);
+    color: var(--glass-text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 36px;
+    width: 36px; /* Solo mostrar el ícono por defecto */
+    padding: 0;
+    flex-shrink: 0;
+}
+
+/* Ícono del botón de regreso */
+.chat-online__back-btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.chat-online__back-btn-icon svg {
+    width: 16px;
+    height: 16px;
+    transition: all 0.3s ease;
+}
+
+/* Texto del botón de regreso */
+.chat-online__back-btn-label {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    white-space: nowrap;
+    font-weight: 500;
+    margin-left: 0.5rem;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Hover effect - expansión hacia la derecha */
+.chat-online__back-btn:hover {
+    background: rgba(68, 229, 255, 0.08);
+    border-color: rgba(0, 102, 204, 0.3);
+    color: var(--glass-text-primary);
+    width: auto;
+    min-width: 150px;
+    padding-right: 1rem;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(68, 229, 255, 0.15);
+}
+
+.chat-online__back-btn:hover .chat-online__back-btn-label {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.chat-online__back-btn:hover .chat-online__back-btn-icon svg {
+    transform: translateX(-2px) scale(1.02);
+    color: var(--glass-text-primary);
+}
+
+/* Efecto de click */
+.chat-online__back-btn:active {
+    transform: translateY(0) scale(0.99);
+    transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Efecto de fondo animado */
+.back-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(68, 229, 255, 0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 12px;
+    z-index: 0;
+}
+
+.back-button:hover::before {
+    opacity: 0.8;
+}
+
+/* Centrar mejor los iconos de los botones de pestañas */
+.tab-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 48px !important;
+    height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.tab-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+}
+
+/* Responsive para iconos de pestañas */
+@media (max-width: 768px) {
+    .tab-icon {
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    .tab-icon svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+}
+
+/* Responsive para botón de regreso */
+@media (max-width: 768px) {
+    .back-button {
+        width: 32px;
+        min-height: 32px;
+    }
+
+    .back-button:hover {
+        min-width: 120px;
+    }
+
+    .back-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .back-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.course-title-header {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: #44e5ff;
+    letter-spacing: 0.2px;
+}
+
+.course-progress-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+    min-width: 30px;
+    text-align: center;
+}
+
+.progress-bar-header {
+    width: 90px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill-header {
+    height: 100%;
+    background: linear-gradient(90deg, #0066CC, #44e5ff);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Diseño limpio y minimalista para la barra de progreso */
+.course-progress-header.clean {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.progress-bar-clean {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: auto;
+    max-width: 200px;
+}
+
+.progress-track-clean {
+    width: 80px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.progress-fill-clean {
+    height: 100%;
+    background: linear-gradient(90deg, #0066CC, #44e5ff);
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 6px rgba(68, 229, 255, 0.2);
+}
+
+.progress-fill-clean::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 3s infinite;
+}
+
+.progress-percentage-clean {
+    font-size: 0.8rem;
+    color: #44e5ff;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    min-width: 35px;
+    text-align: right;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Animación para el contador */
+.progress-counter-animation {
+    animation: counterPulse 0.5s ease-in-out;
+}
+
+@keyframes counterPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive para el diseño limpio */
+@media (max-width: 768px) {
+    .course-progress-header.clean {
+        justify-content: center;
+    }
+
+    .progress-bar-clean {
+        max-width: 150px;
+        gap: 8px;
+    }
+
+    .progress-track-clean {
+        height: 5px;
+    }
+
+    .progress-percentage-clean {
+        font-size: 0.75rem;
+        min-width: 30px;
+    }
+}
+
+/* Responsive para header bajo */
+@media (max-width: 768px) {
+    .header-course-info {
+        padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+        height: 28px;
+    }
+
+    .header-content-group {
+        gap: 1.5rem;
+    }
+
+    .course-title-header {
+        font-size: 0.9rem;
+    }
+
+    .course-progress-header {
+        gap: 0.5rem;
+    }
+
+    .progress-bar-header {
+        width: 70px;
+        height: 3px;
+    }
+
+    .progress-text {
+        font-size: 0.75rem;
+        min-width: 25px;
+    }
+}

@@ -675,9 +675,9 @@ PREGUNTA DEL USUARIO: ${message}`
         const userMsg = document.createElement('div');
         userMsg.className = 'user-message';
         userMsg.innerHTML = `
-            <div class="message-content">
-                <div class="message-text">${message}</div>
-                <div class="message-time">ahora</div>
+            <div class="chat-online__message-content">
+                <div class="chat-online__message-text">${message}</div>
+                <div class="chat-online__message-time">ahora</div>
             </div>
         `;
 
@@ -692,12 +692,12 @@ PREGUNTA DEL USUARIO: ${message}`
         const liaMsg = document.createElement('div');
         liaMsg.className = 'lia-message';
         liaMsg.innerHTML = `
-            <div class="lia-avatar">
-                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            <div class="chat-online__lia-avatar">
+                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="chat-online__lia-avatar-img">
             </div>
-            <div class="message-content">
-                <div class="message-text">${message}</div>
-                <div class="message-time">ahora</div>
+            <div class="chat-online__message-content">
+                <div class="chat-online__message-text">${message}</div>
+                <div class="chat-online__message-time">ahora</div>
             </div>
         `;
 
@@ -1004,7 +1004,7 @@ PREGUNTA DEL USUARIO: ${message}`
                 </div>
                 <div class="note-actions">
                     <button class="note-delete-btn" onclick="(window.chatOnline?.deleteNote || window.deleteNote)?.(${note.id})" title="Eliminar nota">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 6h18"/>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
                             <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -1151,7 +1151,7 @@ PREGUNTA DEL USUARIO: ${message}`
                 targetId = questionItem.getAttribute('data-question-id');
                 
                 // Buscar el contador de votos
-                const questionVotes = questionItem.querySelector('.question-votes');
+                const questionVotes = questionItem.querySelector('.chat-online__question-votes');
                 if (questionVotes) {
                     voteCountEl = questionVotes.querySelector('.vote-count');
                 }
@@ -1215,7 +1215,7 @@ PREGUNTA DEL USUARIO: ${message}`
         }
         
         // Actualizar el botón opuesto también
-        const voteControls = voteBtn.closest('.question-votes, .vote-controls, .vote-controls-sm');
+        const voteControls = voteBtn.closest('.chat-online__question-votes, .vote-controls, .vote-controls-sm');
         if (voteControls) {
             const oppositeBtn = voteControls.querySelector(voteBtn.classList.contains('upvote') ? '.downvote' : '.upvote');
             if (oppositeBtn) {

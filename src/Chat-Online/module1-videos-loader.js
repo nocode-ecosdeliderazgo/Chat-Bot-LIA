@@ -549,7 +549,7 @@ class Module1VideosLoader {
                         allowfullscreen
                         style="width: 100%; height: 400px; border-radius: 8px;">
                     </iframe>
-                    <div class="video-info" style="margin-top: 10px;">
+                    <div class="chat-online__video-info" style="margin-top: 10px;">
                         <h3 style="margin: 0; color: var(--text-primary);">${video.video_title}</h3>
                         <p style="margin: 5px 0 0 0; color: var(--text-secondary);">
                             Duración: ${this.formatDuration(video.duration_seconds)}
@@ -745,22 +745,22 @@ class Module1VideosLoader {
                 <label class="lesson-checkbox-label" for="lesson-checkbox-${video.id}" title="${isCompleted ? 'Completado' : 'Marcar como completado'}"></label>
             </div>
             <div class="video-icon">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     ${icon}
                 </svg>
             </div>
-            <div class="video-info">
+            <div class="chat-online__video-info">
                 <h5 class="video-title">${video.video_title}</h5>
                 <div class="video-meta">
-                    <span class="video-duration">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <span class="chat-online__video-duration">
+                        <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12,6 12,12 16,14"/>
                         </svg>
                         ${duration}
                     </span>
                     <span class="video-progress">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
                         </svg>
                         <div class="progress-bar-mini">
@@ -890,10 +890,10 @@ class Module1VideosLoader {
     updateVideoInfoManually(video) {
         try {
             // Actualizar título del video
-            const videoTitle = document.querySelector('.video-info h3');
+            const videoTitle = document.querySelector('.chat-online__video-info h3');
             if (videoTitle) {
                 videoTitle.innerHTML = `
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="23,7 16,12 23,17"/>
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                     </svg>
@@ -905,7 +905,7 @@ class Module1VideosLoader {
             const videoDuration = document.querySelector('.video-stats span:first-child');
             if (videoDuration) {
                 videoDuration.innerHTML = `
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                     </svg>
@@ -918,7 +918,7 @@ class Module1VideosLoader {
             if (videoDescription) {
                 console.log('📝 DEBUG - Video description from DB (manual):', video.description);
                 videoDescription.innerHTML = `
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -1023,10 +1023,10 @@ class Module1VideosLoader {
     updateVideoInfo(video) {
         try {
             // Actualizar título del video
-            const videoTitle = document.querySelector('.video-info h3');
+            const videoTitle = document.querySelector('.chat-online__video-info h3');
             if (videoTitle) {
                 videoTitle.innerHTML = `
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="23,7 16,12 23,17"/>
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                     </svg>
@@ -1038,7 +1038,7 @@ class Module1VideosLoader {
             const videoDuration = document.querySelector('.video-stats span:first-child');
             if (videoDuration) {
                 videoDuration.innerHTML = `
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                     </svg>
@@ -1051,7 +1051,7 @@ class Module1VideosLoader {
             if (videoDescription) {
                 console.log('📝 DEBUG - Video description from DB:', video.description);
                 videoDescription.innerHTML = `
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -1805,7 +1805,7 @@ class Module1VideosLoader {
         if (videosList) {
             videosList.innerHTML = `
                 <div class="error-message">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="15" y1="9" x2="9" y2="15"/>
                         <line x1="9" y1="9" x2="15" y2="15"/>

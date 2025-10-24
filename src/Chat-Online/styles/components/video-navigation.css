@@ -1,0 +1,591 @@
+/* ===== VIDEO-NAVIGATION.CSS - Estilos para navegación de videos ===== */
+
+/* ===== ESTILOS PARA BOTONES DE NAVEGACIÓN SUPERPUESTOS (ESTILO UDEMY) ===== */
+
+/* Contenedor del video con posicionamiento relativo */
+.chat-online__video-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Overlay de navegación - invisible por defecto */
+.chat-online__video-navigation-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Mostrar botones al hacer hover sobre el video */
+.chat-online__video-container:hover .chat-online__video-navigation-overlay,
+.chat-online__video-navigation-overlay:hover {
+    opacity: 1;
+}
+
+/* Botones de navegación superpuestos */
+.chat-online__video-nav-btn-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+}
+
+/* Efecto de brillo animado */
+.chat-online__video-nav-btn-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.chat-online__video-nav-btn-overlay:hover::before {
+    opacity: 1;
+}
+
+/* Estados hover y active */
+.chat-online__video-nav-btn-overlay:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0066CC, #0052A3);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.15);
+    box-shadow: 0 6px 30px rgba(0, 102, 204, 0.6);
+}
+
+.chat-online__video-nav-btn-overlay:active:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.5);
+}
+
+/* Estado deshabilitado */
+.chat-online__video-nav-btn-overlay:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+    pointer-events: none;
+}
+
+/* Iconos de navegación */
+.chat-online__video-nav-btn-overlay .nav-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.chat-online__video-nav-btn-overlay:hover:not(:disabled) .nav-icon {
+    transform: scale(1.2);
+}
+
+/* Animaciones específicas por botón */
+.chat-online__prev-video-btn-overlay:hover:not(:disabled) .nav-icon {
+    transform: translateX(-3px) scale(1.2);
+}
+
+.chat-online__next-video-btn-overlay:hover:not(:disabled) .nav-icon {
+    transform: translateX(3px) scale(1.2);
+}
+
+/* Efecto especial para el botón siguiente */
+.chat-online__next-video-btn-overlay {
+    background: rgba(0, 102, 204, 0.85);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.chat-online__next-video-btn-overlay:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0066CC, #0052A3);
+    border-color: #ffffff;
+    box-shadow: 0 6px 35px rgba(0, 102, 204, 0.7);
+}
+
+/* Tooltip mejorado con título del video */
+.chat-online__video-nav-btn-overlay::after {
+    content: attr(data-video-title);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-online__prev-video-btn-overlay::after {
+    right: calc(100% + 12px);
+}
+
+.chat-online__next-video-btn-overlay::after {
+    left: calc(100% + 12px);
+}
+
+.chat-online__video-nav-btn-overlay:hover:not(:disabled)::after {
+    opacity: 1;
+}
+
+/* Animación de pulsación sutil para indicar interactividad */
+@keyframes pulseButton {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(0, 102, 204, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(0, 102, 204, 0.6);
+    }
+}
+
+.chat-online__next-video-btn-overlay:not(:disabled) {
+    animation: pulseButton 3s ease-in-out infinite;
+}
+
+/* Responsive para botones superpuestos */
+@media (max-width: 768px) {
+    .video-navigation-overlay {
+        padding: 0 0.5rem;
+    }
+
+    .chat-online__video-nav-btn-overlay {
+        width: 48px;
+        height: 48px;
+    }
+
+    .chat-online__video-nav-btn-overlay .nav-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Ocultar tooltips en mobile para evitar overflow */
+    .chat-online__video-nav-btn-overlay::after {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-online__video-nav-btn-overlay {
+        width: 44px;
+        height: 44px;
+    }
+
+    .chat-online__video-nav-btn-overlay .nav-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* Hacer los botones siempre visibles en dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+    .video-navigation-overlay {
+        opacity: 0.8;
+    }
+
+    .video-container:hover .video-navigation-overlay,
+    .video-navigation-overlay:hover {
+        opacity: 1;
+    }
+}
+
+/* ===== ESTILOS PARA LOS VIDEOS DEL MÓDULO 1 ===== */
+.module-videos-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    min-height: auto;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado colapsado */
+.module-videos-section.collapsed {
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+}
+
+/* Estado expandido */
+.module-videos-section.expanded {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Estilos para la sección de materiales colapsada */
+.course-materials-section.collapsed .module-videos-section {
+    display: none;
+}
+
+.course-materials-section.collapsed .materials-header {
+    border-bottom: none;
+}
+
+/* Reducir espacio entre header y contenido de materiales */
+.materials-header {
+    margin-bottom: 0.5rem !important;
+}
+
+.module-videos-section {
+    margin-top: 0.5rem !important;
+}
+
+/* Estilos para el botón de colapsar */
+#collapseMaterialsBtn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#collapseMaterialsBtn:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+    border-color: rgba(0, 102, 204, 0.4);
+    transform: scale(1.05);
+}
+
+#collapseMaterialsBtn svg {
+    transition: transform 0.3s ease;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+}
+
+#collapseMaterialsBtn:hover svg {
+    transform: scale(1.1);
+}
+
+/* Estados del botón de colapsar - animación suave */
+#collapseMaterialsBtn.collapsed svg {
+    transform: rotate(180deg) !important;
+}
+
+#collapseMaterialsBtn:not(.collapsed) svg {
+    transform: rotate(0deg) !important;
+}
+
+/* Responsive para el botón de colapsar */
+@media (max-width: 768px) {
+    #collapseMaterialsBtn {
+        width: 32px;
+        height: 32px;
+    }
+
+    #collapseMaterialsBtn svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    #collapseMaterialsBtn {
+        width: 28px;
+        height: 28px;
+    }
+
+    #collapseMaterialsBtn svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.module-videos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.module-videos-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--glass-primary);
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.module-stats {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.module-stats span {
+    background: rgba(68, 229, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+.module-videos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0;
+    max-height: none;
+    overflow: visible;
+}
+
+.video-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.video-item:hover {
+    background: rgba(68, 229, 255, 0.1);
+    border-color: rgba(68, 229, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.video-item.active {
+    background: rgba(68, 229, 255, 0.15);
+    border-color: var(--glass-primary);
+    box-shadow: 0 0 20px rgba(68, 229, 255, 0.2);
+}
+
+.video-item.completed .video-icon {
+    color: #28a745;
+}
+
+/* ===== ESTILOS DE PROGRESO DE VIDEO ===== */
+.video-progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+}
+
+.video-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--glass-primary), var(--glass-secondary));
+    border-radius: inherit;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.video-progress-fill.completed {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+/* Estados de progreso de video */
+.video-item.in-progress {
+    border-left: 3px solid var(--glass-primary);
+}
+
+.video-item.completed {
+    border-left: 3px solid #28a745;
+}
+
+.video-item.not-started {
+    border-left: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animación sutil para la barra de progreso */
+.video-progress-fill:not(.completed)::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Indicador de progreso en el icono */
+.video-item.in-progress .video-icon::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: var(--glass-primary);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.video-item.completed .video-icon::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    background: #28a745;
+    border-radius: 50%;
+    color: white;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.video-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(68, 229, 255, 0.1);
+    border-radius: 50%;
+    color: var(--glass-primary);
+}
+
+.video-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.video-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0 0 0.25rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.video-duration, .video-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.progress-bar-mini {
+    width: 40px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: var(--glass-primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.loading-videos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    opacity: 0.7;
+}
+
+/* Responsive para videos */
+@media (max-width: 768px) {
+    .video-item {
+        padding: 0.5rem;
+    }
+
+    .video-title {
+        font-size: 0.8rem;
+    }
+
+    .video-meta {
+        font-size: 0.7rem;
+    }
+
+    .module-stats {
+        font-size: 0.75rem;
+    }
+}

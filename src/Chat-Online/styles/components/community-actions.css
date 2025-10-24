@@ -1,0 +1,330 @@
+/* ===== ESTILOS MEJORADOS PARA BOTONES DE COMUNIDAD ===== */
+
+/* Contenedor de acciones de pregunta */
+.chat-online__question-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(68, 229, 255, 0.15);
+    flex-wrap: wrap;
+}
+
+/* Botones de acción mejorados con glassmorphism */
+.chat-online__action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    color: var(--glass-text-secondary, #94a3b8);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-online__action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(68, 229, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.chat-online__action-btn:hover::before {
+    left: 100%;
+}
+
+.chat-online__action-btn:hover {
+    background: rgba(68, 229, 255, 0.1);
+    border-color: rgba(68, 229, 255, 0.4);
+    color: var(--glass-primary, #44e5ff);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(68, 229, 255, 0.15);
+}
+
+.chat-online__action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(68, 229, 255, 0.2);
+}
+
+/* Botones específicos con colores temáticos */
+.chat-online__action-btn--answer {
+    border-color: rgba(34, 197, 94, 0.2);
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.chat-online__action-btn--answer:hover {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.15);
+}
+
+.chat-online__action-btn--comment {
+    border-color: rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.chat-online__action-btn--comment:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #3b82f6;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+.chat-online__action-btn--bookmark {
+    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.chat-online__action-btn--bookmark:hover {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+}
+
+.chat-online__action-btn--bookmarked {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.5);
+    color: #f59e0b;
+}
+
+/* Estilos mejorados para botones de voto */
+.chat-online__vote-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(68, 229, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    color: var(--glass-text-secondary, #94a3b8);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-online__vote-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(68, 229, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.chat-online__vote-btn:hover::before {
+    opacity: 1;
+}
+
+.chat-online__vote-btn:hover {
+    background: rgba(68, 229, 255, 0.1);
+    border-color: rgba(68, 229, 255, 0.4);
+    color: var(--glass-primary, #44e5ff);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(68, 229, 255, 0.15);
+}
+
+.chat-online__vote-btn:active {
+    transform: translateY(0) scale(1);
+}
+
+.chat-online__vote-btn--upvoted {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #22c55e;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+}
+
+.chat-online__vote-btn--downvoted {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+}
+
+.chat-online__vote-btn svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s ease;
+}
+
+.chat-online__vote-btn:hover svg {
+    transform: scale(1.1);
+}
+
+/* Contenedor de votos mejorado */
+.chat-online__question-votes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(68, 229, 255, 0.1);
+}
+
+.chat-online__vote-count {
+    font-weight: 700;
+    color: var(--glass-text-primary, #f1f5f9);
+    font-size: 15px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Stats de pregunta mejorados */
+.chat-online__question-stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.chat-online__stat {
+    display: flex;
+    align-items: center;
+    color: var(--glass-text-secondary, #94a3b8);
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.2s ease;
+}
+
+.chat-online__stat:hover {
+    background: rgba(68, 229, 255, 0.05);
+    color: var(--glass-primary, #44e5ff);
+}
+
+.chat-online__stat .chat-online__icon--sm {
+    margin-right: 6px;
+    width: 14px;
+    height: 14px;
+}
+
+.chat-online__stat--answered {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+}
+
+/* Animaciones adicionales */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.vote-btn.voted {
+    animation: pulse 0.6s ease-in-out;
+}
+
+/* Tamaño de iconos en botones de acción */
+.action-btn .icon-sm {
+    width: 18px;
+    height: 18px;
+}
+
+/* Asegurar que no se muestre texto en botones de acción */
+.action-btn {
+    font-size: 0 !important;
+    line-height: 0 !important;
+    text-indent: -9999px !important;
+    overflow: hidden !important;
+}
+
+.action-btn * {
+    font-size: inherit;
+}
+
+.action-btn svg {
+    text-indent: 0 !important;
+    font-size: 18px !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+    .question-actions {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .action-btn .icon-sm {
+        width: 16px;
+        height: 16px;
+    }
+
+    .question-votes {
+        margin-right: 12px;
+        padding: 6px;
+    }
+
+    .vote-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .vote-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .question-stats {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .question-actions {
+        gap: 6px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .action-btn .icon-sm {
+        width: 14px;
+        height: 14px;
+    }
+
+    .question-votes {
+        margin-right: 8px;
+        gap: 4px;
+    }
+
+    .vote-count {
+        font-size: 13px;
+    }
+
+    .question-context {
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+}

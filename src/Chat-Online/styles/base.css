@@ -1,0 +1,42 @@
+/* ===== BASE STYLES - Icons and Utilities ===== */
+
+/* Icon utilities */
+.chat-online__icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.chat-online__icon--sm {
+    width: 12px;
+    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.chat-online__icon--lg {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* Centrado específico para elementos flex */
+.chat-online__flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

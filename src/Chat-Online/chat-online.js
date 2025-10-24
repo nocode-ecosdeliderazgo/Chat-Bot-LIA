@@ -453,19 +453,19 @@ class ChatOnline {
         // Función getIconSvg eliminada - ya no se usan iconos
 
         const modulesHTML = modules.map(module => `
-            <div class="module-item ${module.status}" data-module="${module.id}">
-                <div class="module-icon">
+            <div class="chat-online__module-item ${module.status}" data-module="${module.id}">
+                <div class="chat-online__module-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M8 5v14l11-7z"/>
                     </svg>
                 </div>
-                <div class="module-info">
+                <div class="chat-online__module-info">
                     <h4>${module.title}</h4>
-                    <p class="module-description">Vídeo • ${module.duration}</p>
+                    <p class="chat-online__module-description">Vídeo • ${module.duration}</p>
                 </div>
-                <div class="module-actions">
-                    <button class="action-btn module-toggle-btn" data-module="${module.id}" title="Expandir/Contraer Módulo">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="chat-online__module-actions">
+                    <button class="chat-online__action-btn chat-online__module-toggle-btn" data-module="${module.id}" title="Expandir/Contraer Módulo">
+                        <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="6,9 12,15 18,9"/>
                         </svg>
                     </button>
@@ -482,13 +482,13 @@ class ChatOnline {
 
     // ===== CONFIGURAR BOTONES DE EXPANDIR/CONTRAR MÓDULOS =====
     setupModuleToggleButtons() {
-        const toggleButtons = document.querySelectorAll('.module-toggle-btn');
+        const toggleButtons = document.querySelectorAll('.chat-online__module-toggle-btn');
         
         toggleButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const moduleId = button.getAttribute('data-module');
-                const moduleItem = button.closest('.module-item');
+                const moduleItem = button.closest('.chat-online__module-item');
                 const icon = button.querySelector('svg');
                 
                 // Toggle del estado expandido
@@ -558,35 +558,35 @@ class ChatOnline {
         // Contenido de ejemplo para el módulo 1
         if (moduleId === 'module-1') {
             videosContent.innerHTML = `
-                <div class="videos-list">
-                    <div class="video-item">
-                        <div class="video-thumbnail">
+                <div class="chat-online__videos-list">
+                    <div class="chat-online__video-item">
+                        <div class="chat-online__video-thumbnail">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
-                        <div class="video-info">
+                        <div class="chat-online__video-info">
                             <h4>Introducción a la IA</h4>
                             <p>Conceptos básicos y fundamentales</p>
-                            <span class="video-duration">15:30</span>
+                            <span class="chat-online__video-duration">15:30</span>
                         </div>
-                        <div class="video-status">
-                            <span class="progress-badge">0%</span>
+                        <div class="chat-online__video-status">
+                            <span class="chat-online__progress-badge">0%</span>
                         </div>
                     </div>
-                    <div class="video-item">
-                        <div class="video-thumbnail">
+                    <div class="chat-online__video-item">
+                        <div class="chat-online__video-thumbnail">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
-                        <div class="video-info">
+                        <div class="chat-online__video-info">
                             <h4>Historia de la IA</h4>
                             <p>Evolución y hitos importantes</p>
-                            <span class="video-duration">12:45</span>
+                            <span class="chat-online__video-duration">12:45</span>
                         </div>
-                        <div class="video-status">
-                            <span class="progress-badge">0%</span>
+                        <div class="chat-online__video-status">
+                            <span class="chat-online__progress-badge">0%</span>
                         </div>
                     </div>
                 </div>
@@ -594,20 +594,20 @@ class ChatOnline {
         } else {
             // Contenido para otros módulos
             videosContent.innerHTML = `
-                <div class="videos-list">
-                    <div class="video-item">
-                        <div class="video-thumbnail">
+                <div class="chat-online__videos-list">
+                    <div class="chat-online__video-item">
+                        <div class="chat-online__video-thumbnail">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
-                        <div class="video-info">
+                        <div class="chat-online__video-info">
                             <h4>Video del Módulo ${moduleId}</h4>
                             <p>Contenido del módulo</p>
-                            <span class="video-duration">10:00</span>
+                            <span class="chat-online__video-duration">10:00</span>
                         </div>
-                        <div class="video-status">
-                            <span class="progress-badge">0%</span>
+                        <div class="chat-online__video-status">
+                            <span class="chat-online__progress-badge">0%</span>
                         </div>
                     </div>
                 </div>
@@ -670,7 +670,7 @@ class ChatOnline {
     
     selectModuleBasic(moduleId) {
         // Método original sin progress manager
-        document.querySelectorAll('.module-item').forEach(item => {
+        document.querySelectorAll('.chat-online__module-item').forEach(item => {
             item.classList.remove('current');
         });
         
@@ -692,7 +692,7 @@ class ChatOnline {
         const moduleData = this.getModuleData(moduleId);
         if (moduleData) {
             // Actualizar título del video
-            const videoTitle = document.querySelector('.video-info h3');
+            const videoTitle = document.querySelector('.chat-online__video-info h3');
             if (videoTitle) {
                 videoTitle.textContent = moduleData.title;
             }
@@ -825,19 +825,19 @@ class ChatOnline {
         
         // Limpiar mensajes
         messagesContainer.innerHTML = `
-            <div class="lia-message">
-                <div class="lia-avatar">
-                    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            <div class="chat-online__lia-message">
+                <div class="chat-online__lia-avatar">
+                    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="chat-online__lia-avatar-img">
                 </div>
-                <div class="message-content">
-                    <div class="message-text">
+                <div class="chat-online__message-content">
+                    <div class="chat-online__message-text">
                         ¡Hola! Soy LIA, tu asistente de aprendizaje. Puedo ayudarte con:
                         • Conceptos del video
                         • Ejercicios prácticos
                         • Resúmenes de temas
                         ¿En qué puedo ayudarte?
                     </div>
-                    <div class="message-time">ahora</div>
+                    <div class="chat-online__message-time">ahora</div>
                 </div>
             </div>
         `;
@@ -994,31 +994,31 @@ class ChatOnline {
         let replyHtml = '';
         if (replyTo) {
             replyHtml = `
-                <div class="reply-preview">
-                    <div class="reply-preview-text">${this.escapeHtml(replyTo.length > 40 ? replyTo.substring(0, 40) + '...' : replyTo)}</div>
+                <div class="chat-online__reply-preview">
+                    <div class="chat-online__reply-preview-text">${this.escapeHtml(replyTo.length > 40 ? replyTo.substring(0, 40) + '...' : replyTo)}</div>
                 </div>
             `;
         }
         
         messageElement.innerHTML = `
-            <div class="message-content user-content">
+            <div class="chat-online__message-content chat-online__user-content">
                 ${replyHtml}
-                <div class="message-text">${this.escapeHtml(message)}</div>
-                <div class="message-time">ahora</div>
-                <div class="message-actions">
-                    <button class="action-btn-small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
+                <div class="chat-online__message-text">${this.escapeHtml(message)}</div>
+                <div class="chat-online__message-time">ahora</div>
+                <div class="chat-online__message-actions">
+                    <button class="chat-online__action-btn--small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                     </button>
-                    <button class="action-btn-small" onclick="window.chatOnline.replyToMessage(this)" title="Responder">
+                    <button class="chat-online__action-btn--small" onclick="window.chatOnline.replyToMessage(this)" title="Responder">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="9,11 12,14 22,4"></polyline>
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
                     </button>
-                    <button class="action-btn-small" onclick="window.chatOnline.createNoteFromMessage(this)" title="Crear nota">
+                    <button class="chat-online__action-btn--small" onclick="window.chatOnline.createNoteFromMessage(this)" title="Crear nota">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -1114,26 +1114,26 @@ class ChatOnline {
         const messageElement = document.createElement('div');
         messageElement.className = 'lia-message';
         messageElement.innerHTML = `
-            <div class="lia-avatar">
-                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            <div class="chat-online__lia-avatar">
+                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="chat-online__lia-avatar-img">
             </div>
-            <div class="message-content">
-                <div class="message-text">${this.formatAssistantMessage(message)}</div>
-                <div class="message-time">ahora</div>
-                <div class="message-actions">
-                    <button class="action-btn-small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
+            <div class="chat-online__message-content">
+                <div class="chat-online__message-text">${this.formatAssistantMessage(message)}</div>
+                <div class="chat-online__message-time">ahora</div>
+                <div class="chat-online__message-actions">
+                    <button class="chat-online__action-btn--small" onclick="window.chatOnline.copyMessage(this)" title="Copiar mensaje">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                     </button>
-                    <button class="action-btn-small" onclick="window.chatOnline.replyToMessage(this)" title="Responder">
+                    <button class="chat-online__action-btn--small" onclick="window.chatOnline.replyToMessage(this)" title="Responder">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="9,11 12,14 22,4"></polyline>
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
                     </button>
-                    <button class="action-btn-small" onclick="window.chatOnline.createNoteFromMessage(this)" title="Crear nota">
+                    <button class="chat-online__action-btn--small" onclick="window.chatOnline.createNoteFromMessage(this)" title="Crear nota">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -1153,8 +1153,8 @@ class ChatOnline {
         const typingElement = document.createElement('div');
         typingElement.className = 'lia-message typing-indicator';
         typingElement.innerHTML = `
-            <div class="lia-avatar">
-                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            <div class="chat-online__lia-avatar">
+                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="chat-online__lia-avatar-img">
             </div>
             <div class="typing-dots-only">
                 <div class="typing-dot"></div>
@@ -1765,7 +1765,7 @@ class ChatOnline {
         console.log('🔧 Configurando filtros de comunidad...');
         
         // Use event delegation on parent container for better performance
-        const communityFilters = document.querySelector('.community-filters');
+        const communityFilters = document.querySelector('.chat-online__filters');
         if (!communityFilters) {
             console.warn('⚠️ Container de filtros no encontrado');
             return;
@@ -1778,14 +1778,14 @@ class ChatOnline {
         
         // Create unified click handler with event delegation
         const handler = (e) => {
-            const filterTab = e.target.closest('.filter-tab');
+            const filterTab = e.target.closest('.chat-online__filter-tab');
             if (!filterTab) return;
             
             e.preventDefault();
             e.stopPropagation();
             
             // Update active state visually
-            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.chat-online__filter-tab').forEach(tab => tab.classList.remove('active'));
             filterTab.classList.add('active');
             
             // Get filter type and apply
@@ -1801,8 +1801,8 @@ class ChatOnline {
         communityFilters.addEventListener('click', handler);
         
         // Ensure first filter is marked as active
-        const firstFilter = document.querySelector('.filter-tab[data-filter="all"]');
-        if (firstFilter && !document.querySelector('.filter-tab.active')) {
+        const firstFilter = document.querySelector('.chat-online__filter-tab[data-filter="all"]');
+        if (firstFilter && !document.querySelector('.chat-online__chat-online__filter-tab--active')) {
             firstFilter.classList.add('active');
         }
         
@@ -2025,7 +2025,7 @@ class ChatOnline {
         if (questionsContainer) {
             questionsContainer.innerHTML = `
                 <div class="loading-state">
-                    <div class="loading-spinner"></div>
+                    <div class="chat-online__loading-spinner"></div>
                     <p>Cargando preguntas...</p>
                 </div>
             `;
@@ -2037,7 +2037,7 @@ class ChatOnline {
         if (questionsContainer) {
             questionsContainer.innerHTML = `
                 <div class="error-state">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="15" y1="9" x2="9" y2="15"/>
                         <line x1="9" y1="9" x2="15" y2="15"/>
@@ -2058,7 +2058,7 @@ class ChatOnline {
         if (questions.length === 0) {
             questionsContainer.innerHTML = `
                 <div class="empty-state">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="12" y1="8" x2="12" y2="12"/>
                         <line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -2123,13 +2123,13 @@ class ChatOnline {
                         </div>
                         <div class="question-stats">
                             <span class="stat">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                 </svg>
                                 ${question.answers_count || 0} respuestas
                             </span>
                             <span class="stat">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
@@ -2137,20 +2137,20 @@ class ChatOnline {
                             </span>
                         </div>
                         <div class="question-actions">
-                            <button class="action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="chat-online__action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                 </svg>
                                 Responder
                             </button>
-                            <button class="action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="chat-online__action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M3 3h18v18l-3-3H3V3z"/>
                                 </svg>
                                 Comentar
                             </button>
-                            <button class="action-btn bookmark-btn" data-question-id="${question.id}" title="Guardar pregunta">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="chat-online__action-btn chat-online__action-btn--bookmark" data-question-id="${question.id}" title="Guardar pregunta">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                 </svg>
                                 Guardar
@@ -2190,7 +2190,7 @@ class ChatOnline {
         });
 
         // Botones de acción - Guardar/Bookmark
-        document.querySelectorAll('.question-item .bookmark-btn').forEach(btn => {
+        document.querySelectorAll('.question-item .chat-online__action-btn--bookmark').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const questionId = btn.getAttribute('data-question-id');
@@ -2203,7 +2203,7 @@ class ChatOnline {
             item.addEventListener('click', (e) => {
                 // Solo mostrar detalles si no se hizo clic en ningún botón de acción
                 if (!e.target.closest('.vote-btn') && 
-                    !e.target.closest('.action-btn')) {
+                    !e.target.closest('.chat-online__action-btn')) {
                     const questionId = item.getAttribute('data-question-id');
                     this.showQuestionDetails(questionId);
                 }
@@ -2224,7 +2224,7 @@ class ChatOnline {
             
             // Verificar si ya existe una sección de detalles (buscar como siguiente hermano)
             let detailsSection = questionElement.nextElementSibling;
-            if (detailsSection && !detailsSection.classList.contains('question-details')) {
+            if (detailsSection && !detailsSection.classList.contains('chat-online__question-details')) {
                 detailsSection = null; // No es la sección de detalles
             }
             
@@ -2243,11 +2243,11 @@ class ChatOnline {
             } else {
                 // Crear sección de detalles si no existe
                 detailsSection = document.createElement('div');
-                detailsSection.className = 'question-details';
+                detailsSection.className = 'chat-online__question-details';
                 detailsSection.style.display = 'block';
                 detailsSection.innerHTML = `
                     <div class="details-loading">
-                        <div class="loading-spinner"></div>
+                        <div class="chat-online__loading-spinner"></div>
                         Cargando respuestas y comentarios...
                     </div>
                 `;
@@ -2297,7 +2297,7 @@ class ChatOnline {
             // Mostrar error en la sección de detalles si existe (como hermano siguiente)
             const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
             const detailsSection = questionElement ? questionElement.nextElementSibling : null;
-            if (detailsSection && detailsSection.classList.contains('question-details')) {
+            if (detailsSection && detailsSection.classList.contains('chat-online__question-details')) {
                 detailsSection.innerHTML = `
                     <div class="details-error">
                         <p>❌ Error cargando los detalles: ${error.message}</p>
@@ -2329,19 +2329,19 @@ class ChatOnline {
                 <div class="answer-actions">
                     <div class="vote-controls">
                         <button class="vote-btn upvote" data-target-type="answer" data-target-id="${answer.id}" title="Voto positivo">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m18 15-6-6-6 6"/>
                             </svg>
                         </button>
                         <span class="vote-count">${answer.votes_count || 0}</span>
                         <button class="vote-btn downvote" data-target-type="answer" data-target-id="${answer.id}" title="Voto negativo">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m6 9 6 6 6-6"/>
                             </svg>
                         </button>
                     </div>
-                    <button class="action-btn comment-btn" data-answer-id="${answer.id}" title="Comentar respuesta">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="chat-online__action-btn comment-btn" data-answer-id="${answer.id}" title="Comentar respuesta">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
                         Comentar
@@ -2363,13 +2363,13 @@ class ChatOnline {
                 <div class="comment-actions">
                     <div class="vote-controls-sm">
                         <button class="vote-btn-sm upvote" data-target-type="comment" data-target-id="${comment.id}" title="Voto positivo">
-                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m18 15-6-6-6 6"/>
                             </svg>
                         </button>
                         <span class="vote-count-sm">${comment.votes_count || 0}</span>
                         <button class="vote-btn-sm downvote" data-target-type="comment" data-target-id="${comment.id}" title="Voto negativo">
-                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m6 9 6 6 6-6"/>
                             </svg>
                         </button>
@@ -2379,11 +2379,11 @@ class ChatOnline {
         `).join('') : '<p class="no-comments">No hay comentarios aún.</p>';
         
         return `
-            <div class="question-details-content">
+            <div class="chat-online__question-details-content">
                 <div class="details-header">
                     <h3 class="details-main-title">Detalles de la Pregunta</h3>
                     <button class="close-details-btn" title="Cerrar detalles">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="18" y1="6" x2="6" y2="18"/>
                             <line x1="6" y1="6" x2="18" y2="18"/>
                         </svg>
@@ -2392,7 +2392,7 @@ class ChatOnline {
                 
                 <div class="details-section answers-section">
                     <h4 class="section-title">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
                         Respuestas (${answers.length})
@@ -2411,7 +2411,7 @@ class ChatOnline {
                 
                 <div class="details-section comments-section">
                     <h4 class="section-title">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                         </svg>
                         Comentarios (${comments.length})
@@ -2526,7 +2526,7 @@ class ChatOnline {
                 }
                 
                 // Reconfigurar event listeners para los nuevos elementos
-                const detailsSection = questionElement.querySelector('.question-details');
+                const detailsSection = questionElement.querySelector('.chat-online__question-details');
                 this.setupDetailsEventListeners(detailsSection);
             }
             
@@ -2586,7 +2586,7 @@ class ChatOnline {
                 if (newIsBookmarked) {
                     bookmarkBtn.classList.add('bookmarked');
                     bookmarkBtn.innerHTML = `
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                         </svg>
                         Guardado
@@ -2595,7 +2595,7 @@ class ChatOnline {
                 } else {
                     bookmarkBtn.classList.remove('bookmarked');
                     bookmarkBtn.innerHTML = `
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                         </svg>
                         Guardar
@@ -2639,8 +2639,8 @@ class ChatOnline {
         contextElement.innerHTML = `
             <h4>${this.escapeHtml(title)}</h4>
             <p>${this.escapeHtml(content)}</p>
-            <div class="question-context-meta">
-                <span class="question-context-author">
+            <div class="chat-online__question-context-meta">
+                <span class="chat-online__question-context-author">
                     <img src="${this.getQuestionAuthorAvatar(questionId)}" alt="Usuario">
                     ${this.escapeHtml(author)}
                 </span>
@@ -2692,8 +2692,8 @@ class ChatOnline {
             contextHTML = `
                 <h4>${this.escapeHtml(title)}</h4>
                 <p>${this.escapeHtml(content)}</p>
-                <div class="question-context-meta">
-                    <span class="question-context-author">
+                <div class="chat-online__question-context-meta">
+                    <span class="chat-online__question-context-author">
                         <img src="${this.getQuestionAuthorAvatar(targetId)}" alt="Usuario">
                         ${this.escapeHtml(author)}
                     </span>
@@ -2718,8 +2718,8 @@ class ChatOnline {
             contextHTML = `
                 <h4>Respuesta de ${this.escapeHtml(author)}</h4>
                 <p>${this.escapeHtml(content)}</p>
-                <div class="question-context-meta">
-                    <span class="question-context-author">
+                <div class="chat-online__question-context-meta">
+                    <span class="chat-online__question-context-author">
                         <img src="${avatar}" alt="Usuario">
                         ${this.escapeHtml(author)}
                     </span>
@@ -2732,7 +2732,7 @@ class ChatOnline {
         const modalHeader = document.querySelector('#commentModal .modal-header h3');
         if (modalHeader) {
             modalHeader.innerHTML = `
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                 </svg>
                 ${modalTitle}
@@ -2868,8 +2868,8 @@ class ChatOnline {
         const questionsList = document.getElementById('questionsList');
         if (questionsList) {
             questionsList.innerHTML = `
-                <div class="community-loading">
-                    <div class="loading-spinner"></div>
+                <div class="chat-online__community-loading">
+                    <div class="chat-online__loading-spinner"></div>
                     <p>Cargando preguntas de la comunidad...</p>
                 </div>
             `;
@@ -2880,8 +2880,8 @@ class ChatOnline {
         const questionsList = document.getElementById('questionsList');
         if (questionsList) {
             questionsList.innerHTML = `
-                <div class="community-error">
-                    <div class="error-icon">⚠️</div>
+                <div class="chat-online__community-error">
+                    <div class="chat-online__icon--error">⚠️</div>
                     <h3>Error al cargar preguntas</h3>
                     <p>${message}</p>
                     <button onclick="window.chatOnline.loadCommunityQuestions('retry-button')" class="retry-btn">
@@ -2896,11 +2896,11 @@ class ChatOnline {
         const questionsList = document.getElementById('questionsList');
         if (questionsList) {
             questionsList.innerHTML = `
-                <div class="community-empty">
-                    <div class="empty-icon">💬</div>
+                <div class="chat-online__community-empty">
+                    <div class="chat-online__icon--empty">💬</div>
                     <h3>No hay preguntas aún</h3>
                     <p>Sé el primero en hacer una pregunta sobre este módulo</p>
-                    <button onclick="window.chatOnline.showAskQuestionForm()" class="ask-question-btn">
+                    <button onclick="window.chatOnline.showAskQuestionForm()" class="chat-online__ask-question-btn">
                         Hacer Pregunta
                     </button>
                 </div>
@@ -2944,10 +2944,10 @@ class ChatOnline {
                         ${(question.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
                     </div>
                     <div class="question-actions">
-                        <button class="action-btn" onclick="window.chatOnline.viewQuestion('${question.id}')">
+                        <button class="chat-online__action-btn" onclick="window.chatOnline.viewQuestion('${question.id}')">
                             Ver Pregunta
                         </button>
-                        <button class="action-btn" onclick="window.chatOnline.bookmarkQuestion('${question.id}')">
+                        <button class="chat-online__action-btn" onclick="window.chatOnline.bookmarkQuestion('${question.id}')">
                             Guardar
                         </button>
                     </div>
@@ -3192,7 +3192,7 @@ class ChatOnline {
             } else if (targetType === 'answer' || targetType === 'comment') {
                 // Para respuestas y comentarios, recargar la sección de detalles
                 // Buscar la pregunta padre para recargar toda la sección
-                const detailsSection = document.querySelector('.question-details');
+                const detailsSection = document.querySelector('.chat-online__question-details');
                 if (detailsSection) {
                     const questionId = detailsSection.getAttribute('data-question-id');
                     if (questionId) {
@@ -4186,7 +4186,7 @@ class ChatOnline {
         if (notes.length === 0) {
             searchResults.innerHTML = `
                 <div class="no-search-results">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/>
                         <path d="M21 21l-4.35-4.35"/>
                     </svg>
@@ -4714,7 +4714,7 @@ class ChatOnline {
             // Mostrar indicador de carga
             if (submitBtn) {
                 originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
+            submitBtn.innerHTML = '<div class="chat-online__loading-spinner"></div> Enviando...';
             submitBtn.disabled = true;
             }
             
@@ -5113,7 +5113,7 @@ class ChatOnline {
             }
             
             // Mostrar indicador de carga
-            questionsList.innerHTML = '<div class="loading-questions"><div class="loading-spinner"></div><span>Filtrando preguntas...</span></div>';
+            questionsList.innerHTML = '<div class="loading-questions"><div class="chat-online__loading-spinner"></div><span>Filtrando preguntas...</span></div>';
             
             // Combinar parámetros por defecto con los recibidos
             const queryParams = {
@@ -5161,7 +5161,7 @@ class ChatOnline {
             if (questionsList) {
                 questionsList.innerHTML = `
                     <div class="error-message">
-                        <div class="error-icon">
+                        <div class="chat-online__icon--error">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"/>
                                 <line x1="12" y1="8" x2="12" y2="12"/>
@@ -5229,7 +5229,7 @@ class ChatOnline {
         if (!questions || questions.length === 0) {
             questionsList.innerHTML = `
                 <div class="empty-questions">
-                    <div class="empty-icon">
+                    <div class="chat-online__icon--empty">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
@@ -5239,7 +5239,7 @@ class ChatOnline {
                     <h3>No hay preguntas aún</h3>
                     <p>Sé el primero en hacer una pregunta sobre este módulo</p>
                     <button class="btn-primary" onclick="window.showQuestionModal()">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"/>
                             <line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
@@ -5332,35 +5332,35 @@ class ChatOnline {
                     </div>
                     <div class="question-stats">
                         <span class="stat">
-                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
                             ${question.answers_count || 0} respuesta${(question.answers_count || 0) !== 1 ? 's' : ''}
                         </span>
                         <span class="stat">
-                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
                             ${question.views_count || 0} vista${(question.views_count || 0) !== 1 ? 's' : ''}
                         </span>
-                        ${question.is_answered ? '<span class="stat answered"><svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>Respondida</span>' : ''}
+                        ${question.is_answered ? '<span class="stat answered"><svg class="chat-online__icon--xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>Respondida</span>' : ''}
                     </div>
                     <div class="question-actions">
-                        <button class="action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button class="chat-online__action-btn answer-btn" data-question-id="${question.id}" title="Responder pregunta">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
                             Responder
                         </button>
-                        <button class="action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button class="chat-online__action-btn comment-btn" data-question-id="${question.id}" title="Comentar pregunta">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 3h18v18l-3-3H3V3z"/>
                             </svg>
                             Comentar
                         </button>
-                        <button class="action-btn bookmark-btn" data-question-id="${question.id}" title="Guardar pregunta">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button class="chat-online__action-btn chat-online__action-btn--bookmark" data-question-id="${question.id}" title="Guardar pregunta">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                             </svg>
                             Guardar
@@ -5433,7 +5433,7 @@ class ChatOnline {
         console.log(`🔍 Filtrando preguntas por: ${filter}`);
         
         // Actualizar botones activos
-        document.querySelectorAll('.filter-tab').forEach(tab => {
+        document.querySelectorAll('.chat-online__filter-tab').forEach(tab => {
             tab.classList.remove('active');
         });
         document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
@@ -5799,7 +5799,7 @@ class ChatOnline {
     }
     
     updateModuleStates() {
-        const moduleItems = document.querySelectorAll('.module-item');
+        const moduleItems = document.querySelectorAll('.chat-online__module-item');
         const modules = this.courseProgress.modules || [];
         
         moduleItems.forEach(item => {
@@ -6028,8 +6028,8 @@ class ChatOnline {
     
     // ===== FUNCIONES DE MENSAJES =====
     copyMessage(button) {
-        const messageElement = button.closest('.message-content');
-        const messageText = messageElement.querySelector('.message-text').textContent;
+        const messageElement = button.closest('.chat-online__message-content');
+        const messageText = messageElement.querySelector('.chat-online__message-text').textContent;
         
         navigator.clipboard.writeText(messageText).then(() => {
             // Mostrar feedback visual
@@ -6049,8 +6049,8 @@ class ChatOnline {
     }
     
     replyToMessage(button) {
-        const messageElement = button.closest('.lia-message');
-        const messageText = messageElement.querySelector('.message-text').textContent;
+        const messageElement = button.closest('.chat-online__lia-message');
+        const messageText = messageElement.querySelector('.chat-online__message-text').textContent;
         const isUserMessage = messageElement.classList.contains('user-message');
         
         // Mostrar área de respuesta
@@ -6088,8 +6088,8 @@ class ChatOnline {
         console.log('📝 Creando nota desde mensaje...');
         
         // Obtener el mensaje completo
-        const messageElement = button.closest('.lia-message, .user-message');
-        const messageText = messageElement.querySelector('.message-text').textContent;
+        const messageElement = button.closest('.chat-online__lia-message, .user-message');
+        const messageText = messageElement.querySelector('.chat-online__message-text').textContent;
         const isUserMessage = messageElement.classList.contains('user-message');
         
         // Crear título automático para la nota
@@ -6305,7 +6305,7 @@ class ChatOnline {
             if (remainingNotes.length === 0) {
                 notesList.innerHTML = `
                     <div class="no-notes">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.121 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
@@ -6339,7 +6339,7 @@ class ChatOnline {
         if (notesList) {
             notesList.innerHTML = `
                 <div class="no-notes">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
@@ -6387,7 +6387,7 @@ class ChatOnline {
             console.log('📝 No hay notas, mostrando estado vacío');
             notesList.innerHTML = `
                 <div class="no-notes">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
@@ -6509,7 +6509,7 @@ class ChatOnline {
     createNoteHTML(note) {
         const tagsHTML = note.tags.map(tag => `
             <span class="tag">
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                 </svg>
                 ${this.escapeHtml(tag)}
@@ -6523,7 +6523,7 @@ class ChatOnline {
             <div class="note-item" data-note-id="${note.id}">
                 <div class="note-header">
                     <span class="note-title">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
@@ -6539,7 +6539,7 @@ class ChatOnline {
                 </div>
                     <div class="note-actions">
                     <button class="note-delete-btn" onclick="(window.chatOnline?.deleteNote || window.deleteNote)?.(${note.id})" title="Eliminar nota">
-                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 6h18"/>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
                             <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -6697,7 +6697,7 @@ class ChatOnline {
             <div class="materials-content">
                 <div class="materials-header">
                     <h2>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14,2 14,8 20,8"/>
                         </svg>
@@ -6711,7 +6711,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">01</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6724,7 +6724,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" onclick="window.chatOnline.playLesson(1)" style="width: 48px; height: 48px; background: linear-gradient(135deg, #0066CC, #0052A3); border: 2px solid #0066CC; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </button>
@@ -6734,7 +6734,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">02</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6747,7 +6747,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" onclick="window.chatOnline.playLesson(2)" style="width: 48px; height: 48px; background: linear-gradient(135deg, #0066CC, #0052A3); border: 2px solid #0066CC; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </button>
@@ -6757,7 +6757,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">03</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6770,7 +6770,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6782,7 +6782,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">04</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6795,7 +6795,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6807,7 +6807,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">05</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6820,7 +6820,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6832,7 +6832,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">06</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6845,7 +6845,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6857,7 +6857,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">07</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6870,7 +6870,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6882,7 +6882,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">08</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6895,7 +6895,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6907,7 +6907,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">09</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6920,7 +6920,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6932,7 +6932,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">10</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6945,7 +6945,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -6957,7 +6957,7 @@ class ChatOnline {
                     <div class="material-card lesson-card" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.05)); border: 2px solid rgba(0, 102, 204, 0.2); border-radius: 16px; padding: 1.5rem; min-height: 120px; display: flex; align-items: center; gap: 1rem; position: relative; transition: all 0.3s ease; margin-bottom: 1rem;">
                         <div class="lesson-number" style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #0066CC, #0052A3); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; z-index: 2;">11</div>
                         <div class="material-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1)); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px; color: #0066CC;">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                         </div>
@@ -6970,7 +6970,7 @@ class ChatOnline {
                             </div>
                         </div>
                         <button class="play-btn" disabled style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: rgba(255, 255, 255, 0.6); cursor: not-allowed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
+                            <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-left: 2px;">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <circle cx="12" cy="16" r="1"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -7007,7 +7007,7 @@ class ChatOnline {
             <div class="quiz-content">
                 <div class="quiz-header">
                     <h2>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
                             <line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -7995,7 +7995,7 @@ class ChatOnline {
         console.log(`🕒 DEBUG - Duración recibida: "${duration}" (tipo: ${typeof duration})`);
         
         const iframe = document.getElementById('youtubePlayer');
-        const videoTitle = document.querySelector('.video-info h3');
+        const videoTitle = document.querySelector('.chat-online__video-info h3');
         const videoDuration = document.querySelector('.video-stats span:first-child');
         
         // DEBUG: Verificar elementos disponibles
@@ -8018,7 +8018,7 @@ class ChatOnline {
         if (videoTitle) {
             // Mantener el ícono SVG y actualizar solo el texto
             videoTitle.innerHTML = `
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="chat-online__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="23,7 16,12 23,17"/>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                 </svg>
@@ -8035,14 +8035,14 @@ class ChatOnline {
             console.log('🔧 FIXING - Creando estructura video-stats completa');
             videoStatsElement.innerHTML = `
                 <span>
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                     </svg>
                     Duración: ${duration}
                 </span>
                 <span>
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -8057,7 +8057,7 @@ class ChatOnline {
             if (timeIcon) {
                 // Mantener el icono y actualizar solo el texto
                 videoDuration.innerHTML = `
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                     </svg>
@@ -8067,7 +8067,7 @@ class ChatOnline {
             } else {
                 // Si no hay icono, crear uno nuevo
                 videoDuration.innerHTML = `
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                     </svg>
@@ -9130,7 +9130,7 @@ function verificarContextoLIA() {
         }
 
         // 3. Verificar título del video actual
-        const videoTitle = document.querySelector('.video-info h3');
+        const videoTitle = document.querySelector('.chat-online__video-info h3');
         if (videoTitle) {
             console.log('🎬 [VIDEO] Título actual:', videoTitle.textContent);
         } else {
@@ -9138,7 +9138,7 @@ function verificarContextoLIA() {
         }
 
         // 4. Verificar módulo activo
-        const activeModule = document.querySelector('.module-item.active, .module-item.expanded');
+        const activeModule = document.querySelector('.chat-online__module-item.active, .chat-online__module-item.expanded');
         if (activeModule) {
             const moduleTitle = activeModule.querySelector('.module-title');
             console.log('📚 [MODULE] Módulo activo:', moduleTitle ? moduleTitle.textContent : 'Sin título');
@@ -9382,77 +9382,77 @@ window.initializeSimpleModuleSystem = function() {
             
             // Generar la lista simple de módulos
             const simpleModulesHTML = `
-                <div class="module-item completed" data-module="1" onclick="selectSimpleModule(1)">
-                    <div class="module-icon">
+                <div class="chat-online__module-item completed" data-module="1" onclick="selectSimpleModule(1)">
+                    <div class="chat-online__module-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2" fill="none"/>
                         </svg>
                     </div>
-                    <div class="module-info">
+                    <div class="chat-online__module-info">
                         <h4>Introducción a Fundamentos de IA</h4>
-                        <p class="module-description">Vídeo • 8 min</p>
+                        <p class="chat-online__module-description">Vídeo • 8 min</p>
                     </div>
                 </div>
                 
-                <div class="module-item current" data-module="2" onclick="selectSimpleModule(2)">
-                    <div class="module-icon">
+                <div class="chat-online__module-item current" data-module="2" onclick="selectSimpleModule(2)">
+                    <div class="chat-online__module-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M8 5v14l11-7z"/>
                         </svg>
                     </div>
-                    <div class="module-info">
+                    <div class="chat-online__module-info">
                         <h4>Historia y Evolución de la IA</h4>
-                        <p class="module-description">Vídeo • 12 min</p>
+                        <p class="chat-online__module-description">Vídeo • 12 min</p>
                     </div>
                 </div>
                 
-                <div class="module-item" data-module="3" onclick="selectSimpleModule(3)">
-                    <div class="module-icon">
+                <div class="chat-online__module-item" data-module="3" onclick="selectSimpleModule(3)">
+                    <div class="chat-online__module-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" fill="none"/>
                         </svg>
                     </div>
-                    <div class="module-info">
+                    <div class="chat-online__module-info">
                         <h4>Tipos de Inteligencia Artificial</h4>
-                        <p class="module-description">Lectura • 15 min</p>
+                        <p class="chat-online__module-description">Lectura • 15 min</p>
                     </div>
                 </div>
                 
-                <div class="module-item" data-module="4" onclick="selectSimpleModule(4)">
-                    <div class="module-icon">
+                <div class="chat-online__module-item" data-module="4" onclick="selectSimpleModule(4)">
+                    <div class="chat-online__module-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M8 5v14l11-7z"/>
                         </svg>
                     </div>
-                    <div class="module-info">
+                    <div class="chat-online__module-info">
                         <h4>Machine Learning Fundamentals</h4>
-                        <p class="module-description">Vídeo • 22 min</p>
+                        <p class="chat-online__module-description">Vídeo • 22 min</p>
                     </div>
                 </div>
                 
-                <div class="module-item" data-module="5" onclick="selectSimpleModule(5)">
-                    <div class="module-icon">
+                <div class="chat-online__module-item" data-module="5" onclick="selectSimpleModule(5)">
+                    <div class="chat-online__module-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M8 5v14l11-7z"/>
                         </svg>
                     </div>
-                    <div class="module-info">
+                    <div class="chat-online__module-info">
                         <h4>Redes Neuronales</h4>
-                        <p class="module-description">Vídeo • 25 min</p>
+                        <p class="chat-online__module-description">Vídeo • 25 min</p>
                     </div>
                 </div>
                 
-                <div class="module-item" data-module="6" onclick="selectSimpleModule(6)">
-                    <div class="module-icon">
+                <div class="chat-online__module-item" data-module="6" onclick="selectSimpleModule(6)">
+                    <div class="chat-online__module-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
                             <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="2"/>
                         </svg>
                     </div>
-                    <div class="module-info">
+                    <div class="chat-online__module-info">
                         <h4>Evaluación Final</h4>
-                        <p class="module-description">Quiz • 20 min</p>
+                        <p class="chat-online__module-description">Quiz • 20 min</p>
                     </div>
                 </div>
             `;
@@ -9468,7 +9468,7 @@ window.selectSimpleModule = function(moduleId) {
     console.log(`📚 Seleccionando módulo simple: ${moduleId}`);
     
     // Remover estado actual de todos los módulos
-    document.querySelectorAll('.module-item').forEach(module => {
+    document.querySelectorAll('.chat-online__module-item').forEach(module => {
         module.classList.remove('current');
     });
     
@@ -9567,7 +9567,7 @@ async function getFirstVideoIdFromDatabase(moduleNumber) {
             return '/api';
         }
     }
-}
+};
 
 console.log('✅ Funciones del sistema simple de módulos definidas');
 

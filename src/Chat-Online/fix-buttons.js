@@ -511,7 +511,7 @@ function renderQuestionsDirectly(questions) {
                 <h3>No hay preguntas aún</h3>
                 <p>Sé el primero en hacer una pregunta sobre este módulo</p>
                 <button class="btn-primary" onclick="showQuestionModal()">
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -589,14 +589,14 @@ function createBasicQuestionHTML(question) {
             </div>
             
             <div class="question-actions">
-                <button class="action-btn vote-btn" data-question-id="${question.id}">
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="chat-online__action-btn vote-btn" data-question-id="${question.id}">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="7,10 12,5 17,10"/>
                     </svg>
                     <span>${question.vote_count || 0}</span>
                 </button>
-                <button class="action-btn answer-btn" data-question-id="${question.id}">
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="chat-online__action-btn answer-btn" data-question-id="${question.id}">
+                    <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 3h18v18l-3-3H3V3z"/>
                     </svg>
                     Responder
@@ -664,11 +664,11 @@ async function submitQuestion() {
     
     try {
         // Usar la API de comunidad existente si está disponible
-        if (window.communityAPI) {
+        if (window.communityAPI && typeof window.communityAPI.setCurrentUser === 'function') {
             console.log('🔗 Usando communityAPI para enviar pregunta...');
             
             // Asegurar que communityAPI tenga configurado el usuario
-            window.communityAPI.setUserId(currentUser.id);
+            window.communityAPI.setCurrentUser(currentUser);
             
             const questionData = {
                 title: title,
@@ -760,6 +760,12 @@ async function submitQuestion() {
             console.log('🔗 Usando función original submitQuestion...');
             await window.chatOnline.submitQuestion();
         } else {
+            console.error('❌ communityAPI no disponible:', {
+                communityAPI: !!window.communityAPI,
+                setCurrentUser: window.communityAPI ? typeof window.communityAPI.setCurrentUser : 'N/A',
+                chatOnline: !!window.chatOnline,
+                submitQuestion: window.chatOnline ? typeof window.chatOnline.submitQuestion : 'N/A'
+            });
             throw new Error('No se encontró método para enviar pregunta');
         }
     } catch (error) {
@@ -776,15 +782,15 @@ function startNewLiaChat() {
     if (messagesContainer) {
         // Limpiar mensajes y mostrar mensaje inicial
         messagesContainer.innerHTML = `
-            <div class="lia-message">
-                <div class="lia-avatar">
-                    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            <div class="chat-online__lia-message">
+                <div class="chat-online__lia-avatar">
+                    <img src="../assets/images/FOTO LIA.png" alt="LIA" class="chat-online__lia-avatar-img">
                 </div>
-                <div class="message-content">
-                    <div class="message-text">
+                <div class="chat-online__message-content">
+                    <div class="chat-online__message-text">
                         ¡Hola! Soy LIA, tu tutora personalizada. ¿En qué puedo ayudarte hoy? 🤖✨
                     </div>
-                    <div class="message-time">ahora</div>
+                    <div class="chat-online__message-time">ahora</div>
                 </div>
             </div>
         `;
@@ -905,9 +911,9 @@ function sendMessageToLia() {
     }
     
     userMessage.innerHTML = `
-        <div class="message-content">
-            <div class="message-text">${mensaje}</div>
-            <div class="message-time">ahora</div>
+        <div class="chat-online__message-content">
+            <div class="chat-online__message-text">${mensaje}</div>
+            <div class="chat-online__message-time">ahora</div>
         </div>
         <div class="user-avatar">
             ${avatarHTML}
@@ -934,12 +940,12 @@ function sendMessageToLia() {
         const errorMessage = document.createElement('div');
         errorMessage.className = 'lia-message error';
         errorMessage.innerHTML = `
-            <div class="lia-avatar">
-                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="lia-avatar-img">
+            <div class="chat-online__lia-avatar">
+                <img src="../assets/images/FOTO LIA.png" alt="LIA" class="chat-online__lia-avatar-img">
             </div>
-            <div class="message-content">
-                <div class="message-text">❌ Lo siento, el sistema de LIA no está disponible en este momento. Por favor, recarga la página.</div>
-                <div class="message-time">ahora</div>
+            <div class="chat-online__message-content">
+                <div class="chat-online__message-text">❌ Lo siento, el sistema de LIA no está disponible en este momento. Por favor, recarga la página.</div>
+                <div class="chat-online__message-time">ahora</div>
             </div>
         `;
         messagesContainer.appendChild(errorMessage);
@@ -1096,7 +1102,7 @@ function displayNoteInList(note) {
         </div>
         <div class="note-actions">
             <button class="note-delete-btn" onclick="deleteNote(${note.id})" title="Eliminar nota">
-                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18"/>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
                     <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -1417,26 +1423,26 @@ async function forceRenderQuestions(questions) {
                                     </svg>
                                 </button>
                             </div>
-                            <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="chat-online__action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                 </svg>
                             </button>
-                            <button class="action-btn bookmark-btn" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="chat-online__action-btn chat-online__action-btn--bookmark" title="Guardar pregunta" onclick="toggleBookmark('${question.id}')">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                 </svg>
                             </button>
                         </div>
                         <div class="question-stats">
                             <span class="stat-item question-answers clickable" onclick="showQuestionAnswers('${question.id}')" title="Ver respuestas" style="cursor: pointer;">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                 </svg>
                                 ${question.answers_count || 0} respuestas
                             </span>
                             <span class="stat-item">
-                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
@@ -1567,21 +1573,21 @@ function createDetailedQuestionHTML(question) {
                             </button>
                             <span class="vote-count">${question.votes_count || 0}</span>
                         </div>
-                        <button class="action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button class="chat-online__action-btn answer-btn" title="Responder pregunta" onclick="showAnswerModal('${question.id}', '${question.title}', '${question.content}')">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
                         </button>
                     </div>
                     <div class="question-stats">
                         <span class="stat-item question-answers clickable" onclick="showQuestionAnswers('${question.id}')" title="Ver respuestas" style="cursor: pointer;">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
                             ${question.answers_count || 0} respuestas
                         </span>
                         <span class="stat-item">
-                            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="chat-online__icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>

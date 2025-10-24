@@ -1,0 +1,423 @@
+/* ===== CHAT-MESSAGES.CSS - Estilos para formato markdown y mensajes de chat ===== */
+
+/* ===== ESTILOS PARA FORMATO MARKDOWN EN RESPUESTAS DE LIA ===== */
+.lia-main-title {
+    color: #44e5ff;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 1rem 0 0.7rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 3px solid rgba(68, 229, 255, 0.4);
+    text-shadow: 0 1px 3px rgba(68, 229, 255, 0.3);
+}
+
+.lia-subtitle {
+    color: #0066CC;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0.8rem 0 0.5rem 0;
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid rgba(0, 102, 204, 0.3);
+}
+
+.lia-title {
+    color: #44e5ff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.7rem 0 0.4rem 0;
+    padding-bottom: 0.2rem;
+    border-bottom: 1px solid rgba(68, 229, 255, 0.2);
+}
+
+.lia-title-h4 {
+    color: #0088DD;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0.6rem 0 0.3rem 0;
+}
+
+.lia-title-h5 {
+    color: #66AAFF;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.lia-title-h6 {
+    color: #99CCFF;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0.4rem 0 0.2rem 0;
+}
+
+.lia-paragraph {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+    color: #ffffff;
+}
+
+.lia-list {
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+}
+
+.lia-list-item {
+    margin: 0.3rem 0;
+    line-height: 1.5;
+    color: #ffffff;
+}
+
+/* Numeración nativa para listas ordenadas */
+.lia-list ol {
+    list-style-type: decimal;
+    color: #44e5ff;
+}
+
+.lia-list ul {
+    list-style-type: disc;
+    color: #44e5ff;
+}
+
+.lia-list li::marker {
+    color: #44e5ff;
+}
+
+/* Asegurar que las negritas y cursivas se vean bien */
+.message-text strong {
+    color: #44e5ff;
+    font-weight: 700;
+    font-size: inherit;
+}
+
+.message-text em {
+    color: #ffffff;
+    font-style: italic;
+    opacity: 0.9;
+    font-size: inherit;
+}
+
+/* Controlar tamaño de títulos en mensajes para evitar texto excesivamente grande */
+.message-text .lia-main-title {
+    font-size: 1.1rem !important;
+    line-height: 1.4;
+    font-weight: 700;
+    margin: 0.6rem 0 0.4rem 0;
+}
+
+.message-text .lia-subtitle {
+    font-size: 1rem !important;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 0.5rem 0 0.3rem 0;
+}
+
+.message-text .lia-title {
+    font-size: 0.95rem !important;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 0.4rem 0 0.25rem 0;
+}
+
+.message-text .lia-title-h4 {
+    font-size: 0.9rem !important;
+    line-height: 1.4;
+    font-weight: 500;
+    margin: 0.3rem 0 0.2rem 0;
+}
+
+.message-text .lia-title-h5 {
+    font-size: 0.85rem !important;
+    line-height: 1.4;
+    font-weight: 500;
+    margin: 0.25rem 0 0.15rem 0;
+}
+
+.message-text .lia-title-h6 {
+    font-size: 0.8rem !important;
+    line-height: 1.4;
+    font-weight: 500;
+    margin: 0.2rem 0 0.1rem 0;
+}
+
+/* Asegurar tamaño de texto base normal en mensajes */
+.message-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.message-text .lia-paragraph {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* ===== ESTILOS PARA MENSAJES DE CHAT (SOLO PARA #liaMessages) ===== */
+#liaMessages .message {
+    margin-bottom: 1.5rem;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    transition: all 0.3s ease;
+}
+
+#liaMessages .user-message {
+    background: none;
+    border: none;
+    margin-left: auto;
+    max-width: 85%;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    flex-direction: row;
+}
+
+#liaMessages .user-message:hover {
+    background: none;
+    border: none;
+    transform: none;
+}
+
+#liaMessages .message-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #ffffff;
+    margin-top: 8px;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    display: block !important;
+}
+
+/* Hacer que los mensajes del chat tengan el mismo diseño que los de arriba */
+#liaMessages .message-content {
+    background: linear-gradient(135deg, rgba(68, 229, 255, 0.08) 0%, rgba(68, 229, 255, 0.03) 100%) !important;
+    border: 1px solid rgba(68, 229, 255, 0.15) !important;
+    border-radius: 16px !important;
+    padding: 0.75rem 1rem !important;
+    backdrop-filter: var(--glass-blur-light) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    flex: 1 !important;
+    transition: all 0.3s ease !important;
+}
+
+#liaMessages .user-message .message-content {
+    background: rgba(0, 102, 204, 0.2) !important;
+    border-color: rgba(0, 102, 204, 0.4) !important;
+    margin-left: auto !important;
+    max-width: 80% !important;
+    flex: 1;
+}
+
+/* Avatar circular para usuario (solo en chat) */
+#liaMessages .user-avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #0066CC;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+/* Avatar con foto del usuario */
+#liaMessages .user-avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(0, 102, 204, 0.3);
+    margin-right: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mejorar la estructura de header de pregunta para mensajes de chat */
+#liaMessages .user-message .question-header {
+    margin-bottom: 0;
+}
+
+#liaMessages .user-message .question-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+#liaMessages .user-message .question-author {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+#liaMessages .user-message .author-name {
+    color: var(--glass-primary, #44e5ff);
+    font-weight: 600;
+}
+
+#liaMessages .user-message .question-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Estilos específicos para mensajes de LIA (solo en chat) */
+#liaMessages .lia-message {
+    background: none;
+    border: none;
+    margin-right: auto;
+    max-width: 85%;
+    position: relative;
+}
+
+#liaMessages .lia-message:hover {
+    background: none;
+    border: none;
+    transform: none;
+}
+
+#liaMessages .lia-message .author-name {
+    color: #44e5ff;
+    font-weight: 600;
+}
+
+#liaMessages .lia-message .author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones de acción para mensajes de LIA */
+#liaMessages .lia-message .message-actions {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--glass-bg-primary);
+    border: var(--glass-border-subtle);
+    border-radius: 8px;
+    padding: 4px;
+    display: none;
+    gap: 4px;
+    box-shadow: var(--glass-shadow-small);
+    backdrop-filter: var(--glass-blur);
+    z-index: 10;
+}
+
+#liaMessages .lia-message:hover .message-actions {
+    display: flex;
+}
+
+#liaMessages .lia-message .message-action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--glass-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+#liaMessages .lia-message .message-action-btn:hover {
+    background: rgba(0, 102, 204, 0.1);
+    color: #0066CC;
+    transform: scale(1.1);
+}
+
+#liaMessages .lia-message .message-action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Tooltip para botones */
+#liaMessages .lia-message .message-action-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+#liaMessages .lia-message .message-action-btn:hover::after {
+    opacity: 1;
+}
+
+/* Responsive para mensajes de chat */
+@media (max-width: 768px) {
+    #liaMessages .message {
+        padding: 0;
+        margin-bottom: 1rem;
+    }
+
+    #liaMessages .user-message {
+        max-width: 95%;
+    }
+
+    #liaMessages .user-avatar-circle {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        margin-right: 10px;
+    }
+
+    #liaMessages .user-avatar-img {
+        width: 32px;
+        height: 32px;
+        margin-right: 10px;
+    }
+
+    #liaMessages .message-text {
+        font-size: 13px;
+    }
+
+    #liaMessages .user-message .question-author {
+        font-size: 13px;
+    }
+
+    #liaMessages .lia-message .author-avatar {
+        width: 32px;
+        height: 32px;
+        margin-right: 10px;
+    }
+
+    /* Botones de acción responsivos */
+    #liaMessages .lia-message .message-actions {
+        top: -6px;
+        right: -6px;
+        padding: 2px;
+    }
+
+    #liaMessages .lia-message .message-action-btn {
+        width: 24px;
+        height: 24px;
+    }
+
+    #liaMessages .lia-message .message-action-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+}

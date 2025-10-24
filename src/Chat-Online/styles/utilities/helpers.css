@@ -1,0 +1,633 @@
+/* ===== HELPERS.CSS - Estilos de utilidades, filtros y animaciones globales ===== */
+
+/* ===== ESTILOS MEJORADOS PARA FILTROS DE COMUNIDAD ===== */
+.chat-online__filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    border-radius: 14px;
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 102, 204, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-online__filters::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #0066CC, rgba(0, 102, 204, 0.6), transparent);
+    border-radius: 16px 16px 0 0;
+}
+
+/* ===== PESTAÑAS DE FILTROS MEJORADAS ===== */
+.chat-online__filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 102, 204, 0.1);
+    position: relative;
+    overflow: hidden;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.chat-online__filter-tabs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(0, 102, 204, 0.05), transparent);
+    opacity: 0.5;
+}
+
+.chat-online__filter-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    flex: 1;
+    justify-content: center;
+    min-height: 42px;
+    box-shadow: 0 3px 12px rgba(0, 102, 204, 0.15);
+    min-width: 160px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.chat-online__filter-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.chat-online__filter-tab:hover::before {
+    left: 100%;
+}
+
+.chat-online__filter-tab:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.25), rgba(0, 102, 204, 0.15));
+    border-color: rgba(0, 102, 204, 0.5);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+}
+
+.chat-online__filter-tab--active {
+    background: linear-gradient(135deg, #0066CC, rgba(0, 102, 204, 0.8));
+    border-color: #0066CC;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4), 0 0 0 1px rgba(0, 102, 204, 0.5);
+    transform: translateY(-2px);
+}
+
+.chat-online__filter-tab--active::before {
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.2), transparent);
+}
+
+.chat-online__filter-tab svg {
+    width: 18px;
+    height: 18px;
+    transition: all 0.3s ease;
+}
+
+.chat-online__filter-tab:hover svg {
+    transform: scale(1.1);
+}
+
+.chat-online__filter-tab--active svg {
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.chat-online__filters--advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ===== CONTROLES DE FILTROS MEJORADOS ===== */
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 102, 204, 0.1);
+    position: relative;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+}
+
+.filter-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.3), transparent);
+    border-radius: 12px 12px 0 0;
+}
+
+.module-filter, .date-filter, .tag-filter {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    min-width: 180px;
+    box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
+    flex: 1;
+    height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+.module-filter::before, .date-filter::before, .tag-filter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.module-filter:hover::before, .date-filter:hover::before, .tag-filter:hover::before {
+    left: 100%;
+}
+
+.module-filter:hover, .date-filter:hover, .tag-filter:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.25), rgba(0, 102, 204, 0.15));
+    border-color: rgba(0, 102, 204, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+}
+
+.module-filter:focus, .date-filter:focus, .tag-filter:focus {
+    outline: none;
+    border-color: #0066CC;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 102, 204, 0.2));
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.4), 0 8px 25px rgba(0, 102, 204, 0.4);
+    transform: translateY(-2px);
+}
+
+.module-filter option, .date-filter option, .tag-filter option {
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: #ffffff !important;
+    padding: 0.5rem !important;
+    font-weight: 500 !important;
+}
+
+/* Estilos para el dropdown del select */
+.module-filter, .date-filter, .tag-filter, #statusFilter, #sortSelect {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+}
+
+/* Estilos para otros elementos select */
+#statusFilter, #sortSelect {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    min-width: 180px;
+    box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
+    flex: 1;
+    height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+#statusFilter:hover, #sortSelect:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.25), rgba(0, 102, 204, 0.15));
+    border-color: rgba(0, 102, 204, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+}
+
+#statusFilter:focus, #sortSelect:focus {
+    outline: none;
+    border-color: #0066CC;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 102, 204, 0.2));
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.4), 0 8px 25px rgba(0, 102, 204, 0.4);
+    transform: translateY(-2px);
+}
+
+#statusFilter option, #sortSelect option {
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: #ffffff !important;
+    padding: 0.5rem !important;
+    font-weight: 500 !important;
+}
+
+/* ===== BOTÓN DE BÚSQUEDA MEJORADO ===== */
+.search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    border-radius: 6px;
+    color: #0066CC;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.search-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.search-btn:hover::before {
+    left: 100%;
+}
+
+.search-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 102, 204, 0.2));
+    border-color: #0066CC;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+}
+
+.search-btn:active {
+    transform: translateY(0) scale(1);
+}
+
+.search-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover svg {
+    transform: scale(1.1);
+}
+
+.filter-controls-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.advanced-toggle {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.08));
+    border: 1px solid rgba(0, 102, 204, 0.3);
+    color: #0066CC;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 3px 12px rgba(0, 102, 204, 0.2);
+    min-width: 120px;
+    height: 48px;
+}
+
+.advanced-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.advanced-toggle:hover::before {
+    left: 100%;
+}
+
+.advanced-toggle:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 102, 204, 0.1));
+    border-color: #0066CC;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
+}
+
+/* ===== PANEL AVANZADO MEJORADO ===== */
+.advanced-panel {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
+    border-radius: 8px;
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* ===== ANIMACIONES GLOBALES ===== */
+
+/* Animación de fade in/out */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Animación de slide in/out */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animación de spin */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animación de pulse */
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* Animación de shimmer */
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* ===== CLASES DE UTILIDAD ===== */
+
+/* Utilidades de display */
+.chat-online__hidden {
+    display: none !important;
+}
+
+.chat-online__visible {
+    display: block !important;
+}
+
+/* Utilidades de flexbox */
+.chat-online__flex {
+    display: flex;
+}
+
+.chat-online__flex-col {
+    flex-direction: column;
+}
+
+.chat-online__flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Utilidades de espaciado */
+.chat-online__gap-1 {
+    gap: 0.25rem;
+}
+
+.chat-online__gap-2 {
+    gap: 0.5rem;
+}
+
+.chat-online__gap-3 {
+    gap: 0.75rem;
+}
+
+.chat-online__gap-4 {
+    gap: 1rem;
+}
+
+/* Utilidades de texto */
+.chat-online__text-center {
+    text-align: center;
+}
+
+.chat-online__text-left {
+    text-align: left;
+}
+
+.chat-online__text-right {
+    text-align: right;
+}
+
+/* Utilidades de overflow */
+.chat-online__overflow-hidden {
+    overflow: hidden;
+}
+
+.chat-online__overflow-auto {
+    overflow: auto;
+}
+
+/* ===== CLASES DE ANIMACIÓN ===== */
+.chat-online__animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.chat-online__animate-fade-out {
+    animation: fadeOut 0.3s ease-out;
+}
+
+.chat-online__animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+}
+
+.chat-online__animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+.chat-online__animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.chat-online__animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+
+/* Ocultar en móvil */
+@media (max-width: 768px) {
+    .chat-online__hide-mobile {
+        display: none !important;
+    }
+}
+
+/* Ocultar en desktop */
+@media (min-width: 769px) {
+    .chat-online__hide-desktop {
+        display: none !important;
+    }
+}
+
+/* ===== ESTILOS DE ACCESIBILIDAD ===== */
+.chat-online__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ===== ESTADOS DE CARGA ===== */
+.chat-online__loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.chat-online__loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 102, 204, 0.2);
+    border-top: 4px solid #0066CC;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ===== TRANSICIONES SUAVES ===== */
+.chat-online__transition-all {
+    transition: all 0.3s ease;
+}
+
+.chat-online__transition-fast {
+    transition: all 0.15s ease;
+}
+
+.chat-online__transition-slow {
+    transition: all 0.5s ease;
+}
